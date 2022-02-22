@@ -33,6 +33,14 @@ seqs.recode_kmers(length=500)  # break seqs into n-length substrings
 seqs.recode_something…         # other encodings as we think of them
 ```
 
+## Problem
+
+There are a lot of packages which encode image and natural language data into `python` objects for input into popular deep learning frameworks such as `pytorch` and `tensorflow`. There are no known packages which do the same thing for biological sequence data.
+
+For example, genomic data are commonly represented as `bam`, `bed`, `fasta`, `fastq`, `sam`, `gtf`, `gff` files, or other genomic representations. In some cases, the raw sequence may not even be inherently present and require further processing (eg in the case of `bed` files, it records coordinates which need to be matched to a reference file or database to extract the actual data) or if we want to encode fasta sequences into images or text. (Descriptions of these file formats are publicly available.)
+
+Sample metadata is also inconsistent even within file formats of the same version. For example, in `fasta/q` files, naming conventions are inconsistent. In `sam/bam/gff/gtf` files, arbitrary fields can be added. For this part, it is impossible to account for all possible cases, so these should be specified in a constant format as minimum input requirement. Alternatively, metadata can be ignored and a specific metadata format can be created by us to restrict input.
+
 ## Planning
 
 - Recode on the fly (probably start with this) or generate a binary object for easier loading next time (can worry about this later)? Eg hdf5 or TFRecord file
