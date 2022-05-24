@@ -26,6 +26,18 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 
 Generic usage (this is just an example only, not restricted to this specific workflow):
 
+## Tokenisers/Embeddings used:
+
+- word2vec from dna2vec (https://github.com/pnpnpn/dna2vec)
+- TFIDF
+- Countvectorizer
+- Fastext
+- Elmo
+- Glove
+- BERT
+
+
+
 ```
 import RecodeSeqs
 seqs = RecodeSeqs(a_BioPython_seq_object)
