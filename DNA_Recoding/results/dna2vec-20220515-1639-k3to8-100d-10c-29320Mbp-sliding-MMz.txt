@@ -1,0 +1,235 @@
+[2022-05-15 16:39:09.244655] INFO: Generic: ./scripts/train_dna2vec.py -c configs/hg38-20161219-0153.yml
+[2022-05-15 16:39:09.244730] INFO: Generic: kmer fragmenter: sliding
+[2022-05-15 16:39:09.244757] INFO: SeqGenerator: Number of epochs: 10
+[2022-05-15 16:39:09.244778] INFO: Learner: word2vec.FAST_VERSION (should be >= 0): 1
+[2022-05-15 16:39:09.244795] INFO: Learner: Context window half size: 10
+[2022-05-15 16:39:09.244810] INFO: Learner: Use skipgram: 1
+[2022-05-15 16:39:09.244824] INFO: Learner: gensim_iters: 1
+[2022-05-15 16:39:09.244837] INFO: Learner: vec_dim: 100
+[2022-05-15 16:39:09.245086] INFO: gensim.models.word2vec: collecting all words and their counts
+[2022-05-15 16:39:09.245225] INFO: SeqGenerator: Opened file: inputs/hg38/chr4.fa
+[2022-05-15 16:39:09.245250] INFO: SeqGenerator: Memory usage: 84.082688 MB
+[2022-05-15 16:39:09.245268] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 16:39:10.413909] INFO: SeqGenerator: Whole fasta seqlen: 190214555
+[2022-05-15 16:39:10.423881] INFO: gensim.models.word2vec: PROGRESS: at sentence #0, processed 0 words, keeping 0 word types
+[2022-05-15 16:40:09.816154] INFO: gensim.models.word2vec: PROGRESS: at sentence #10000, processed 37398562 words, keeping 87099 word types
+[2022-05-15 16:41:08.864831] INFO: gensim.models.word2vec: PROGRESS: at sentence #20000, processed 74755942 words, keeping 87265 word types
+[2022-05-15 16:42:14.775498] INFO: gensim.models.word2vec: PROGRESS: at sentence #30000, processed 112189550 words, keeping 87316 word types
+[2022-05-15 16:43:15.143867] INFO: gensim.models.word2vec: PROGRESS: at sentence #40000, processed 149560294 words, keeping 87340 word types
+[2022-05-15 16:44:19.086392] INFO: gensim.models.word2vec: PROGRESS: at sentence #50000, processed 187064261 words, keeping 87352 word types
+[2022-05-15 16:44:23.519812] INFO: SeqGenerator: Opened file: inputs/hg38/chr18.fa
+[2022-05-15 16:44:23.521882] INFO: SeqGenerator: Memory usage: 923.549696 MB
+[2022-05-15 16:44:23.521916] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 16:44:23.996031] INFO: SeqGenerator: Whole fasta seqlen: 80373285
+[2022-05-15 16:45:22.155974] INFO: gensim.models.word2vec: PROGRESS: at sentence #60000, processed 224338095 words, keeping 87358 word types
+[2022-05-15 16:46:24.278253] INFO: gensim.models.word2vec: PROGRESS: at sentence #70000, processed 261814189 words, keeping 87358 word types
+[2022-05-15 16:46:37.003060] INFO: SeqGenerator: Opened file: inputs/hg38/chr1.fa
+[2022-05-15 16:46:37.003789] INFO: SeqGenerator: Memory usage: 923.549696 MB
+[2022-05-15 16:46:37.003819] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 16:46:38.492787] INFO: SeqGenerator: Whole fasta seqlen: 248956422
+[2022-05-15 16:47:28.831314] INFO: gensim.models.word2vec: PROGRESS: at sentence #80000, processed 299222167 words, keeping 87360 word types
+[2022-05-15 16:48:39.279722] INFO: gensim.models.word2vec: PROGRESS: at sentence #90000, processed 336631789 words, keeping 87360 word types
+[2022-05-15 16:49:51.634976] INFO: gensim.models.word2vec: PROGRESS: at sentence #100000, processed 374065388 words, keeping 87360 word types
+[2022-05-15 16:50:54.700353] INFO: gensim.models.word2vec: PROGRESS: at sentence #110000, processed 411117185 words, keeping 87360 word types
+[2022-05-15 16:52:00.500596] INFO: gensim.models.word2vec: PROGRESS: at sentence #120000, processed 448511216 words, keeping 87360 word types
+[2022-05-15 16:53:04.798963] INFO: gensim.models.word2vec: PROGRESS: at sentence #130000, processed 485888580 words, keeping 87360 word types
+[2022-05-15 16:53:28.219306] INFO: SeqGenerator: Opened file: inputs/hg38/chr5.fa
+[2022-05-15 16:53:28.220780] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 16:53:28.220814] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 16:53:29.309986] INFO: SeqGenerator: Whole fasta seqlen: 181538259
+[2022-05-15 16:54:09.804053] INFO: gensim.models.word2vec: PROGRESS: at sentence #140000, processed 523291157 words, keeping 87360 word types
+[2022-05-15 16:55:13.494099] INFO: gensim.models.word2vec: PROGRESS: at sentence #150000, processed 560608796 words, keeping 87360 word types
+[2022-05-15 16:56:15.665356] INFO: gensim.models.word2vec: PROGRESS: at sentence #160000, processed 598036695 words, keeping 87360 word types
+[2022-05-15 16:57:18.541199] INFO: gensim.models.word2vec: PROGRESS: at sentence #170000, processed 635554847 words, keeping 87360 word types
+[2022-05-15 16:58:22.171967] INFO: gensim.models.word2vec: PROGRESS: at sentence #180000, processed 672833958 words, keeping 87360 word types
+[2022-05-15 16:58:35.056818] INFO: SeqGenerator: Opened file: inputs/hg38/chr19.fa
+[2022-05-15 16:58:35.057761] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 16:58:35.057810] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 16:58:35.392234] INFO: SeqGenerator: Whole fasta seqlen: 58617616
+[2022-05-15 17:01:43.187167] INFO: gensim.models.word2vec: PROGRESS: at sentence #190000, processed 710171215 words, keeping 87360 word types
+[2022-05-15 17:02:30.421005] INFO: SeqGenerator: Opened file: inputs/hg38/chr12.fa
+[2022-05-15 17:02:30.422401] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 17:02:30.422438] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 17:02:31.161540] INFO: SeqGenerator: Whole fasta seqlen: 133275309
+[2022-05-15 17:02:46.278403] INFO: gensim.models.word2vec: PROGRESS: at sentence #200000, processed 747659642 words, keeping 87360 word types
+[2022-05-15 17:03:48.718347] INFO: gensim.models.word2vec: PROGRESS: at sentence #210000, processed 784974233 words, keeping 87360 word types
+[2022-05-15 17:04:50.149095] INFO: gensim.models.word2vec: PROGRESS: at sentence #220000, processed 822318467 words, keeping 87360 word types
+[2022-05-15 17:05:51.712081] INFO: gensim.models.word2vec: PROGRESS: at sentence #230000, processed 859660935 words, keeping 87360 word types
+[2022-05-15 17:06:12.606686] INFO: SeqGenerator: Opened file: inputs/hg38/chr16.fa
+[2022-05-15 17:06:12.607420] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 17:06:12.607450] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 17:06:13.118540] INFO: SeqGenerator: Whole fasta seqlen: 90338345
+[2022-05-15 17:06:55.272971] INFO: gensim.models.word2vec: PROGRESS: at sentence #240000, processed 897018175 words, keeping 87360 word types
+[2022-05-15 17:07:55.930613] INFO: gensim.models.word2vec: PROGRESS: at sentence #250000, processed 934439520 words, keeping 87360 word types
+[2022-05-15 17:08:28.344429] INFO: SeqGenerator: Opened file: inputs/hg38/chr22.fa
+[2022-05-15 17:08:28.344727] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 17:08:28.344757] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 17:08:28.649359] INFO: SeqGenerator: Whole fasta seqlen: 50818468
+[2022-05-15 17:09:00.390960] INFO: gensim.models.word2vec: PROGRESS: at sentence #260000, processed 971676036 words, keeping 87360 word types
+[2022-05-15 17:09:34.679912] INFO: SeqGenerator: Opened file: inputs/hg38/chr17.fa
+[2022-05-15 17:09:34.680095] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 17:09:34.680121] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 17:09:35.169373] INFO: SeqGenerator: Whole fasta seqlen: 83257441
+[2022-05-15 17:10:03.501346] INFO: gensim.models.word2vec: PROGRESS: at sentence #270000, processed 1008931478 words, keeping 87360 word types
+[2022-05-15 17:11:07.310588] INFO: gensim.models.word2vec: PROGRESS: at sentence #280000, processed 1046243425 words, keeping 87360 word types
+[2022-05-15 17:11:56.411214] INFO: SeqGenerator: Opened file: inputs/hg38/chr13.fa
+[2022-05-15 17:11:56.411532] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 17:11:56.411569] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 17:11:57.097823] INFO: SeqGenerator: Whole fasta seqlen: 114364328
+[2022-05-15 17:12:11.766271] INFO: gensim.models.word2vec: PROGRESS: at sentence #290000, processed 1083588412 words, keeping 87360 word types
+[2022-05-15 17:13:12.909036] INFO: gensim.models.word2vec: PROGRESS: at sentence #300000, processed 1120943608 words, keeping 87360 word types
+[2022-05-15 17:14:13.589331] INFO: gensim.models.word2vec: PROGRESS: at sentence #310000, processed 1158380238 words, keeping 87360 word types
+[2022-05-15 17:14:37.160471] INFO: SeqGenerator: Opened file: inputs/hg38/chr8.fa
+[2022-05-15 17:14:37.160577] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 17:14:37.160598] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 17:14:37.981174] INFO: SeqGenerator: Whole fasta seqlen: 145138636
+[2022-05-15 17:15:15.035081] INFO: gensim.models.word2vec: PROGRESS: at sentence #320000, processed 1195744805 words, keeping 87360 word types
+[2022-05-15 17:17:07.394851] INFO: gensim.models.word2vec: PROGRESS: at sentence #330000, processed 1233035645 words, keeping 87360 word types
+[2022-05-15 17:20:17.745230] INFO: gensim.models.word2vec: PROGRESS: at sentence #340000, processed 1270482457 words, keeping 87360 word types
+[2022-05-15 19:09:31.487630] INFO: gensim.models.word2vec: PROGRESS: at sentence #350000, processed 1307886281 words, keeping 87360 word types
+[2022-05-15 19:15:15.465794] INFO: SeqGenerator: Opened file: inputs/hg38/chr14.fa
+[2022-05-15 19:15:15.468297] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:15:15.468344] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:15:16.163717] INFO: SeqGenerator: Whole fasta seqlen: 107043718
+[2022-05-15 19:16:11.626827] INFO: gensim.models.word2vec: PROGRESS: at sentence #360000, processed 1345237217 words, keeping 87360 word types
+[2022-05-15 19:17:14.539806] INFO: gensim.models.word2vec: PROGRESS: at sentence #370000, processed 1382740237 words, keeping 87360 word types
+[2022-05-15 19:17:56.423988] INFO: SeqGenerator: Opened file: inputs/hg38/chr20.fa
+[2022-05-15 19:17:56.424867] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:17:56.424904] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:17:56.822937] INFO: SeqGenerator: Whole fasta seqlen: 64444167
+[2022-05-15 19:18:16.974135] INFO: gensim.models.word2vec: PROGRESS: at sentence #380000, processed 1420077575 words, keeping 87360 word types
+[2022-05-15 19:19:17.462886] INFO: gensim.models.word2vec: PROGRESS: at sentence #390000, processed 1457172088 words, keeping 87360 word types
+[2022-05-15 19:19:40.985310] INFO: SeqGenerator: Opened file: inputs/hg38/chr10.fa
+[2022-05-15 19:19:40.985436] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:19:40.985456] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:19:41.763507] INFO: SeqGenerator: Whole fasta seqlen: 133797422
+[2022-05-15 19:20:19.052404] INFO: gensim.models.word2vec: PROGRESS: at sentence #400000, processed 1494483166 words, keeping 87360 word types
+[2022-05-15 19:21:20.364030] INFO: gensim.models.word2vec: PROGRESS: at sentence #410000, processed 1531693527 words, keeping 87360 word types
+[2022-05-15 19:22:22.137999] INFO: gensim.models.word2vec: PROGRESS: at sentence #420000, processed 1569068112 words, keeping 87360 word types
+[2022-05-15 19:23:20.823558] INFO: SeqGenerator: Opened file: inputs/hg38/chr11.fa
+[2022-05-15 19:23:20.824495] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:23:20.824543] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:23:21.647208] INFO: SeqGenerator: Whole fasta seqlen: 135086622
+[2022-05-15 19:23:25.373896] INFO: gensim.models.word2vec: PROGRESS: at sentence #430000, processed 1606432623 words, keeping 87360 word types
+[2022-05-15 19:36:36.572903] INFO: gensim.models.word2vec: PROGRESS: at sentence #440000, processed 1643891492 words, keeping 87360 word types
+[2022-05-15 19:37:39.163584] INFO: gensim.models.word2vec: PROGRESS: at sentence #450000, processed 1681318679 words, keeping 87360 word types
+[2022-05-15 19:38:40.618172] INFO: gensim.models.word2vec: PROGRESS: at sentence #460000, processed 1718570567 words, keeping 87360 word types
+[2022-05-15 19:39:13.662747] INFO: SeqGenerator: Opened file: inputs/hg38/chr9.fa
+[2022-05-15 19:39:13.663837] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:39:13.663875] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:39:14.386684] INFO: SeqGenerator: Whole fasta seqlen: 138394717
+[2022-05-15 19:39:41.883003] INFO: gensim.models.word2vec: PROGRESS: at sentence #470000, processed 1755916990 words, keeping 87360 word types
+[2022-05-15 19:40:43.722201] INFO: gensim.models.word2vec: PROGRESS: at sentence #480000, processed 1793200196 words, keeping 87360 word types
+[2022-05-15 19:41:44.297880] INFO: gensim.models.word2vec: PROGRESS: at sentence #490000, processed 1830618592 words, keeping 87360 word types
+[2022-05-15 19:42:34.452464] INFO: SeqGenerator: Opened file: inputs/hg38/chr15.fa
+[2022-05-15 19:42:34.453517] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:42:34.453568] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:42:35.060228] INFO: SeqGenerator: Whole fasta seqlen: 101991189
+[2022-05-15 19:42:48.006961] INFO: gensim.models.word2vec: PROGRESS: at sentence #500000, processed 1868023210 words, keeping 87360 word types
+[2022-05-15 19:43:52.228496] INFO: gensim.models.word2vec: PROGRESS: at sentence #510000, processed 1905359096 words, keeping 87360 word types
+[2022-05-15 19:44:53.857682] INFO: gensim.models.word2vec: PROGRESS: at sentence #520000, processed 1942821429 words, keeping 87360 word types
+[2022-05-15 19:44:57.610299] INFO: SeqGenerator: Opened file: inputs/hg38/chr21.fa
+[2022-05-15 19:44:57.611071] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:44:57.611096] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:44:57.861595] INFO: SeqGenerator: Whole fasta seqlen: 46709983
+[2022-05-15 19:45:59.761478] INFO: gensim.models.word2vec: PROGRESS: at sentence #530000, processed 1980104444 words, keeping 87360 word types
+[2022-05-15 19:46:08.426292] INFO: SeqGenerator: Opened file: inputs/hg38/chr2.fa
+[2022-05-15 19:46:08.426977] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:46:08.427002] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:46:09.912784] INFO: SeqGenerator: Whole fasta seqlen: 242193529
+[2022-05-15 19:47:16.269056] INFO: gensim.models.word2vec: PROGRESS: at sentence #540000, processed 2017396961 words, keeping 87360 word types
+[2022-05-15 19:48:33.291706] INFO: gensim.models.word2vec: PROGRESS: at sentence #550000, processed 2054855995 words, keeping 87360 word types
+[2022-05-15 19:49:45.814700] INFO: gensim.models.word2vec: PROGRESS: at sentence #560000, processed 2092337454 words, keeping 87360 word types
+[2022-05-15 19:51:01.655864] INFO: gensim.models.word2vec: PROGRESS: at sentence #570000, processed 2129708880 words, keeping 87360 word types
+[2022-05-15 19:52:16.370535] INFO: gensim.models.word2vec: PROGRESS: at sentence #580000, processed 2167167132 words, keeping 87360 word types
+[2022-05-15 19:53:42.087073] INFO: gensim.models.word2vec: PROGRESS: at sentence #590000, processed 2204516021 words, keeping 87360 word types
+[2022-05-15 19:54:26.828819] INFO: SeqGenerator: Opened file: inputs/hg38/chr6.fa
+[2022-05-15 19:54:26.830924] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 19:54:26.830973] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 19:54:28.049152] INFO: SeqGenerator: Whole fasta seqlen: 170805979
+[2022-05-15 19:55:06.599714] INFO: gensim.models.word2vec: PROGRESS: at sentence #600000, processed 2241765818 words, keeping 87360 word types
+[2022-05-15 19:56:34.112374] INFO: gensim.models.word2vec: PROGRESS: at sentence #610000, processed 2279257880 words, keeping 87360 word types
+[2022-05-15 19:58:11.842375] INFO: gensim.models.word2vec: PROGRESS: at sentence #620000, processed 2316798207 words, keeping 87360 word types
+[2022-05-15 19:59:57.636242] INFO: gensim.models.word2vec: PROGRESS: at sentence #630000, processed 2354226892 words, keeping 87360 word types
+[2022-05-15 20:01:22.064558] INFO: gensim.models.word2vec: PROGRESS: at sentence #640000, processed 2391621742 words, keeping 87360 word types
+[2022-05-15 20:01:31.023625] INFO: SeqGenerator: Opened file: inputs/hg38/chr7.fa
+[2022-05-15 20:01:31.024630] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:01:31.025128] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 20:01:32.515090] INFO: SeqGenerator: Whole fasta seqlen: 159345973
+[2022-05-15 20:02:57.160262] INFO: gensim.models.word2vec: PROGRESS: at sentence #650000, processed 2429043952 words, keeping 87360 word types
+[2022-05-15 20:04:27.147374] INFO: gensim.models.word2vec: PROGRESS: at sentence #660000, processed 2466426868 words, keeping 87360 word types
+[2022-05-15 20:05:52.768774] INFO: gensim.models.word2vec: PROGRESS: at sentence #670000, processed 2503918414 words, keeping 87360 word types
+[2022-05-15 20:07:16.292018] INFO: gensim.models.word2vec: PROGRESS: at sentence #680000, processed 2541327551 words, keeping 87360 word types
+[2022-05-15 20:07:47.567832] INFO: SeqGenerator: Opened file: inputs/hg38/chr3.fa
+[2022-05-15 20:07:47.568862] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:07:47.568911] INFO: SeqGenerator: Current epoch: 1 / 10
+[2022-05-15 20:07:49.093577] INFO: SeqGenerator: Whole fasta seqlen: 198295559
+[2022-05-15 20:08:47.521601] INFO: gensim.models.word2vec: PROGRESS: at sentence #690000, processed 2578773997 words, keeping 87360 word types
+[2022-05-15 20:10:21.059133] INFO: gensim.models.word2vec: PROGRESS: at sentence #700000, processed 2616168194 words, keeping 87360 word types
+[2022-05-15 20:11:44.510079] INFO: gensim.models.word2vec: PROGRESS: at sentence #710000, processed 2653456714 words, keeping 87360 word types
+[2022-05-15 20:12:57.883852] INFO: gensim.models.word2vec: PROGRESS: at sentence #720000, processed 2690853431 words, keeping 87360 word types
+[2022-05-15 20:14:24.447182] INFO: gensim.models.word2vec: PROGRESS: at sentence #730000, processed 2728257253 words, keeping 87360 word types
+[2022-05-15 20:15:18.634929] INFO: SeqGenerator: Opened file: inputs/hg38/chr4.fa
+[2022-05-15 20:15:18.635959] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:15:18.636027] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:15:20.145097] INFO: SeqGenerator: Whole fasta seqlen: 190214555
+[2022-05-15 20:16:09.468329] INFO: gensim.models.word2vec: PROGRESS: at sentence #740000, processed 2765724915 words, keeping 87360 word types
+[2022-05-15 20:17:49.991429] INFO: gensim.models.word2vec: PROGRESS: at sentence #750000, processed 2803050247 words, keeping 87360 word types
+[2022-05-15 20:19:19.632528] INFO: gensim.models.word2vec: PROGRESS: at sentence #760000, processed 2840550809 words, keeping 87360 word types
+[2022-05-15 20:20:48.540934] INFO: gensim.models.word2vec: PROGRESS: at sentence #770000, processed 2878050857 words, keeping 87360 word types
+[2022-05-15 20:22:26.312229] INFO: gensim.models.word2vec: PROGRESS: at sentence #780000, processed 2915589678 words, keeping 87360 word types
+[2022-05-15 20:23:36.458181] INFO: SeqGenerator: Opened file: inputs/hg38/chr18.fa
+[2022-05-15 20:23:36.459805] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:23:36.459860] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:23:37.201491] INFO: SeqGenerator: Whole fasta seqlen: 80373285
+[2022-05-15 20:24:05.964138] INFO: gensim.models.word2vec: PROGRESS: at sentence #790000, processed 2952980783 words, keeping 87360 word types
+[2022-05-15 20:25:37.166391] INFO: gensim.models.word2vec: PROGRESS: at sentence #800000, processed 2990290846 words, keeping 87360 word types
+[2022-05-15 20:27:14.690626] INFO: SeqGenerator: Opened file: inputs/hg38/chr1.fa
+[2022-05-15 20:27:14.695501] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:27:14.695550] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:27:20.340882] INFO: SeqGenerator: Whole fasta seqlen: 248956422
+[2022-05-15 20:27:41.502373] INFO: gensim.models.word2vec: PROGRESS: at sentence #810000, processed 3027627759 words, keeping 87360 word types
+[2022-05-15 20:29:59.921977] INFO: gensim.models.word2vec: PROGRESS: at sentence #820000, processed 3065005743 words, keeping 87360 word types
+[2022-05-15 20:31:55.144350] INFO: gensim.models.word2vec: PROGRESS: at sentence #830000, processed 3102441041 words, keeping 87360 word types
+[2022-05-15 20:33:19.061874] INFO: gensim.models.word2vec: PROGRESS: at sentence #840000, processed 3139802263 words, keeping 87360 word types
+[2022-05-15 20:34:30.678908] INFO: gensim.models.word2vec: PROGRESS: at sentence #850000, processed 3176788006 words, keeping 87360 word types
+[2022-05-15 20:35:43.579154] INFO: gensim.models.word2vec: PROGRESS: at sentence #860000, processed 3214217739 words, keeping 87360 word types
+[2022-05-15 20:37:04.849485] INFO: SeqGenerator: Opened file: inputs/hg38/chr5.fa
+[2022-05-15 20:37:04.855202] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:37:04.855243] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:37:13.108258] INFO: SeqGenerator: Whole fasta seqlen: 181538259
+[2022-05-15 20:37:18.200593] INFO: gensim.models.word2vec: PROGRESS: at sentence #870000, processed 3251604567 words, keeping 87360 word types
+[2022-05-15 20:38:50.046920] INFO: gensim.models.word2vec: PROGRESS: at sentence #880000, processed 3288992611 words, keeping 87360 word types
+[2022-05-15 20:40:03.984372] INFO: gensim.models.word2vec: PROGRESS: at sentence #890000, processed 3326282995 words, keeping 87360 word types
+[2022-05-15 20:46:29.984788] INFO: gensim.models.word2vec: PROGRESS: at sentence #900000, processed 3363660468 words, keeping 87360 word types
+[2022-05-15 20:47:35.147543] INFO: gensim.models.word2vec: PROGRESS: at sentence #910000, processed 3401193155 words, keeping 87360 word types
+[2022-05-15 20:48:31.575639] INFO: SeqGenerator: Opened file: inputs/hg38/chr19.fa
+[2022-05-15 20:48:31.581886] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:48:31.581919] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:48:32.218309] INFO: SeqGenerator: Whole fasta seqlen: 58617616
+[2022-05-15 20:48:44.559346] INFO: gensim.models.word2vec: PROGRESS: at sentence #920000, processed 3438510864 words, keeping 87360 word types
+[2022-05-15 20:49:47.369357] INFO: gensim.models.word2vec: PROGRESS: at sentence #930000, processed 3475966971 words, keeping 87360 word types
+[2022-05-15 20:50:11.502816] INFO: SeqGenerator: Opened file: inputs/hg38/chr12.fa
+[2022-05-15 20:50:11.503929] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:50:11.503961] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:50:12.267728] INFO: SeqGenerator: Whole fasta seqlen: 133275309
+[2022-05-15 20:50:51.440877] INFO: gensim.models.word2vec: PROGRESS: at sentence #940000, processed 3513455032 words, keeping 87360 word types
+[2022-05-15 20:51:54.368333] INFO: gensim.models.word2vec: PROGRESS: at sentence #950000, processed 3550772894 words, keeping 87360 word types
+[2022-05-15 20:52:56.105814] INFO: gensim.models.word2vec: PROGRESS: at sentence #960000, processed 3588194029 words, keeping 87360 word types
+[2022-05-15 20:53:54.472357] INFO: SeqGenerator: Opened file: inputs/hg38/chr16.fa
+[2022-05-15 20:53:54.474309] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:53:54.474348] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:53:55.005100] INFO: SeqGenerator: Whole fasta seqlen: 90338345
+[2022-05-15 20:53:59.958966] INFO: gensim.models.word2vec: PROGRESS: at sentence #970000, processed 3625728337 words, keeping 87360 word types
+[2022-05-15 20:54:59.828556] INFO: gensim.models.word2vec: PROGRESS: at sentence #980000, processed 3663083206 words, keeping 87360 word types
+[2022-05-15 20:56:02.271769] INFO: gensim.models.word2vec: PROGRESS: at sentence #990000, processed 3700505185 words, keeping 87360 word types
+[2022-05-15 20:56:09.216565] INFO: SeqGenerator: Opened file: inputs/hg38/chr22.fa
+[2022-05-15 20:56:09.217361] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:56:09.217390] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:56:09.504751] INFO: SeqGenerator: Whole fasta seqlen: 50818468
+[2022-05-15 20:57:06.126622] INFO: gensim.models.word2vec: PROGRESS: at sentence #1000000, processed 3737773067 words, keeping 87360 word types
+[2022-05-15 20:57:15.648952] INFO: SeqGenerator: Opened file: inputs/hg38/chr17.fa
+[2022-05-15 20:57:15.651010] INFO: SeqGenerator: Memory usage: 1123.385344 MB
+[2022-05-15 20:57:15.651046] INFO: SeqGenerator: Current epoch: 2 / 10
+[2022-05-15 20:57:16.133614] INFO: SeqGenerator: Whole fasta seqlen: 83257441
+[2022-05-15 20:58:07.905185] INFO: gensim.models.word2vec: PROGRESS: at sentence #1010000, processed 3775123579 words, keeping 87360 word types
