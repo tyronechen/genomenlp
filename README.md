@@ -6,11 +6,11 @@
 
 # Genome recoding for Machine Learning Usage
 
-> **NOTE**: The [main repository is on gitlab](https://gitlab.com/tyagilab/seq_utils). It is [also mirrored on github](https://github.com/tyronechen/seq_utils) but please submit any issues to the main gitlab repository only.
+> **NOTE**: The [main repository is on gitlab](https://gitlab.com/tyagilab/recode-genome). Please submit any issues to the main gitlab repository only.
 
 > **NOTE**: No raw data is present in this repository as manuscript(s) associated with the primary data are unpublished.
 
-Copyright (c) 2022 <a href="https://orcid.org/0000-0002-9207-0385">Tyrone Chen <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, <a href="https://orcid.org/0000-0003-0181-6258">Sonika Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>
+Copyright (c) 2022 <a href="https://orcid.org/0000-0002-9207-0385">Tyrone Chen <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, <a href="https://orcid.org/0000-0003-0181-6258">Sonika Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /> Navya Tyagi, and Sarthak Chauhan</a>
 
 Code in this repository is provided under a [MIT license](https://opensource.org/licenses/MIT). This documentation is provided under a [CC-BY-3.0 AU license](https://creativecommons.org/licenses/by/3.0/au/).
 
@@ -18,9 +18,11 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 
 ## Background
 
-## Aim
+## Main takeaways
 
-Compile a python package for recoding genomic sequences into a format (1 hot encoding, k-mers, … ) that can be easily passed into deep learning frameworks. Ideally something with minimal dependencies that can just be imported and used alongside popular machine learning frameworks (pytorch).
+- Compile a python package for recoding genomic sequences into text representation format amenable to downsteam mahcine learrning tasks.
+- Comparison of different tokenizers.
+- Comparison of different ML modeling approaches for NLP classification
 
 Generic usage (this is just an example only, not restricted to this specific workflow):
 
