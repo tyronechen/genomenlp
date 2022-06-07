@@ -4,7 +4,7 @@
 [![](https://flat.badgen.net/badge/icon/gitlab?icon=gitlab&label&color=orange&scale=1.5)](https://gitlab.com/tyagilab/seq_utils)
 [![](https://flat.badgen.net/badge/icon/@tyagilab?icon=twitter&label&scale=1.5)](https://twitter.com/tyagilab)
 
-# Genome recoding for Machine Learning Usage
+# Ziran: Genome recoding for Machine Learning Usage
 
 > **NOTE**: The [main repository is on gitlab](https://gitlab.com/tyagilab/recode-genome). Please submit any issues to the main gitlab repository only.
 
