@@ -6,7 +6,7 @@
 
 # Ziran: Genome recoding for Machine Learning Usage
 
-> **NOTE**: The [main repository is on gitlab](https://gitlab.com/tyagilab/recode-genome). Please submit any issues to the main gitlab repository only.
+> **NOTE**: The [main repository is on gitlab](https://gitlab.com/tyagilab/ziran). Please submit any issues to the main gitlab repository only.
 
 > **NOTE**: No raw data is present in this repository as manuscript(s) associated with the primary data are unpublished.
 
@@ -17,6 +17,12 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 [Visit our lab website here.](https://bioinformaticslab.erc.monash.edu/) Contact Sonika Tyagi at [sonika.tyagi@monash.edu](mailto:sonika.tyagi@monash.edu).
 
 ## Background
+
+[The name is a reference to a "base state"](https://en.wikipedia.org/wiki/Ziran) which we are trying to achieve with our data representation.
+
+Package structure:
+
+![Package structure](img/recode_genome_ml.png)
 
 ## Main takeaways
 
