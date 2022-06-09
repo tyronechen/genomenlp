@@ -1,0 +1,10 @@
+{
+  "infile_path":  "foo.fasta",
+  "outfile_dir":  "foo/",
+  "control":  "frequency",
+  "block_size": 2,
+  "no_reverse_complement": true,
+  "tokeniser_path": "foo.json",
+  "representation": null,
+  "model": null
+}
