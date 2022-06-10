@@ -12,6 +12,7 @@ from datasets import ClassLabel, Dataset, DatasetDict, Value
 import pandas as pd
 import screed
 import torch
+from datasets import load_dataset
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
 from utils import reverse_complement
@@ -29,7 +30,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Take control and test fasta files, tokeniser and convert \
         to HuggingFace🤗 dataset object. Fasta files can be .gz. Sequences are \
-        reverse complemented by default'
+        reverse complemented by default.'
     )
     parser.add_argument('infile_path', type=str, help='path to fasta/gz file')
     parser.add_argument('control_dist', type=str, help='supply control seqs')
@@ -56,45 +57,63 @@ def main():
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
 
-    # do reverse complement and negative control generation in the same loop
-    seqs = dict()
-    null = dict()
+    if not os.path.isdir(outfile_dir):
+        os.makedirs(outfile_dir)
 
-    # TODO: theres probably a better way to optimise this
+    warn("Any commas in fasta headers will be replaced with __!")
+
+    # TODO: theres probably a better way to optimise this, all disk operations
     #   write seqs as sql db and read sequentially into pd df?
     #   but need to handle the conversion to huggingface dataset object also
-    with screed.open(control_dist) as nullfile:
-        for read in nullfile:
-            head = read.name
-            seq = read.sequence.upper()
-            null[head] = seq
-            if do_reverse_complement is True:
-                rc = reverse_complement(seq)
-                null["_".join([head, "RC"])] = rc
+    tmp_control = "".join([outfile_dir, "/.null.tmp"])
+    if os.path.exists(tmp_control):
+        os.remove(tmp_control)
+    with open(tmp_control, mode="a+") as tmp:
+        with screed.open(control_dist) as nullfile:
+            for read in nullfile:
+                head = read.name.replace(",", "__")
+                seq = read.sequence.upper()
+                tmp.write(head + "," + seq + "\n")
+                if do_reverse_complement is True:
+                    tmp.write("__".join(["RC", head]) + ",")
+                    tmp.write(reverse_complement(seq) + "\n")
 
-    with screed.open(infile_path) as seqfile:
-        for read in seqfile:
-            head = read.name
-            seq = read.sequence.upper()
-            seqs[head] = seq
-            if do_reverse_complement is True:
-                rc = reverse_complement(seq)
-                seqs["_".join([head, "RC"])] = rc
+    tmp_infile = "".join([outfile_dir, "/.data.tmp"])
+    if os.path.exists(tmp_infile):
+        os.remove(tmp_infile)
+    with open(tmp_infile, mode="a+") as tmp:
+        with screed.open(infile_path) as seqfile:
+            for read in seqfile:
+                head = read.name.replace(",", "__")
+                seq = read.sequence.upper()
+                tmp.write(head + "," + seq + "\n")
+                if do_reverse_complement is True:
+                    tmp.write("__".join(["RC", head]) + ",")
+                    tmp.write(reverse_complement(seq) + "\n")
 
-    # TODO: can add more seq metadata into cols if needed
-    seqs = pd.DataFrame({"feature": seqs}).reset_index()
-    seqs.rename(columns={"index": "idx"}, inplace=True)
-    seqs["labels"] = 1
-
-    null = pd.DataFrame({"feature": null}).reset_index()
-    null.rename(columns={"index": "idx"}, inplace=True)
-    null["labels"] = 0
+    tmp_hf_out = "".join([outfile_dir, "data.hf.csv"])
+    if os.path.exists(tmp_hf_out):
+        os.remove(tmp_hf_out)
+    with open(tmp_hf_out, mode="a+") as tmp_out:
+        tmp_out.write("idx,feature,labels\n")
+        seqs = pd.read_csv(tmp_control, chunksize=10000, sep=",", header=None)
+        for i in seqs:
+            i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
+            i["labels"] = 0
+            tmp_out.write(i.to_csv(index=False, header=False, sep=","))
+        os.remove(tmp_control)
+        seqs = pd.read_csv(tmp_infile, chunksize=10000, sep=",", header=None)
+        for i in seqs:
+            i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
+            i["labels"] = 1
+            tmp_out.write(i.to_csv(index=False, header=False, sep=","))
+        os.remove(tmp_infile)
 
     # configure data into a huggingface compatible dataset object
     # see https://huggingface.co/docs/datasets/access
-    data = pd.concat([seqs, null], axis=0).sort_index().reset_index(drop=True)
-    data = Dataset.from_pandas(data)
-
+    data = load_dataset('csv', data_files=tmp_hf_out, split="train")
+    os.remove(tmp_hf_out)
+    
     # we can tokenise separately if needed from the positive data
     # see https://huggingface.co/docs/transformers/fast_tokenizers for ref
     special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
@@ -129,8 +148,6 @@ def main():
     print("\nDATASET HAS FOLLOWING SPECIFICATIONS:\n", dataset)
 
     print("\nWRITING 🤗 DATA TO DISK (OVERWRITES ANY EXISTING!) AT:\n", outfile_dir)
-    if not os.path.isdir(outfile_dir):
-        os.makedirs(outfile_dir)
     dataset_to_disk(dataset, outfile_dir)
 
     print("\nSAMPLE DATASET ENTRY:\n", dataset[0], "\n")
