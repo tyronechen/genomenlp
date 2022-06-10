@@ -10,7 +10,7 @@ import torch
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast, DistilBertConfig, \
-    DistilBertModel, Trainer, TrainingArguments
+    DistilBertModel, DistilBertForSequenceClassification, Trainer, TrainingArguments
 
 def load_data(infile_path: str):
     """Take a 🤗 dataset object, path as output and write files to disk"""
@@ -116,7 +116,7 @@ def main():
         eos_token_id=tokeniser.eos_token_id,
     )
     config = DistilBertConfig()
-    model = DistilBertModel(config)
+    model = DistilBertForSequenceClassification(config)
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
 
