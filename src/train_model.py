@@ -9,8 +9,9 @@ import screed
 import torch
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
-from transformers import PreTrainedTokenizerFast, DistilBertConfig, \
-    DistilBertModel, DistilBertForSequenceClassification, Trainer, TrainingArguments
+from transformers import PreTrainedTokenizerFast, DataCollatorForLanguageModeling, \
+    DistilBertConfig, DistilBertForSequenceClassification, Trainer, \
+    TrainingArguments
 
 def load_data(infile_path: str):
     """Take a 🤗 dataset object, path as output and write files to disk"""
@@ -95,9 +96,6 @@ def main():
         )
     print("\nDATASET AFTER SPLIT:\n", dataset)
 
-    config = DistilBertConfig()
-    model = DistilBertModel(config)
-
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
 
     col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
@@ -108,18 +106,11 @@ def main():
 
     from transformers import DataCollatorForLanguageModeling
     from transformers import AutoTokenizer, GPT2LMHeadModel, AutoConfig
-    config = AutoConfig.from_pretrained(
-        "gpt2",
-        vocab_size=len(tokeniser),
-        n_ctx=32,
-        bos_token_id=tokeniser.bos_token_id,
-        eos_token_id=tokeniser.eos_token_id,
-    )
+
     config = DistilBertConfig()
     model = DistilBertForSequenceClassification(config)
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
-
     tokeniser.pad_token = tokeniser.eos_token
     data_collator = DataCollatorForLanguageModeling(tokeniser, mlm=False)
     out = data_collator([dataset["train"][i] for i in range(5)])
@@ -127,7 +118,7 @@ def main():
         print(f"{key} shape: {out[key].shape}")
 
     args = TrainingArguments(
-        output_dir="k12_cls_tmp",
+        output_dir=outfile_dir,
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
         evaluation_strategy="steps",
