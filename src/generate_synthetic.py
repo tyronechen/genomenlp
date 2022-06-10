@@ -13,7 +13,7 @@ from utils import bootstrap_seq, generate_from_freq, reverse_complement
 def main():
     parser = argparse.ArgumentParser(
         description='Take fasta files, generate synthetic sequences. \
-        Accepts .gz files.'
+        Can accept .gz files.'
     )
     parser.add_argument('infile_path', type=str, help='path to fasta/gz file')
     parser.add_argument('-b', '--block_size', type=int, default=2,
@@ -21,7 +21,7 @@ def main():
                         from as negative control (DEFAULT: 2)')
     parser.add_argument('-c', '--control_dist', type=str, default="frequency",
                         help='generate control distribution by [ bootstrap | \
-                        frequency | /path/to/file ] (DEFAULT: frequency)')
+                        frequency ] (DEFAULT: frequency)')
     parser.add_argument('-o', '--outfile', type=str, default="out.fa",
                         help='write synthetic sequences (DEFAULT: "out.fa")')
     parser.add_argument('--do_reverse_complement', action="store_true",
