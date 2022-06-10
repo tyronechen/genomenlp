@@ -35,6 +35,12 @@ def main():
     special_tokens = args.special_tokens
     example_seq = args.example_seq
 
+    if infile_paths == None and tokeniser_path == "":
+        raise OSError("Provide either input fasta file or existing tokeniser!")
+
+    i = " ".join([i for i in sys.argv[0:]])
+    print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
+
     # if you want to use sentencepiece directly, here are similar commands:
     # NOTE: transformers uses a slightly different implementation though!
     # spm_train \
