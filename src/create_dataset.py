@@ -43,8 +43,7 @@ def main():
                         help='assign special tokens, eg space and pad tokens \
                         (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
     parser.add_argument('--no_reverse_complement', action="store_false",
-                        help='turn off reverse complement, has no effect if \
-                        loading an existing tokeniser (DEFAULT: True)')
+                        help='turn off reverse complement (DEFAULT: ON)')
 
     args = parser.parse_args()
     infile_path = args.infile_path
@@ -113,7 +112,7 @@ def main():
     # see https://huggingface.co/docs/datasets/access
     data = load_dataset('csv', data_files=tmp_hf_out, split="train")
     os.remove(tmp_hf_out)
-    
+
     # we can tokenise separately if needed from the positive data
     # see https://huggingface.co/docs/transformers/fast_tokenizers for ref
     special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
