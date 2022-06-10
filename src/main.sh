@@ -13,3 +13,8 @@ python create_dataset.py \
   ../data/Yeast_promoter_synthetic.fa \
   ../results/tmp/yeast.json \
   -o ../results/tmp/
+
+python train_model.py \
+  ../results/tmp/dataset.parquet \
+  ../results/tmp/yeast.json \
+  -o ../results/tmp/
