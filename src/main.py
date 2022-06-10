@@ -13,7 +13,7 @@ class _DictToClass:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Take a set of sequences and perform a classification.'
+        description='Generates a pipeline script based on command line input.'
     )
     parser.add_argument('-j', '--json_path', type=str,
                         help='path to json file with all input parameters')
@@ -70,7 +70,6 @@ def main():
     if os.path.isfile(control):
         warn("Since control is provided as a file of sequences, command line \
              arguments block_size and no_reverse_complement are ignored.")
-
 
 if __name__ == "__main__":
     main()
