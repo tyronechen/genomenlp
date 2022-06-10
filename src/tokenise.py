@@ -3,6 +3,7 @@
 import argparse
 import gzip
 import os
+import sys
 from warnings import warn
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
@@ -57,7 +58,7 @@ def main():
         tokeniser.train_from_iterator(
             _gzip_iterator(infile_paths),
             unk_token="<unk>",
-            vocab_size=2000,
+            vocab_size=32000,
             show_progress=True,
             special_tokens=special_tokens,
             # limit_alphabet=500,
