@@ -9,9 +9,11 @@ import screed
 import torch
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
-from transformers import PreTrainedTokenizerFast, DataCollatorForLanguageModeling, \
-    DistilBertConfig, DistilBertForSequenceClassification, Trainer, \
-    TrainingArguments
+from transformers import AutoModelForSequenceClassification, \
+    DataCollatorWithPadding, DefaultDataCollator, \
+    PreTrainedTokenizerFast, DataCollatorForTokenClassification, \
+    DataCollatorForLanguageModeling, DistilBertConfig, \
+    DistilBertForSequenceClassification, Trainer, TrainingArguments
 
 def load_data(infile_path: str):
     """Take a 🤗 dataset object, path as output and write files to disk"""
@@ -55,6 +57,9 @@ def main():
     parser.add_argument('-o', '--outfile_dir', type=str, default="hf_out/",
                         help='write 🤗 dataset to disk as \
                         [ csv | json | parquet | dir/ ] (DEFAULT: "hf_out/")')
+    parser.add_argument('-t', '--training_args', type=str, default=None,
+                        help='pass training arguments as json file, if not uses\
+                         TrainingArguments default settings (DEFAULT: None)')
     parser.add_argument('--split_train', type=float, default=0.90,
                         help='proportion of training data (DEFAULT: 0.90)')
     parser.add_argument('--split_test', type=float, default=0.05,
@@ -62,7 +67,9 @@ def main():
     parser.add_argument('--split_val', type=float, default=0.05,
                         help='proportion of validation data (DEFAULT: 0.05)')
     parser.add_argument('--no_shuffle', action="store_false",
-                        help='turn off random shuffling (DEFAULT: Shuffle)')
+                        help='turn off random shuffling (DEFAULT: SHUFFLE)')
+    parser.add_argument('--wandb_off', action="store_false",
+                        help='log training in real time online (DEFAULT: ON)')
 
     args = parser.parse_args()
     infile_path = args.infile_path
@@ -72,6 +79,12 @@ def main():
     split_val = args.split_val
     outfile_dir = args.outfile_dir
     shuffle = args.no_shuffle
+    wandb = args.wandb_off
+    # TODO: enable passing training arguments as json file
+    training_args = args.training_args
+
+    if wandb is False:
+        os.environ["WANDB_DISABLED"] = "true"
 
     if os.path.exists(tokeniser_path):
         special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
@@ -104,18 +117,19 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
     print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
-    from transformers import DataCollatorForLanguageModeling
-    from transformers import AutoTokenizer, GPT2LMHeadModel, AutoConfig
-
-    config = DistilBertConfig()
+    config = DistilBertConfig(vocab_size=32000, num_labels=2)
     model = DistilBertForSequenceClassification(config)
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
     tokeniser.pad_token = tokeniser.eos_token
-    data_collator = DataCollatorForLanguageModeling(tokeniser, mlm=False)
-    out = data_collator([dataset["train"][i] for i in range(5)])
-    for key in out:
-        print(f"{key} shape: {out[key].shape}")
+    # data_collator = DataCollatorForLanguageModeling(tokeniser, mlm=False)
+    # data_collator = DataCollatorWithPadding(tokeniser)
+    # out = data_collator([dataset["train"][i] for i in range(5)])
+    # out = [dataset["train"][i] for i in range(1)]
+    # for i in out:
+    #     print(i)
+    # for key in out:
+    #     print(f"{key} shape: {out[key].shape}")
 
     args = TrainingArguments(
         output_dir=outfile_dir,
@@ -133,17 +147,18 @@ def main():
         save_steps=5_000,
         # fp16=True,
         push_to_hub=False,
+        label_names=["labels"],
     )
 
     trainer = Trainer(
         model=model,
         tokenizer=tokeniser,
         args=args,
-        data_collator=data_collator,
+        # data_collator=data_collator,
         train_dataset=dataset["train"],
         eval_dataset=dataset["valid"],
     )
-    os.environ["WANDB_DISABLED"] = "true"
+
     print(trainer)
     trainer.train()
     # TODO: fix label issue
