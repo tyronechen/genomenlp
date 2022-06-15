@@ -9,11 +9,11 @@ import screed
 import torch
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
-from transformers import AutoModelForSequenceClassification, \
-    DataCollatorWithPadding, DefaultDataCollator, \
+from transformers import AutoModelForSequenceClassification, HfArgumentParser, \
+    DataCollatorWithPadding, DefaultDataCollator, DistilBertConfig, \
     PreTrainedTokenizerFast, DataCollatorForTokenClassification, \
-    DataCollatorForLanguageModeling, DistilBertConfig, \
-    DistilBertForSequenceClassification, Trainer, TrainingArguments
+    DataCollatorForLanguageModeling,  DistilBertForSequenceClassification, \
+    Trainer, TrainingArguments
 
 def load_data(infile_path: str):
     """Take a 🤗 dataset object, path as output and write files to disk"""
@@ -47,19 +47,20 @@ def split_datasets(dataset: DatasetDict, train: float, test: float=0,
             })
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Take HuggingFace🤗  dataset and train.'
-    )
+    parser = HfArgumentParser(
+        [TrainingArguments], description='Take HuggingFace🤗 dataset and train.\
+          Arguments match that of TrainingArguments, with the addition of \
+         [ infile_path, tokeniser_path, split_train, split_test, split_val, \
+         no_shuffle, wandb_off ]. See 🤗 documentation here for reference: \
+         https://huggingface.co/docs/transformers/v4.19.4/en/main_classes/trainer#transformers.TrainingArguments'
+        )
     parser.add_argument('infile_path', type=str,
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('tokeniser_path', type=str,
                         help='path to tokeniser.json file to load data from')
-    parser.add_argument('-o', '--outfile_dir', type=str, default="hf_out/",
-                        help='write 🤗 dataset to disk as \
-                        [ csv | json | parquet | dir/ ] (DEFAULT: "hf_out/")')
-    parser.add_argument('-t', '--training_args', type=str, default=None,
-                        help='pass training arguments as json file, if not uses\
-                         TrainingArguments default settings (DEFAULT: None)')
+    # parser.add_argument('-o', '--outfile_dir', type=str, default="hf_out/",
+    #                     help='write 🤗 dataset to disk as \
+    #                     [ csv | json | parquet | dir/ ] (DEFAULT: "hf_out/")')
     parser.add_argument('--split_train', type=float, default=0.90,
                         help='proportion of training data (DEFAULT: 0.90)')
     parser.add_argument('--split_test', type=float, default=0.05,
@@ -77,12 +78,8 @@ def main():
     split_train = args.split_train
     split_test = args.split_test
     split_val = args.split_val
-    outfile_dir = args.outfile_dir
     shuffle = args.no_shuffle
     wandb = args.wandb_off
-    # TODO: enable passing training arguments as json file
-    training_args = args.training_args
-
     if wandb is False:
         os.environ["WANDB_DISABLED"] = "true"
 
@@ -130,24 +127,24 @@ def main():
     #     print(i)
     # for key in out:
     #     print(f"{key} shape: {out[key].shape}")
-
     args = TrainingArguments(
-        output_dir=outfile_dir,
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
-        evaluation_strategy="steps",
-        eval_steps=5_000,
-        logging_steps=5_000,
-        gradient_accumulation_steps=8,
-        num_train_epochs=1,
-        weight_decay=0.1,
-        warmup_steps=1_000,
-        lr_scheduler_type="cosine",
-        learning_rate=5e-4,
-        save_steps=5_000,
-        # fp16=True,
-        push_to_hub=False,
-        label_names=["labels"],
+        output_dir=args.output_dir,
+        overwrite_output_dir=args.overwrite_output_dir,
+        per_device_train_batch_size=args.per_device_train_batch_size,
+        per_device_eval_batch_size=args.per_device_eval_batch_size,
+        evaluation_strategy=args.evaluation_strategy, #"steps",
+        eval_steps=args.eval_steps, #5_000,
+        logging_steps=args.logging_steps, #5_000,
+        gradient_accumulation_steps=args.gradient_accumulation_steps, #8,
+        num_train_epochs=args.num_train_epochs, #1,
+        weight_decay=args.weight_decay, #0.1,
+        warmup_steps=args.warmup_steps, #1_000,
+        lr_scheduler_type=args.lr_scheduler_type, #"cosine",
+        learning_rate=args.learning_rate, #5e-4,
+        save_steps=args.save_steps, #5_000,
+        fp16=args.fp16, #True,
+        push_to_hub=args.push_to_hub, #False,
+        label_names=args.label_names, #["labels"],
     )
 
     trainer = Trainer(
@@ -161,6 +158,7 @@ def main():
 
     print(trainer)
     trainer.train()
+    trainer.save_model()
     # TODO: fix label issue
     # https://github.com/huggingface/transformers/issues/12631
     # https://stackoverflow.com/questions/58454157/pytorch-bert-typeerror-forward-got-an-unexpected-keyword-argument-labels
