@@ -91,7 +91,7 @@ def main():
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
     tokeniser.pad_token = tokeniser.eos_token
-    args = TrainingArguments(
+    args_train = TrainingArguments(
         output_dir=args.output_dir,
         overwrite_output_dir=args.overwrite_output_dir,
         per_device_train_batch_size=args.per_device_train_batch_size,
@@ -114,7 +114,7 @@ def main():
     trainer = Trainer(
         model=model,
         tokenizer=tokeniser,
-        args=args,
+        args=args_train,
         # data_collator=data_collator,
         train_dataset=dataset["train"],
         eval_dataset=dataset["valid"],
