@@ -3,7 +3,8 @@ import gzip
 import os
 from random import shuffle
 from warnings import warn
-from datasets import ClassLabel, Dataset, DatasetDict, Value, load_dataset
+from datasets import ClassLabel, Dataset, DatasetDict, Value, load_dataset, load_metric
+import numpy as np
 import pandas as pd
 import screed
 import torch
@@ -11,7 +12,8 @@ from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 from transformers import AutoModelForSequenceClassification, DistilBertConfig, \
     DistilBertForSequenceClassification, HfArgumentParser, \
-    PreTrainedTokenizerFast, Trainer, TrainingArguments
+    PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
+from transformers.training_args import ParallelMode
 
 def load_data(infile_path: str):
     """Take a 🤗 dataset object, path as output and write files to disk"""
@@ -33,12 +35,16 @@ def main():
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('format', type=str,
                         help='specify input file type [ csv | json | parquet ]')
+    parser.add_argument('tokeniser_path', type=str,
+                        help='path to tokeniser.json file to load data from')
     parser.add_argument('-t', '--test', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('-v', '--valid', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
-    parser.add_argument('tokeniser_path', type=str,
-                        help='path to tokeniser.json file to load data from')
+    parser.add_argument('-c', '--hyperparameter_cpus', type=int, default=1,
+                        help='number of cpus for hyperparameter tuning')
+    parser.add_argument('-x', '--hyperparameter_tune', type=bool, default=True,
+                        help='number of cpus for hyperparameter tuning')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -50,6 +56,8 @@ def main():
     test = args.test
     valid = args.valid
     tokeniser_path = args.tokeniser_path
+    hyperparameter_cpus = args.hyperparameter_cpus
+    hyperparameter_tune = args.hyperparameter_tune
     shuffle = args.no_shuffle
     wandb = args.wandb_off
     if wandb is False:
@@ -88,6 +96,10 @@ def main():
 
     config = DistilBertConfig(vocab_size=32000, num_labels=2)
     model = DistilBertForSequenceClassification(config)
+
+    def _model_init():
+        return DistilBertForSequenceClassification(config)
+
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
     tokeniser.pad_token = tokeniser.eos_token
@@ -111,18 +123,119 @@ def main():
         label_names=args.label_names, #["labels"],
     )
 
+    # regarding evaluation metrics:
+    # https://huggingface.co/course/chapter3/3?fw=pt
+    # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
+    def _compute_metrics(eval_pred):
+        accuracy = load_metric("accuracy")
+        f1 = load_metric("f1")
+        matthews_correlation = load_metric("matthews_correlation")
+        precision = load_metric("precision")
+        recall = load_metric("recall")
+        roc_auc = load_metric("roc_auc")
+
+        logits, labels = eval_pred
+        predictions = np.argmax(logits, axis=-1)
+
+        accuracy = accuracy.compute(
+            predictions=predictions, references=labels
+            )["accuracy"]
+        f1 = f1.compute(
+            predictions=predictions, references=labels
+            )["f1"]
+        matthews_correlation = matthews_correlation.compute(
+            predictions=predictions, references=labels
+            )["matthews_correlation"]
+        precision = precision.compute(
+            predictions=predictions, references=labels
+            )["precision"]
+        recall = recall.compute(
+            predictions=predictions, references=labels
+            )["recall"]
+        roc_auc = roc_auc.compute(
+            predictions=predictions, references=labels
+            )["roc_auc"]
+        return {
+            "accuracy": accuracy, "f1": f1,
+            "matthews_correlation": matthews_correlation,
+            "precision": precision, "recall": recall, "roc_auc": roc_auc,
+            }
+
+    f1 = load_metric("f1")
+    def _compute_metrics(eval_pred):
+        logits, labels = eval_pred
+        predictions = np.argmax(logits, axis=-1)
+        return f1.compute(predictions=predictions, references=labels)
+
+    # def _compute_metrics(eval_pred):
+    #     predictions, labels = eval_pred
+    #     predictions = np.argmax(predictions, axis=1)
+    #     return metric.compute(predictions=predictions, references=labels)
+
+    # hyperparameter tuning on 10% of original datasett following:
+    # https://github.com/huggingface/notebooks/blob/main/examples/text_classification.ipynb
     trainer = Trainer(
-        model=model,
+        model_init=_model_init,
         tokenizer=tokeniser,
         args=args_train,
-        # data_collator=data_collator,
-        train_dataset=dataset["train"],
+        train_dataset=dataset["train"].shard(index=1, num_shards=10),
         eval_dataset=dataset["valid"],
+        # compute_metrics=_compute_metrics,
     )
 
+    if hyperparameter_tune is True:
+        best_run = trainer.hyperparameter_search(
+            n_trials=10, direction="maximize",
+            # gpus_per_trial=0,
+            # cpus_per_trial=hyperparameter_cpus,
+            backend="ray",
+            resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0}
+            )
+        print("\nTUNED:\n", best_run.hyperparameters.items(), "\n")
+
+        # take optimal parameters for model
+        for n, v in best_run.hyperparameters.items():
+            setattr(trainer.args, n, v)
+    else:
+        print("\nNo hyperparameter tuning performed!\n")
+
+    trainer.train_dataset = dataset["train"]
+    trainer.eval_dataset = dataset["test"]
+    trainer.compute_metrics = _compute_metrics
+    # trainer.seed = 8
+    # args.seed = 8
+    # set_seed(42)
+
+    # TUNED:
+    _tuned = [
+        ('learning_rate', 5.61151641533451e-06),
+        ('num_train_epochs', 5),
+        ('seed', 8.153956804780389),
+        ('per_device_train_batch_size', 64)
+        ]
+    print("SEED:\n", trainer.seed)
+    # dict_items([('learning_rate', 5.61151641533451e-06), ('num_train_epochs', 5), ('seed', 8.153956804780389), ('per_device_train_batch_size', 64)])
+
     print(trainer)
-    trainer.train()
+    train = trainer.train()
+    print(train)
     trainer.save_model()
+
+    # evaluate model using desired metrics
+    eval = trainer.evaluate()
+    print(eval)
+
+    # trainer.train()
+
+    # trainer = Trainer(
+    #     model=model,
+    #     tokenizer=tokeniser,
+    #     args=args_train,
+    #     # data_collator=data_collator,
+    #     train_dataset=dataset["train"],
+    #     eval_dataset=dataset["test"],
+    #     compute_metrics=_compute_metrics,
+    # )
 
 if __name__ == "__main__":
     main()
