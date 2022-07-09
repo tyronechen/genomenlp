@@ -6,8 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # load data
-f_pos = open('/Users/sarthaksinghchauhan/Desktop/Positive.w2v','r') # opened the word embeddings(positive data)file trained on natural sequences from dna2vec saved on desktop 
-f_neg = open('/Users/sarthaksinghchauhan/Desktop/Negative.w2v','r') # opened the word embeddings file trained on synthetic sequences(negative data)from dna2vec saved on desktop 
+f_pos = open('Positive.w2v','r') # opened the word embeddings(positive data)file trained on natural sequences from dna2vec saved on desktop 
+f_neg = open('Negative.w2v','r') # opened the word embeddings file trained on synthetic sequences(negative data)from dna2vec saved on desktop 
 fcontent_pos = f_pos.read() # read content on positive data
 fcontent_neg = f_neg.read() # read content on negative data
 lis_pos = [x.split() for x in fcontent_pos.split('\n')[1:-1]] # took content from positive data in form of list of sequence embeddings separated by line from second line to last line # excluded first line here because it is not desired output from dna2vec-it is just the matrix dimension of resulting embeddings 
