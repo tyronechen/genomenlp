@@ -15,8 +15,8 @@ lis_pos = [x.split() for x in fcontent_pos.split('\n')[1:-1]]
 lis1_pos = [[float(x) for x in y[1:]] for y in lis_pos]
 lis_neg  = [x.split() for x in fcontent_neg.split('\n')[1:-1]]
 lis1_neg = [[float(x) for x in y[1:]] for y in lis_neg]
-l_pos = [x+[0] for x in lis1_pos]
-l_neg = [x+[1] for x in lis1_neg]
+l_pos = [x+[1] for x in lis1_pos]
+l_neg = [x+[0] for x in lis1_neg]
 l_whole = l_pos+l_neg
 dataset = numpy.array([numpy.array(x) for x in l_whole])
 
