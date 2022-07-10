@@ -1,17 +1,13 @@
 ###### Step 1: Install And Import Libraries
-# Dataset
-from sklearn import datasets
 # Data processing
 import numpy
-# Standardize the data
-from sklearn.preprocessing import StandardScaler
 # Model and performance evaluation
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
 from sklearn.metrics import precision_recall_fscore_support as score
 # Hyperparameter tuning
 from sklearn.model_selection import StratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
-from hyperopt import tpe, STATUS_OK, Trials, hp, fmin, STATUS_OK, space_eval
+from hyperopt import tpe, STATUS_OK, Trials, hp, fmin, STATUS_OK, space_eval # pip3 install hyperopt
 
 
 ###### Step 2: Read In Data
