@@ -11,9 +11,9 @@ f_pos = open('Positive.w2v','r') # opened the word embeddings file trained on na
 f_neg = open('Negative.w2v','r') # opened the word embeddings file trained on synthetic sequences(negative data)from dna2vec 
 fcontent_pos = f_pos.read() # read content on positive data
 fcontent_neg = f_neg.read() # read content on negative data
-lis_pos = [x.split() for x in fcontent_pos.split('\n')[1:-1]] # took content from positive data in form of list of sequence embeddings separated by line from second line to last line # excluded first line here because it is not desired output from dna2vec-it is just the matrix dimension of resulting embeddings 
+lis_pos = [x.split() for x in fcontent_pos.split('\n')[1:30]] # took content from positive data in form of list of sequence embeddings separated by line from second line to last line # excluded first line here because it is not desired output from dna2vec-it is just the matrix dimension of resulting embeddings 
 lis1_pos = [[float(x) for x in y[1:]] for y in lis_pos] # converted the list elements to float(numerical values) from strting(default datatype when read from file)- here we had left out k-mer such as AAA since that is of no need- we only need embeddings(vector)-that is why we had included from elements first value i.e y[1:]
-lis_neg  = [x.split() for x in fcontent_neg.split('\n')[1:-1]] # # took content from negative data
+lis_neg  = [x.split() for x in fcontent_neg.split('\n')[1:30]] # # took content from negative data
 lis1_neg = [[float(x) for x in y[1:]] for y in lis_neg] # converted the list elements to float(numerical values) from strting(default datatype when read from file)- here we had left out k-mer such as AAA since that is of no need- we only need embeddings(vector)-that is why we had included from elements first value i.e y[1:]
 l_pos = [x+[1] for x in lis1_pos] # labelled natural sequence embeddings as 1
 l_neg = [x+[0] for x in lis1_neg] # labelled synthetic sequence embeddings as 0
@@ -64,15 +64,17 @@ param = {'n_estimators': n_estimators,
 
 pprint(param) #print the hyperparamters  range that is going to be used for tuning
 
-classifier_random= RandomizedSearchCV(estimator=model, param_grid=param, cv = 3, verbose=2, n_jobs = 4) #defined classifier grid 
+classifier_random=RandomizedSearchCV(estimator = classifier, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+#defined classifier random
 #1.estimator: Pass the model instance for which you want to check the hyperparameters.
-#2.params_grid: the dictionary object that holds the hyperparameters you want to try
+#2.params_distributions: the dictionary object that holds the hyperparameters you want to try
 #3.scoring: evaluation metric that you want to use, you can simply pass a valid string/ object of evaluation metric
+#5.n_iter: Number of parameter settings that are sampled. n_iter trades off runtime vs quality of the solution
 #4.cv: number of cross-validation you have to try for each selected set of hyperparameters
 #5.verbose: you can set it to 1 to get the animated print out while you fit the data to GridSearchCV, 2 will give epoch data
 #6.n_jobs: number of processes you wish to run in parallel for this task if it is -1 it will use all available processes. 
 
-classifier_random.fit(X_train,y_train) #trained GridSearchCV on training data
+classifier_random.fit(X_train,y_train) #trained RandomisedSearchCV on training data
 classifier_random.best_params_  # returns best hyperparameters
 
 # print prediction results on test data
