@@ -102,8 +102,8 @@ print('Best parameter values:')
 classifier_random.best_params_
 
 # predicted values from the random search model
-pred=classifier_grid.predict(x_test)
+pred=classifier_random.predict(x_test)
 
 # accuracy prediction for random search model
 accuracy = accuracy_score(y_test, pred)
-print("Accuracy of Gridsearch model: %.2f%%" % (accuracy * 100.0))
+print("Accuracy of Random search model: %.2f%%" % (accuracy * 100.0))
