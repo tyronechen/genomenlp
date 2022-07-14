@@ -4,9 +4,9 @@ import os
 from random import shuffle
 from warnings import warn
 from datasets import ClassLabel, Dataset, DatasetDict, Value, load_dataset, load_metric
+import json
 import numpy as np
 import pandas as pd
-import screed
 import torch
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
@@ -14,6 +14,12 @@ from transformers import AutoModelForSequenceClassification, DistilBertConfig, \
     DistilBertForSequenceClassification, HfArgumentParser, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
+import ray
+from ray import tune
+from ray.tune import CLIReporter
+from ray.tune.examples.pbt_transformers.utils import download_data, \
+    build_compute_metrics_fn
+from ray.tune.schedulers import PopulationBasedTraining
 
 def load_data(infile_path: str):
     """Take a 🤗 dataset object, path as output and write files to disk"""
@@ -42,9 +48,13 @@ def main():
     parser.add_argument('-v', '--valid', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('-c', '--hyperparameter_cpus', type=int, default=1,
-                        help='number of cpus for hyperparameter tuning')
-    parser.add_argument('-x', '--hyperparameter_tune', type=bool, default=True,
-                        help='number of cpus for hyperparameter tuning')
+                        help='number of cpus for hyperparameter tuning. \
+                        NOTE: has no effect if --hyperparameter tune is False')
+    parser.add_argument('-x', '--hyperparameter_tune', type=bool, default=False,
+                        help='enable or disable hyperparameter tuning')
+    parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
+                        help='provide a json file of hyperparameters. \
+                        NOTE: if given, this overrides --hyperparameter_tune!')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -58,6 +68,7 @@ def main():
     tokeniser_path = args.tokeniser_path
     hyperparameter_cpus = args.hyperparameter_cpus
     hyperparameter_tune = args.hyperparameter_tune
+    hyperparameter_file = args.hyperparameter_file
     shuffle = args.no_shuffle
     wandb = args.wandb_off
     if wandb is False:
@@ -178,33 +189,117 @@ def main():
         model_init=_model_init,
         tokenizer=tokeniser,
         args=args_train,
-        train_dataset=dataset["train"].shard(index=1, num_shards=10),
-        eval_dataset=dataset["valid"],
-        # compute_metrics=_compute_metrics,
+        train_dataset=dataset["train"],
+        eval_dataset=dataset["test"],
+        compute_metrics=_compute_metrics,
+        # disable_tqdm=args.disable_tqdm,
     )
 
+    if hyperparameter_file != "":
+        if os.path.exists(hyperparameter_file):
+            warn(" ".join(["Loading existing hyperparameters from",
+                           hyperparameter_file]))
+            with open(hyperparameter_file, 'r') as infile:
+                hparams = json.load(infile)
+            trainer.learning_rate = hparams["learning_rate"]
+            trainer.num_train_epochs = hparams["num_train_epochs"]
+            trainer.per_device_train_batch_size = hparams["per_device_train_batch_size"]
+            hyperparameter_tune = False
+            warn("\nHyperparameter file was provided, skipping tuning...\n")
+        else:
+            warn("\nNo hyperparameter file found! Using default settings...\n")
+
     if hyperparameter_tune is True:
+        trainer = Trainer(
+            model_init=_model_init,
+            tokenizer=tokeniser,
+            args=args_train,
+            train_dataset=dataset["train"].shard(index=1, num_shards=100),
+            eval_dataset=dataset["valid"],
+            # disable_tqdm=args.disable_tqdm,
+            # compute_metrics=_compute_metrics,
+        )
+
+        tune_config = {
+            "per_device_train_batch_size": 32,
+            "per_device_eval_batch_size": 32,
+            "num_train_epochs": tune.choice([2, 3, 4, 5]),
+            "max_steps": 1 if smoke_test else -1,  # Used for smoke test.
+        }
+
+        scheduler = PopulationBasedTraining(
+            time_attr="training_iteration",
+            metric="eval_acc",
+            mode="max",
+            perturbation_interval=1,
+            hyperparam_mutations={
+                "weight_decay": tune.uniform(0.0, 0.3),
+                "learning_rate": tune.uniform(1e-5, 5e-5),
+                "per_device_train_batch_size": [16, 32, 64],
+            },
+        )
+        reporter = CLIReporter(
+            parameter_columns={
+                "weight_decay": "w_decay",
+                "learning_rate": "lr",
+                "per_device_train_batch_size": "train_bs/gpu",
+                "num_train_epochs": "num_epochs",
+            },
+            metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
+        )
+
+        ray_default = {
+            "learning_rate": tune.loguniform(1e-6, 1e-4),
+            "num_train_epochs": tune.choice(list(range(1, 6))),
+            "seed": tune.uniform(1, 40),
+            "per_device_train_batch_size": tune.choice([4, 8, 16, 32, 64]),
+        }
+        grid = {
+            "per_gpu_batch_size": [16, 32],
+            "learning_rate": [2e-5, 3e-5, 5e-5],
+            "num_epochs": [2, 3, 4]
+        }
+
+        bayesian = {
+          "per_gpu_batch_size": (16, 64),
+          "weight_decay": (0, 0.3),
+          "learning_rate": (1e-5, 5e-5),
+          "warmup_steps": (0, 500),
+          "num_epochs": (2, 5)
+        }
+        population = {
+          "per_gpu_batch_size": [16, 32, 64],
+          "weight_decay": (0, 0.3),
+          "learning_rate": (1e-5, 5e-5),
+          "num_epochs": [2, 3, 4, 5]
+        }
+
         best_run = trainer.hyperparameter_search(
-            n_trials=10, direction="maximize",
-            # gpus_per_trial=0,
-            # cpus_per_trial=hyperparameter_cpus,
+            n_trials=10,
+            direction="maximize",
             backend="ray",
-            resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0}
+            resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
+            stop={"training_iteration": 1} if smoke_test else None,
+            progress_reporter=reporter,
+            # scheduler=scheduler,
+            # local_dir="".join([args.output_dir, "./ray_results/"]),
+            log_to_file=True,
             )
-        print("\nTUNED:\n", best_run.hyperparameters.items(), "\n")
-
+        print("\nTUNED:\n", best_run.hyperparameters, "\n")
+        tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+        with open(tuned_path, 'w', encoding='utf-8') as f:
+            json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
         # take optimal parameters for model
-        for n, v in best_run.hyperparameters.items():
-            setattr(trainer.args, n, v)
-    else:
-        print("\nNo hyperparameter tuning performed!\n")
-
-    trainer.train_dataset = dataset["train"]
-    trainer.eval_dataset = dataset["test"]
-    trainer.compute_metrics = _compute_metrics
-    # trainer.seed = 8
-    # args.seed = 8
-    # set_seed(42)
+        # for n, v in best_run.hyperparameters.items():
+        #     setattr(trainer.args, n, v)
+        warn_tune = "".join([
+            "It is not possible to pass tuned hyperparameters directly due to \
+            a bug in how the random number generation seed is handled! \
+            The tuned hyperparameters are output to:\n", tuned_path,
+            "\nand you can pass these to the trainer with --hyperparameter_file"
+        ])
+        warn(warn_tune)
+        return
 
     # TUNED:
     _tuned = [
@@ -213,8 +308,6 @@ def main():
         ('seed', 8.153956804780389),
         ('per_device_train_batch_size', 64)
         ]
-    print("SEED:\n", trainer.seed)
-    # dict_items([('learning_rate', 5.61151641533451e-06), ('num_train_epochs', 5), ('seed', 8.153956804780389), ('per_device_train_batch_size', 64)])
 
     print(trainer)
     train = trainer.train()
@@ -224,18 +317,6 @@ def main():
     # evaluate model using desired metrics
     eval = trainer.evaluate()
     print(eval)
-
-    # trainer.train()
-
-    # trainer = Trainer(
-    #     model=model,
-    #     tokenizer=tokeniser,
-    #     args=args_train,
-    #     # data_collator=data_collator,
-    #     train_dataset=dataset["train"],
-    #     eval_dataset=dataset["test"],
-    #     compute_metrics=_compute_metrics,
-    # )
 
 if __name__ == "__main__":
     main()
