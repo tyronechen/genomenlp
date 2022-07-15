@@ -47,6 +47,8 @@ def main():
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('-v', '--valid', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
+    parser.add_argument('-s', '--vocab_size', type=int, default=32000,
+                        help='vocabulary size for model configuration')
     parser.add_argument('-c', '--hyperparameter_cpus', type=int, default=1,
                         help='number of cpus for hyperparameter tuning. \
                         NOTE: has no effect if --hyperparameter tune is False')
@@ -105,7 +107,7 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
     print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
-    config = DistilBertConfig(vocab_size=32000, num_labels=2)
+    config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
     model = DistilBertForSequenceClassification(config)
 
     def _model_init():
