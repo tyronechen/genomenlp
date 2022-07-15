@@ -34,7 +34,8 @@ def main():
     parser = HfArgumentParser(
         [TrainingArguments], description='Take HuggingFace dataset and train.\
           Arguments match that of TrainingArguments, with the addition of \
-         [ train, test, valid, tokeniser_path, no_shuffle, wandb_off ]. See: \
+         [ train, test, valid, tokeniser_path, vocab_size, hyperparameter_cpus \
+         hyperparameter_tune hyperparameter_file no_shuffle, wandb_off ]. See: \
          https://huggingface.co/docs/transformers/v4.19.4/en/main_classes/trainer#transformers.TrainingArguments'
         )
     parser.add_argument('train', type=str,
