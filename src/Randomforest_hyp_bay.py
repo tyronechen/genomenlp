@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # RF classification model
 # import the required modules
 # improves output by ignoring warnings
