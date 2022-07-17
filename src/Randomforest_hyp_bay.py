@@ -24,8 +24,8 @@ file_p=f_pos.read()
 file_n=f_neg.read()
 # took file content as a list of sequences
 # seperated by newline according to the indexing
-lis_p=[x.split() for x in file_p.split('\n')[1:50]]
-lis_n=[x.split() for x in file_n.split('\n')[1:50]]
+lis_p=[x.split() for x in file_p.split('\n')[1:-1]]
+lis_n=[x.split() for x in file_n.split('\n')[1:-1]]
 # converted the sequence values(string) into numerical values(float) 
 list_p=[[float(x) for x in y[1:]] for y in lis_p]
 list_n=[[float(x) for x in y[1:]] for y in lis_n]
