@@ -3,12 +3,17 @@
 # RF classifier model
 # hyperparameter tuning
 # Grid search implementation
+# improves output by ignoring warnings
+import warnings
+warnings.filterwarnings('ignore')
 # imported the required modules
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from pprint import pprint
+import matplotlib.pyplot as plt
+%matplotlib inline
 # Module for hyperparameter tuning
 from sklearn.model_selection import GridSearchCV
 
@@ -49,7 +54,7 @@ x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.33)
 # called with default valkues
 classifier=RandomForestClassifier()
 
-# fit the training data into the grid search model
+# fit the training data into  base model
 classifier.fit(x_train, y_train)
 
 # predicted values from the model
@@ -57,10 +62,24 @@ y_pred=classifier.predict(x_test)
 
 # accuracy prediction for base model
 accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy of base model: %.2f%%" % (accuracy * 100.0))
+print("BASE MODEL")
+print("Accuracy: %.2f%%" % (accuracy * 100.0))
+
+# classification report
+print("Classification report:\n")
+print(classification_report(y_test, y_pred))
+
+# confusion matrix
+conf_g=confusion_matrix(y_test, y_pred)
+print("Confusion matrix:\n", conf_g)
+
+# confusion matrix plot
+print("Confusion matrix plot:\n")
+plot_confusion_matrix(classifier, x_test, y_test)  
+plt.show()
 
 # Look at parameters used by our current forest
-print('Parameters currently in use:')
+print('\nParameters currently in use:')
 pprint(classifier.get_params())
 
 # Hyperparameter tuning using GridsearchCV
@@ -94,19 +113,25 @@ classifier_grid.fit(x_train,y_train)
 
 # Best hyperparameter values
 print('Best parameter values:')
-classifier_grid.best_params_
+print(classifier_grid.best_params_)
 
 # predicted values from the grid search model
 pred=classifier_grid.predict(x_test)
 
 # accuracy prediction for grid search model
 accuracy = accuracy_score(y_test, pred)
-print("Accuracy of Gridsearch model: %.2f%%" % (accuracy * 100.0))
+print("\nGRID SEARCH MODEL")
+print("Accuracy: %.2f%%" % (accuracy * 100.0))
+
+#classification report
+print("Classification report:\n")
+print(classification_report(y_test, y_pred))
 
 # confusion matrix
 conf_g=confusion_matrix(y_test, pred)
 print("Confusion matrix:\n", conf_g)
 
-#classification report
-print("Classification report:\n")
-print(classification_report(y_test, y_pred))
+# confusion matrix plot
+print("Confusion matrix plot:\n")
+plot_confusion_matrix(classifier_grid, x_test, y_test)  
+plt.show()
