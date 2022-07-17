@@ -2,12 +2,17 @@
 
 # RF classifier model
 # Random search implementation
+# improves output by ignoring warnings
+import warnings
+warnings.filterwarnings('ignore')
 # imported the required modules
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, plot_confusion_matrix
 from pprint import pprint
+import matplotlib.pyplot as plt
+%matplotlib inline
 # Module for hyperparameter tuning
 from sklearn.model_selection import RandomizedSearchCV
 
@@ -19,8 +24,8 @@ file_p=f_pos.read()
 file_n=f_neg.read()
 # took file content as a list of sequences
 # seperated by newline according to the indexing
-lis_p=[x.split() for x in file_p.split('\n')[1:-1]]
-lis_n=[x.split() for x in file_n.split('\n')[1:-1]]
+lis_p=[x.split() for x in file_p.split('\n')[1:50]]
+lis_n=[x.split() for x in file_n.split('\n')[1:50]]
 # converted the sequence values(string) into numerical values(float)
 list_p=[[float(x) for x in y[1:]] for y in lis_p]
 list_n=[[float(x) for x in y[1:]] for y in lis_n]
@@ -34,7 +39,9 @@ l_whole = l_pos+l_neg
 dataset = np.array([np.array(x) for x in l_whole])
 
 # split data into X and Y
+# sequence embeddings
 X = dataset[:,:-1]
+# label of sequence embeddings
 Y = dataset[:,-1]
 
 # split the data into train and test using sklearn
@@ -53,8 +60,22 @@ classifier.fit(x_train, y_train)
 y_pred=classifier.predict(x_test)
 
 # accuracy prediction for base model
+print("BASE MODEL")
 accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy of base model: %.2f%%" % (accuracy * 100.0))
+print("Accuracy: %.2f%%" % (accuracy * 100.0))
+
+# classification report
+print("Classification report:\n")
+print(classification_report(y_test, y_pred))
+
+# confusion matrix
+conf_g=confusion_matrix(y_test, y_pred)
+print("Confusion matrix:\n", conf_g)
+
+# confusion matrix plot
+print("Confusion matrix plot:\n")
+plot_confusion_matrix(classifier, x_test, y_test)  
+plt.show()
 
 # Look at parameters used by our current forest
 print('Parameters currently in use:')
@@ -96,17 +117,24 @@ classifier_random.fit(x_train, y_train)
 print('Best parameter values:')
 print(classifier_random.best_params_)
 
-# predicted values from the random search model
-pred=classifier_random.predict(x_test)
+# predicted values from the random search model using best parameters
+cl_r=classifier_random.best_estimator_
+pred=cl_r.predict(x_test)
 
 # accuracy prediction for random search model
 accuracy = accuracy_score(y_test, pred)
-print("Accuracy of Random search model: %.2f%%" % (accuracy * 100.0))
+print("\nRANDOM SEARCH MODEL")
+print("Accuracy: %.2f%%" % (accuracy * 100.0))
+
+#classification report
+print("Classification report:\n")
+print(classification_report(y_test, y_pred))
 
 # confusion matrix
 conf_r=confusion_matrix(y_test, pred)
 print("Confusion matrix:\n", conf_r)
 
-#classification report
-print("Classification report:\n")
-print(classification_report(y_test, y_pred))
+# confusion matrix plot
+print("Confusion matrix plot:\n")
+plot_confusion_matrix(classifier_random, x_test, y_test)  
+plt.show()
