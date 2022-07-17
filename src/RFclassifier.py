@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 # RF classification model
+# improves output by ignoring warnings
+import warnings
+warnings.filterwarnings('ignore')
 # import all the required modules
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, plot_confusion_matrix
 
 # data
 # loaded the dna2vec word embedding file data
@@ -55,10 +58,15 @@ y_pred=classifier.predict(x_test)
 accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy: %.2f%%" % (accuracy * 100.0))
 
+# classification report
+print("Classification report:\n")
+print(classification_report(y_test, y_pred))
+
 # confusion matrix
 conf=confusion_matrix(y_test, y_pred)
 print("Confusion matrix\n", conf)
 
-# classification report
-print("Classification report:\n")
-print(classification_report(y_test, y_pred))
+
+# confusion matrix plot
+print("Confusion matrix plot:\n")
+plot_confusion_matrix(classifier, x_test, y_test)  
