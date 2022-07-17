@@ -116,7 +116,8 @@ print('Best parameter values:')
 print(classifier_grid.best_params_)
 
 # predicted values from the grid search model
-pred=classifier_grid.predict(x_test)
+cl_g=classifier_grid.best_estimator_
+pred=cl_g.predict(x_test)
 
 # accuracy prediction for grid search model
 accuracy = accuracy_score(y_test, pred)
