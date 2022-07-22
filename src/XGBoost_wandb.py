@@ -1,5 +1,7 @@
 # XGBoost model 
 ## Imported and downloaded the necessary modules for running XGBoost
+import xgboost
+import wandb
 import numpy 
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
