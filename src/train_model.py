@@ -1,4 +1,5 @@
 import argparse
+import functools
 import gzip
 import os
 from random import shuffle
@@ -10,16 +11,284 @@ import pandas as pd
 import torch
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
+import transformers
 from transformers import AutoModelForSequenceClassification, DistilBertConfig, \
     DistilBertForSequenceClassification, HfArgumentParser, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
+# import nevergrad as ng
 import ray
 from ray import tune
 from ray.tune import CLIReporter
 from ray.tune.examples.pbt_transformers.utils import download_data, \
     build_compute_metrics_fn
-from ray.tune.schedulers import PopulationBasedTraining
+import wandb
+
+# def __todo_in_future():
+# from ray.tune.schedulers import PopulationBasedTraining
+# from ray.tune.suggest.basic_variant import BasicVariantGenerator
+# from ray.tune.suggest.bayesopt import BayesOptSearch
+# from ray.tune.suggest.bohb import TuneBOHB
+# from ray.tune.suggest.dragonfly import DragonflySearch
+# # from ray.tune.suggest.flaml import BlendSearch, CFO
+# from ray.tune.suggest.hebo import HEBOSearch
+# from ray.tune.suggest.hyperopt import HyperOptSearch
+# from ray.tune.suggest.nevergrad import NevergradSearch
+# from ray.tune.suggest.optuna import OptunaSearch
+# from ray.tune.suggest.sigopt import SigOptSearch
+# from ray.tune.suggest.skopt import SkOptSearch
+# from ray.tune.suggest.zoopt import ZOOptSearch
+# from ray.tune.suggest import Repeater, ConcurrencyLimiter
+#     # TODO:
+#     # algorithm
+#     # small model
+#     #   random search
+#     #   grid search
+#     # big model + small hyperparams
+#     #   bayesopt
+#     #   dragonfly
+#     #   ax
+#     #   population
+#     config = {
+#         "width": tune.uniform(0, 20),
+#         "height": tune.uniform(-100, 100)
+#     }
+#     bayesopt = BayesOptSearch(metric="mean_loss", mode="min")
+#     tune.run(my_func, config=config, search_alg=bayesopt)
+#
+#     config = {
+#         "width": tune.uniform(0, 20),
+#         "height": tune.uniform(-100, 100),
+#         "activation": tune.choice(["relu", "tanh"])
+#     }
+#     algo = TuneBOHB(metric="mean_loss", mode="min")
+#     bohb = HyperBandForBOHB(
+#         time_attr="training_iteration",
+#         metric="mean_loss",
+#         mode="min",
+#         max_t=100)
+#     run(my_trainable, config=config, scheduler=bohb, search_alg=algo)
+#
+#     config = {
+#         "LiNO3_vol": tune.uniform(0, 7),
+#         "Li2SO4_vol": tune.uniform(0, 7),
+#         "NaClO4_vol": tune.uniform(0, 7)
+#     }
+#     df_search = DragonflySearch(
+#         optimizer="bandit",
+#         domain="euclidean",
+#         metric="objective",
+#         mode="max")
+#     tune.run(my_func, config=config, search_alg=df_search)
+#
+#     config = {
+#         "width": tune.uniform(0, 20),
+#         "height": tune.uniform(-100, 100)
+#     }
+#     hebo = HEBOSearch(metric="mean_loss", mode="min")
+#     tune.run(my_func, config=config, search_alg=hebo)
+#
+#     config = {
+#         'width': tune.uniform(0, 20),
+#         'height': tune.uniform(-100, 100),
+#         'activation': tune.choice(["relu", "tanh"])
+#     }
+#     current_best_params = [{
+#         'width': 10,
+#         'height': 0,
+#         'activation': "relu",
+#     }]
+#     hyperopt_search = HyperOptSearch(
+#         metric="mean_loss", mode="min",
+#         points_to_evaluate=current_best_params)
+#     tune.run(trainable, config=config, search_alg=hyperopt_search)
+#
+#     config = {
+#         "width": tune.uniform(0, 20),
+#         "height": tune.uniform(-100, 100),
+#         "activation": tune.choice(["relu", "tanh"])
+#     }
+#     current_best_params = [{
+#         "width": 10,
+#         "height": 0,
+#         "activation": "relu",
+#     }]
+#     ng_search = NevergradSearch(
+#         optimizer=ng.optimizers.OnePlusOne,
+#         metric="mean_loss",
+#         mode="min",
+#         points_to_evaluate=current_best_params)
+#     run(my_trainable, config=config, search_alg=ng_search)
+#
+#     config = {
+#         "a": tune.uniform(6, 8),
+#         "b": tune.loguniform(1e-4, 1e-2)
+#     }
+#     optuna_search = OptunaSearch(
+#         metric="loss",
+#         mode="min")
+#     tune.run(trainable, config=config, search_alg=optuna_search)
+#
+#     config = {
+#         "a": tune.uniform(6, 8),
+#         "b": tune.loguniform(1e-4, 1e-2)
+#     }
+#     optuna_search = OptunaSearch(
+#         metric="loss",
+#         mode="min")
+#     tune.run(trainable, config=config, search_alg=optuna_search)
+#
+#     config = {
+#         "width": tune.uniform(0, 20),
+#         "height": tune.uniform(-100, 100)
+#     }
+#     current_best_params = [
+#         {
+#             "width": 10,
+#             "height": 0,
+#         },
+#         {
+#             "width": 15,
+#             "height": -20,
+#         }
+#     ]
+#     skopt_search = SkOptSearch(
+#         metric="mean_loss",
+#         mode="min",
+#         points_to_evaluate=current_best_params)
+#     tune.run(my_trainable, config=config, search_alg=skopt_search)
+#
+#     config = {
+#         "iterations": 10,  # evaluation times
+#         "width": tune.uniform(-10, 10),
+#         "height": tune.uniform(-10, 10)
+#     }
+#     zoopt_search_config = {
+#         "parallel_num": 8,  # how many workers to parallel
+#     }
+#     zoopt_search = ZOOptSearch(
+#         algo="Asracos",  # only support Asracos currently
+#         budget=20,  # must match `num_samples` in `tune.run()`.
+#         dim_dict=dim_dict,
+#         metric="mean_loss",
+#         mode="min",
+#         **zoopt_search_config
+#     )
+#
+#     tune.run(my_objective,
+#         config=config,
+#         search_alg=zoopt_search,
+#         name="zoopt_search",
+#         num_samples=20,
+#         stop={"timesteps_total": 10})
+#
+#     # WARNING: meta-algorithm, do not use with schedulers!
+#     # re_search_alg = Repeater(search_alg, repeat=10)
+#     # Repeat 2 samples 10 times each.
+#     tune.run(trainable, num_samples=20, search_alg=re_search_alg)
+#
+#     # WARNING: meta-algorithm, useful in less parallel settings!
+#     search_alg = ConcurrencyLimiter(search_alg, max_concurrent=2)
+#     tune.run(trainable, search_alg=search_alg)
+#
+#     # small hyperparams in general
+#     #   BOHB + ASHA
+#     #   optuna + ASHA
+#     # continuous hyperparams
+#     #   Bayesian
+#     # categorical hyperparams
+#     #   Bayesian
+#     #   random search
+#     # # scheduler
+#     # HyperBand
+#     # ASHA
+#     # MedianStoppingRule
+#     # PopulationBasedTraining
+#     # PopulationBasedBandits - gaussian instead of random perturbation
+#     # HyperBandForBOHB - what the name implies
+#     # FIFOscheduler - runs in submission order
+#     # # Shim instantiation
+#     # TODO: flaml and cfo (both require strong initial seed)
+#
+#     smoke_test = True
+#     tune_config = {
+#         "per_device_train_batch_size": 32,
+#         "per_device_eval_batch_size": 32,
+#         "num_train_epochs": tune.choice([2, 3, 4, 5]),
+#         "max_steps": 1 if smoke_test else -1,  # Used for smoke test.
+#     }
+#
+#     scheduler = PopulationBasedTraining(
+#         time_attr="training_iteration",
+#         metric="eval_acc",
+#         mode="max",
+#         perturbation_interval=1,
+#         hyperparam_mutations={
+#             "weight_decay": tune.uniform(0.0, 0.3),
+#             "learning_rate": tune.uniform(1e-5, 5e-5),
+#             "per_device_train_batch_size": [16, 32, 64],
+#         },
+#     )
+#     reporter = CLIReporter(
+#         parameter_columns={
+#             "weight_decay": "w_decay",
+#             "learning_rate": "lr",
+#             "per_device_train_batch_size": "train_bs/gpu",
+#             "num_train_epochs": "num_epochs",
+#         },
+#         metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
+#     )
+#
+#     ray_default = {
+#         "learning_rate": tune.loguniform(1e-6, 1e-4),
+#         "num_train_epochs": tune.choice(list(range(1, 6))),
+#         "seed": tune.uniform(1, 40),
+#         "per_device_train_batch_size": tune.choice([4, 8, 16, 32, 64]),
+#     }
+#
+#     trainer.hyperparameter_search(
+#         hp_space=lambda _: tune_config,
+#         backend="ray",
+#         n_trials=num_samples,
+#         resources_per_trial={"cpu": 1, "gpu": gpus_per_trial},
+#         scheduler=scheduler,
+#         keep_checkpoints_num=1,
+#         checkpoint_score_attr="training_iteration",
+#         stop={"training_iteration": 1} if smoke_test else None,
+#         progress_reporter=reporter,
+#         local_dir="~/ray_results/",
+#         name="tune_transformer_pbt",
+#         log_to_file=True,
+#     )
+#
+#     tune_config = {
+#         "per_device_train_batch_size": 32,
+#         "per_device_eval_batch_size": 32,
+#         "num_train_epochs": tune.choice([2, 3, 4, 5]),
+#         "max_steps": 1 if smoke_test else -1,  # Used for smoke test.
+#     }
+#     search_alg = HyperOptSearch()
+#     search_alg = BasicVariantGenerator(points_to_evaluate=[
+#             {"a": 2, "b": 2},
+#             {"a": 1},
+#             {"b": 2}
+#         ])
+#     experiment_1 = tune.run(
+#         trainable,
+#         search_alg=search_alg
+#         )
+#
+#     search_alg.save("./my-checkpoint.pkl")
+#     # Restore the saved state onto another search algorithm
+#
+#     search_alg2 = HyperOptSearch()
+#     # search_alg2.restore("./my-checkpoint.pkl")
+#
+#     experiment_2 = tune.run(
+#         trainable,
+#         search_alg=search_alg2
+#         )
+#     pass
 
 def load_data(infile_path: str):
     """Take a 🤗 dataset object, path as output and write files to disk"""
@@ -55,9 +324,20 @@ def main():
                         NOTE: has no effect if --hyperparameter tune is False')
     parser.add_argument('-x', '--hyperparameter_tune', type=bool, default=False,
                         help='enable or disable hyperparameter tuning')
+    parser.add_argument('-w', '--hyperparameter_sweep', type=str, default="",
+                        help='run a hyperparameter sweep with config from file')
     parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
                         help='provide a json file of hyperparameters. \
                         NOTE: if given, this overrides --hyperparameter_tune!')
+    parser.add_argument('-n', '--sweep_count', type=int, default=64,
+                        help='run n hyperparameter sweeps (DEFAULT: 64) \
+                        NOTE: has no effect if wandb sweep is not enabled.')
+    parser.add_argument('-e', '--entity_name', type=str, default="",
+                        help='provide wandb team name (if available). \
+                        NOTE: has no effect if wandb sweep is not enabled.')
+    parser.add_argument('-p', '--project_name', type=str, default="",
+                        help='provide wandb project name (if available). \
+                        NOTE: has no effect if wandb sweep is not enabled.')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -72,10 +352,17 @@ def main():
     hyperparameter_cpus = args.hyperparameter_cpus
     hyperparameter_tune = args.hyperparameter_tune
     hyperparameter_file = args.hyperparameter_file
+    hyperparameter_sweep = args.hyperparameter_sweep
+    sweep_count = args.sweep_count
+    vocab_size = args.vocab_size
     shuffle = args.no_shuffle
-    wandb = args.wandb_off
-    if wandb is False:
+    wandb_state = args.wandb_off
+    entity_name = args.entity_name
+    project_name = args.project_name
+    if wandb_state is False:
         os.environ["WANDB_DISABLED"] = "true"
+    else:
+        wandb.login()
 
     if os.path.exists(tokeniser_path):
         special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
@@ -99,10 +386,11 @@ def main():
     if valid != None:
         infile_paths["valid"] = valid
     dataset = load_dataset(format, data_files=infile_paths)
-
+    dataset = dataset.remove_columns("token_type_ids")
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
 
-    col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
+    col_torch = ['input_ids', 'attention_mask', 'labels']
+    # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
     print(dataset)
     dataset.set_format(type='torch', columns=col_torch)
     dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
@@ -135,56 +423,28 @@ def main():
         fp16=args.fp16, #True,
         push_to_hub=args.push_to_hub, #False,
         label_names=args.label_names, #["labels"],
+        report_to=args.report_to,
+        run_name=args.run_name,
     )
 
     # regarding evaluation metrics:
     # https://huggingface.co/course/chapter3/3?fw=pt
     # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
-    def _compute_metrics(eval_pred):
-        accuracy = load_metric("accuracy")
-        f1 = load_metric("f1")
-        matthews_correlation = load_metric("matthews_correlation")
-        precision = load_metric("precision")
-        recall = load_metric("recall")
-        roc_auc = load_metric("roc_auc")
-
-        logits, labels = eval_pred
-        predictions = np.argmax(logits, axis=-1)
-
-        accuracy = accuracy.compute(
-            predictions=predictions, references=labels
-            )["accuracy"]
-        f1 = f1.compute(
-            predictions=predictions, references=labels
-            )["f1"]
-        matthews_correlation = matthews_correlation.compute(
-            predictions=predictions, references=labels
-            )["matthews_correlation"]
-        precision = precision.compute(
-            predictions=predictions, references=labels
-            )["precision"]
-        recall = recall.compute(
-            predictions=predictions, references=labels
-            )["recall"]
-        roc_auc = roc_auc.compute(
-            predictions=predictions, references=labels
-            )["roc_auc"]
-        return {
-            "accuracy": accuracy, "f1": f1,
-            "matthews_correlation": matthews_correlation,
-            "precision": precision, "recall": recall, "roc_auc": roc_auc,
-            }
-
-    f1 = load_metric("f1")
-    def _compute_metrics(eval_pred):
-        logits, labels = eval_pred
-        predictions = np.argmax(logits, axis=-1)
-        return f1.compute(predictions=predictions, references=labels)
-
-    # def _compute_metrics(eval_pred):
-    #     predictions, labels = eval_pred
-    #     predictions = np.argmax(predictions, axis=1)
-    #     return metric.compute(predictions=predictions, references=labels)
+    # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
+    def _compute_metrics(eval_preds):
+        metrics = dict()
+        accuracy_metric = load_metric('accuracy')
+        precision_metric = load_metric('precision')
+        recall_metric = load_metric('recall')
+        f1_metric = load_metric('f1')
+        logits = eval_preds.predictions
+        labels = eval_preds.label_ids
+        preds = np.argmax(logits, axis=-1)
+        metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
+        metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
+        metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
+        metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
+        return metrics
 
     # hyperparameter tuning on 10% of original datasett following:
     # https://github.com/huggingface/notebooks/blob/main/examples/text_classification.ipynb
@@ -217,100 +477,138 @@ def main():
             model_init=_model_init,
             tokenizer=tokeniser,
             args=args_train,
-            train_dataset=dataset["train"].shard(index=1, num_shards=100),
+            train_dataset=dataset["train"],#.shard(index=1, num_shards=100),
             eval_dataset=dataset["valid"],
             # disable_tqdm=args.disable_tqdm,
             # compute_metrics=_compute_metrics,
         )
 
-        tune_config = {
-            "per_device_train_batch_size": 32,
-            "per_device_eval_batch_size": 32,
-            "num_train_epochs": tune.choice([2, 3, 4, 5]),
-            "max_steps": 1 if smoke_test else -1,  # Used for smoke test.
-        }
+        # if hyperparameter sweep is provided or set to True,
+        if hyperparameter_sweep != "":
+            if wandb_state == True:
+                if os.path.exists(hyperparameter_sweep):
+                    print(" ".join(["Loading sweep hyperparameters from",
+                                   hyperparameter_sweep]))
+                    with open(hyperparameter_sweep, 'r') as infile:
+                        sweep_config = json.load(infile)
+                else:
+                    print("No sweep hyperparameters provided, do random search")
+                    # method
+                    sweep_config = {
+                        'name': 'random',
+                        'method': 'random',
+                        "parameters": {
+                            'epochs': {
+                                'values': [1, 2, 3, 4, 5]
+                                },
+                            'batch_size': {
+                                'values': [8, 16, 32, 64]
+                                },
+                            'learning_rate': {
+                                'distribution': 'log_uniform_values',
+                                'min': 1e-5,
+                                'max': 1e-1
+                            },
+                            'weight_decay': {
+                                'values': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+                            },
+                        }
+                    }
 
-        scheduler = PopulationBasedTraining(
-            time_attr="training_iteration",
-            metric="eval_acc",
-            mode="max",
-            perturbation_interval=1,
-            hyperparam_mutations={
-                "weight_decay": tune.uniform(0.0, 0.3),
-                "learning_rate": tune.uniform(1e-5, 5e-5),
-                "per_device_train_batch_size": [16, 32, 64],
-            },
-        )
-        reporter = CLIReporter(
-            parameter_columns={
-                "weight_decay": "w_decay",
-                "learning_rate": "lr",
-                "per_device_train_batch_size": "train_bs/gpu",
-                "num_train_epochs": "num_epochs",
-            },
-            metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
-        )
+                sweep_id = wandb.sweep(sweep_config, project=project_name)
+                # function needs to be defined internally to access namespace
+                def _sweep_wandb(config: dict):
+                    with wandb.init(
+                        config=sweep_config,
+                        settings=wandb.Settings(console='off'),
+                        entity=args.entity_name
+                        ):
+                        # set sweep configuration
+                        config = wandb.config
 
-        ray_default = {
-            "learning_rate": tune.loguniform(1e-6, 1e-4),
-            "num_train_epochs": tune.choice(list(range(1, 6))),
-            "seed": tune.uniform(1, 40),
-            "per_device_train_batch_size": tune.choice([4, 8, 16, 32, 64]),
-        }
-        grid = {
-            "per_gpu_batch_size": [16, 32],
-            "learning_rate": [2e-5, 3e-5, 5e-5],
-            "num_epochs": [2, 3, 4]
-        }
+                        # set training arguments
+                        training_args = TrainingArguments(
+                            output_dir="/".join([args.output_dir, sweep_config["name"]]),
+                    	    report_to='wandb',  # Turn on Weights & Biases logging
+                            num_train_epochs=config.epochs,
+                            learning_rate=config.learning_rate,
+                            weight_decay=config.weight_decay,
+                            per_device_train_batch_size=config.batch_size,
+                            per_device_eval_batch_size=config.batch_size,
+                            save_strategy='epoch',
+                            evaluation_strategy='epoch',
+                            logging_strategy='epoch',
+                            load_best_model_at_end=True,
+                            remove_unused_columns=False,
+                            fp16=False,
+                            bf16=False,
+                        )
+                        # define training loop
+                        trainer = Trainer(
+                            model_init=_model_init,
+                            args=training_args,
+                            tokenizer=tokeniser,
+                            train_dataset=dataset['train'],
+                            eval_dataset=dataset['valid'],#.shard(index=1, num_shards=10),
+                            compute_metrics=_compute_metrics
+                        )
+                        # start training loop
+                        trainer.train()
+                    return
 
-        bayesian = {
-          "per_gpu_batch_size": (16, 64),
-          "weight_decay": (0, 0.3),
-          "learning_rate": (1e-5, 5e-5),
-          "warmup_steps": (0, 500),
-          "num_epochs": (2, 5)
-        }
-        population = {
-          "per_gpu_batch_size": [16, 32, 64],
-          "weight_decay": (0, 0.3),
-          "learning_rate": (1e-5, 5e-5),
-          "num_epochs": [2, 3, 4, 5]
-        }
+                # allow passing of argument with variable outside namespace
+                wandb_train_func = functools.partial(_sweep_wandb, sweep_config)
+                wandb.agent(sweep_id,
+                            function=wandb_train_func,
+                            count=sweep_count)
+                wandb.finish()
 
-        best_run = trainer.hyperparameter_search(
-            n_trials=10,
-            direction="maximize",
-            backend="ray",
-            resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
-            stop={"training_iteration": 1} if smoke_test else None,
-            progress_reporter=reporter,
-            # scheduler=scheduler,
-            # local_dir="".join([args.output_dir, "./ray_results/"]),
-            log_to_file=True,
-            )
-        print("\nTUNED:\n", best_run.hyperparameters, "\n")
-        tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
-        with open(tuned_path, 'w', encoding='utf-8') as f:
-            json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
-        # take optimal parameters for model
-        # for n, v in best_run.hyperparameters.items():
-        #     setattr(trainer.args, n, v)
-        warn_tune = "".join([
-            "It is not possible to pass tuned hyperparameters directly due to \
-            a bug in how the random number generation seed is handled! \
-            The tuned hyperparameters are output to:\n", tuned_path,
-            "\nand you can pass these to the trainer with --hyperparameter_file"
-        ])
-        warn(warn_tune)
+                api = wandb.Api()
+                swept = "".join([args.entity_name, sweep_config["name"], sweep_id])
+                sweep = api.sweep(swept)
+                best_run = sweep.best_run()
+                print(best_run)
+                runs = sorted(
+                    sweep.runs,
+                    key=lambda run: run.summary.get("val_acc", 0),
+                    reverse=True
+                    )
+                val_acc = runs[0].summary.get("val_acc", 0)
+                print(f"Best run {runs[0].name} with {val_acc}% valn accuracy")
+                runs[0].file("model.h5").download(replace=True)
+                print("Best model saved to model-best.h5")
+                print("\nTUNED:\n", best_run.hyperparameters, "\n")
+                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+                with open(tuned_path, 'w', encoding='utf-8') as f:
+                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
+            else:
+                warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
+                best_run = trainer.hyperparameter_search(
+                    n_trials=10,
+                    direction="maximize",
+                    backend="ray",
+                    resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
+                    stop={"training_iteration": 1} if smoke_test else None,
+                    progress_reporter=reporter,
+                    # scheduler=scheduler,
+                    # local_dir="".join([args.output_dir, "./ray_results/"]),
+                    log_to_file=True,
+                    )
+
+                print("\nTUNED:\n", best_run.hyperparameters, "\n")
+                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+                with open(tuned_path, 'w', encoding='utf-8') as f:
+                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
+                warn_tune = "".join([
+                    "It is not possible to pass tuned hyperparameters \
+                    directly due to a bug in how the random number generation \
+                    seed is handled! The tuned hyperparameters are output to:",
+                    "\n", tuned_path, "\nand you can pass these to the trainer \
+                    with --hyperparameter_file"
+                ])
+                warn(warn_tune)
+        print("Hyperparameter tune end")
         return
-
-    # TUNED:
-    _tuned = [
-        ('learning_rate', 5.61151641533451e-06),
-        ('num_train_epochs', 5),
-        ('seed', 8.153956804780389),
-        ('per_device_train_batch_size', 64)
-        ]
 
     print(trainer)
     train = trainer.train()
