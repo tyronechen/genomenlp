@@ -497,11 +497,11 @@ def main():
                     sweep_config = {
                         'name': 'random',
                         'method': 'random',
-                        "parameters": {
+                        'parameters': {
                             'epochs': {
                                 'values': [1, 2, 3, 4, 5]
                                 },
-                            "dropout": {
+                            'dropout': {
                               "values": [0.15, 0.2, 0.25, 0.3, 0.4]
                             },
                             'batch_size': {
@@ -515,13 +515,13 @@ def main():
                             'weight_decay': {
                                 'values': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
                             },
-                            "decay": {
-                                "values": [1e-5, 1e-6, 1e-7]
+                            'decay': {
+                                'values': [1e-5, 1e-6, 1e-7]
                             },
-                            "momentum": {
-                                "values": [0.8, 0.9, 0.95]
+                            'momentum': {
+                                'values': [0.8, 0.9, 0.95]
                             }
-                        }
+                        },
                         "early_terminate": {
                             "type": "hyperband",
                             "s": 2,
