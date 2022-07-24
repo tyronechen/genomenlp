@@ -598,12 +598,21 @@ def main():
                     json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
         else:
             warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
+            reporter = CLIReporter(
+                parameter_columns={
+                    "weight_decay": "w_decay",
+                    "learning_rate": "lr",
+                    "per_device_train_batch_size": "train_bs/gpu",
+                    "num_train_epochs": "num_epochs",
+                },
+                metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
+            )
             best_run = trainer.hyperparameter_search(
                 n_trials=10,
                 direction="maximize",
                 backend="ray",
                 resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
-                stop={"training_iteration": 1} if smoke_test else None,
+                # stop={"training_iteration": 1} if smoke_test else None,
                 progress_reporter=reporter,
                 # scheduler=scheduler,
                 # local_dir="".join([args.output_dir, "./ray_results/"]),
