@@ -44,6 +44,6 @@ xg_reg.fit(X_train,y_train,callbacks=[wandb.xgboost.wandb_callback()])
 
 preds = xg_reg.predict(X_test)
 
-rmse = np.sqrt(mean_squared_error(y_test, preds))
+rmse = numpy.sqrt(mean_squared_error(y_test, preds))
 print("RMSE: %f" % (rmse))
 wandb.log({"RMSE": rmse})
