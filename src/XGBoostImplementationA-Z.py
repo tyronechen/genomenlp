@@ -1,14 +1,19 @@
 ###### Step 1: Install And Import Libraries
+import wandb
 # Data processing
 import numpy
 # Model and performance evaluation
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
 from sklearn.metrics import precision_recall_fscore_support as score
+from sklearn.metrics import mean_squared_error
+
 # Hyperparameter tuning
 from sklearn.model_selection import StratifiedKFold, cross_val_score, GridSearchCV, RandomizedSearchCV
 from hyperopt import tpe, STATUS_OK, Trials, hp, fmin, STATUS_OK, space_eval # pip3 install hyperopt
 
+# initialize wandb run
+wandb.init(project="xgboost")
 
 ###### Step 2: Read In Data
 # load data
@@ -37,21 +42,19 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=test_size, r
 print(f'The training dataset has {len(X_train)} records.')
 print(f'The testing dataset has {len(X_test)} records.')
 
-###### Step 3: XGBoost Classifier With No Hyperparameter Tuning
 # Initiate XGBoost Classifier
 xgboost = XGBClassifier()
 # Print default setting
 xgboost.get_params()
-# Train the model
-xgboost = XGBClassifier(seed=0).fit(X_train,y_train)
-# Make prediction
-xgboost_predict = xgboost.predict(X_test)
-# Get predicted probability
-xgboost_predict_prob = xgboost.predict_proba(X_test)[:,1]
-# Get performance metrics
-precision, recall, fscore, support = score(y_test, xgboost_predict)
-# Print result
-print(f'The recall value for the baseline xgboost model is {recall[1]:.4f}')
+
+xgboost.fit(X_train,y_train,callbacks=[wandb.xgboost.WandbCallback()])
+
+preds = xgboost.predict(X_test)
+
+rmse = numpy.sqrt(mean_squared_error(y_test, preds))
+print("RMSE: %f" % (rmse))
+wandb.log({"RMSE": rmse})
+
 
 ###### Step 4: Grid Search for XGBoost
 # Define the search space
@@ -76,22 +79,15 @@ grid_search = GridSearchCV(estimator=xgboost,
                            n_jobs=-1,
                            cv=kfold,
                            verbose=0)
-# Fit grid search
-grid_result = grid_search.fit(X_train, y_train)
-# Print grid search summary
-grid_result
-# Print the best score and the corresponding hyperparameters
-print(f'The best score is {grid_result.best_score_:.4f}')
-print('The best score standard deviation is', round(grid_result.cv_results_['std_test_recall'][grid_result.best_index_], 4))
-print(f'The best hyperparameters are {grid_result.best_params_}')
-# Make prediction using the best model
-grid_predict = grid_search.predict(X_test)
-# Get predicted probabilities
-grid_predict_prob = grid_search.predict_proba(X_test)[:,1]
-# Get performance metrics
-precision, recall, fscore, support = score(y_test, grid_predict)
-# Print result
-print(f'The recall value for the xgboost grid search is {recall[1]:.4f}')
+
+grid_search.fit(X_train,y_train,callbacks=[wandb.xgboost.WandbCallback()])
+
+preds_gs = grid_search.predict(X_test)
+
+rmse_gs = numpy.sqrt(mean_squared_error(y_test, preds_gs))
+print("RMSE: %f" % (rmse_gs))
+wandb.log({"RMSE": rmse_gs})
+
 
 
 ###### Step 4: Random Search for XGBoost
@@ -122,23 +118,14 @@ random_search = RandomizedSearchCV(estimator=xgboost,
                            n_jobs=-1,
                            cv=kfold,
                            verbose=0)
-# Fit grid search
-random_result = random_search.fit(X_train, y_train)
-# Print grid search summary
-random_result
-# Print the best score and the corresponding hyperparameters
-print(f'The best score is {random_result.best_score_:.4f}')
-print('The best score standard deviation is', round(random_result.cv_results_['std_test_recall'][random_result.best_index_], 4))
-print(f'The best hyperparameters are {random_result.best_params_}')
-# Make prediction using the best model
-random_predict = random_search.predict(X_test)
-# Get predicted probabilities
-random_predict_prob = random_search.predict_proba(X_test)[:,1]
-# Get performance metrics
-precision, recall, fscore, support = score(y_test, random_predict)
-# Print result
-print(f'The recall value for the xgboost random search is {recall[1]:.4f}')
+                           
+random_search.fit(X_train,y_train,callbacks=[wandb.xgboost.WandbCallback()])
 
+preds_rs = random_search.predict(X_test)
+
+rmse_rs = numpy.sqrt(mean_squared_error(y_test, preds_rs))
+print("RMSE: %f" % (rmse_rs))
+wandb.log({"RMSE": rmse_rs})
 
 
 ###### Step 5: Bayesian Optimization For XGBoost
@@ -180,13 +167,12 @@ xgboost_bo = XGBClassifier(seed=0,
                            max_depth=12,
                            reg_alpha=1e-05,
                            reg_lambda=1
-                           ).fit(X_train,y_train)
-                          
-# Make prediction using the best model
+                           ).fit(X_train,y_train,callbacks=[wandb.xgboost.WandbCallback()])
+
 bayesian_opt_predict = xgboost_bo.predict(X_test)
-# Get predicted probabilities
-bayesian_opt_predict_prob = xgboost_bo.predict_proba(X_test)[:,1]
-# Get performance metrics
-precision, recall, fscore, support = score(y_test, bayesian_opt_predict)
-# Print result
-print(f'The recall value for the xgboost Bayesian optimization is {recall[1]:.4f}')
+rmse_ho = numpy.sqrt(mean_squared_error(y_test, bayesian_opt_predict))
+print("RMSE: %f" % (rmse_ho))
+wandb.log({"RMSE": rmse_ho})
+
+
+                          
