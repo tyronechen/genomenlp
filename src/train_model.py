@@ -596,32 +596,32 @@ def main():
                 tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
                 with open(tuned_path, 'w', encoding='utf-8') as f:
                     json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
-            else:
-                warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
-                best_run = trainer.hyperparameter_search(
-                    n_trials=10,
-                    direction="maximize",
-                    backend="ray",
-                    resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
-                    stop={"training_iteration": 1} if smoke_test else None,
-                    progress_reporter=reporter,
-                    # scheduler=scheduler,
-                    # local_dir="".join([args.output_dir, "./ray_results/"]),
-                    log_to_file=True,
-                    )
+        else:
+            warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
+            best_run = trainer.hyperparameter_search(
+                n_trials=10,
+                direction="maximize",
+                backend="ray",
+                resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
+                stop={"training_iteration": 1} if smoke_test else None,
+                progress_reporter=reporter,
+                # scheduler=scheduler,
+                # local_dir="".join([args.output_dir, "./ray_results/"]),
+                log_to_file=True,
+                )
 
-                print("\nTUNED:\n", best_run.hyperparameters, "\n")
-                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
-                with open(tuned_path, 'w', encoding='utf-8') as f:
-                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
-                warn_tune = "".join([
-                    "It is not possible to pass tuned hyperparameters \
-                    directly due to a bug in how the random number generation \
-                    seed is handled! The tuned hyperparameters are output to:",
-                    "\n", tuned_path, "\nand you can pass these to the trainer \
-                    with --hyperparameter_file"
-                ])
-                warn(warn_tune)
+            print("\nTUNED:\n", best_run.hyperparameters, "\n")
+            tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+            with open(tuned_path, 'w', encoding='utf-8') as f:
+                json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
+            warn_tune = "".join([
+                "It is not possible to pass tuned hyperparameters \
+                directly due to a bug in how the random number generation \
+                seed is handled! The tuned hyperparameters are output to:",
+                "\n", tuned_path, "\nand you can pass these to the trainer \
+                with --hyperparameter_file"
+            ])
+            warn(warn_tune)
         print("Hyperparameter tune end")
         return
 
