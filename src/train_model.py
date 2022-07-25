@@ -329,7 +329,7 @@ def main():
     parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
                         help='provide a json file of hyperparameters. \
                         NOTE: if given, this overrides --hyperparameter_tune!')
-    parser.add_argument('-n', '--sweep_count', type=int, default=64,
+    parser.add_argument('-n', '--sweep_count', type=int, default=8,
                         help='run n hyperparameter sweeps (DEFAULT: 64) \
                         NOTE: has no effect if wandb sweep is not enabled.')
     parser.add_argument('-e', '--entity_name', type=str, default="",
@@ -528,7 +528,9 @@ def main():
                         }
                     }
 
-                sweep_id = wandb.sweep(sweep_config, project=project_name)
+                sweep_id = wandb.sweep(sweep_config,
+                                       entity=entity_name,
+                                       project=project_name)
                 # function needs to be defined internally to access namespace
                 def _sweep_wandb(config: dict):
                     with wandb.init(
@@ -538,10 +540,11 @@ def main():
                         ):
                         # set sweep configuration
                         config = wandb.config
-
+                        sweep_dir = "/".join([args.output_dir, sweep_config["name"]])
+                        print("\nLOGGING OUTPUT TO:\n", sweep_dir, "\n")
                         # set training arguments
                         training_args = TrainingArguments(
-                            output_dir="/".join([args.output_dir, sweep_config["name"]]),
+                            output_dir=sweep_dir,
                     	    report_to='wandb',  # Turn on Weights & Biases logging
                             num_train_epochs=config.epochs,
                             learning_rate=config.learning_rate,
@@ -575,10 +578,15 @@ def main():
                             function=wandb_train_func,
                             count=sweep_count)
                 wandb.finish()
-                swept = "".join([args.entity_name, sweep_config["name"], sweep_id])
-                print("Sweep end:\n", swept)
+
+                # connect to the finished sweep using API
                 api = wandb.Api()
-                sweep = api.sweep(swept)
+                entity_project_id = "/".join([entity_name, project_name, sweep_id])
+                sweep = api.sweep(entity_project_id)
+                print("Entity / Project / Sweep ID:", sweep)
+
+                # download best model file from the sweep
+                print("Get best model file from the sweep:")
                 best_run = sweep.best_run()
                 print(best_run)
                 runs = sorted(
@@ -588,12 +596,35 @@ def main():
                     )
                 val_acc = runs[0].summary.get("val_acc", 0)
                 print(f"Best run {runs[0].name} with {val_acc}% valn accuracy")
-                runs[0].file("model.h5").download(replace=True)
-                print("Best model saved to model-best.h5")
+                best_model = "/".join([args.output_dir, "model.h5"])
+                runs[0].file(best_model).download(replace=True)
+                print("Best model saved to", best_model)
                 print("\nTUNED:\n", best_run.hyperparameters, "\n")
                 tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
                 with open(tuned_path, 'w', encoding='utf-8') as f:
                     json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
+
+                # download metrics from all runs
+                print("Get metrics from all runs")
+                runs = api.runs("/".join([entity_name, project_name]))
+                summary_list, config_list, name_list = [], [], []
+                for run in runs:
+                    # .summary contains the output keys/values for metrics
+                    #  We call ._json_dict to omit large files
+                    summary_list.append(run.summary._json_dict)
+                    # .config contains the hyperparameters.
+                    #  We remove special values that start with _.
+                    config_list.append(
+                        {k: v for k,v in run.config.items()
+                         if not k.startswith('_')})
+                    # .name is the human-readable name of the run
+                    name_list.append(run.name)
+                runs_df = pd.DataFrame({
+                    "summary": summary_list,
+                    "config": config_list,
+                    "name": name_list
+                    })
+                runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
         else:
             warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
             reporter = CLIReporter(
