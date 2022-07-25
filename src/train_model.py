@@ -359,9 +359,7 @@ def main():
     wandb_state = args.wandb_off
     entity_name = args.entity_name
     project_name = args.project_name
-    if wandb_state is False:
-        os.environ["WANDB_DISABLED"] = "true"
-    else:
+    if wandb_state is True:
         wandb.login()
 
     if os.path.exists(tokeniser_path):
@@ -535,7 +533,7 @@ def main():
                 def _sweep_wandb(config: dict):
                     with wandb.init(
                         config=sweep_config,
-                        settings=wandb.Settings(console='off'),
+                        settings=wandb.Settings(console='off', start_method='fork'),
                         entity=args.entity_name
                         ):
                         # set sweep configuration
@@ -577,9 +575,9 @@ def main():
                             function=wandb_train_func,
                             count=sweep_count)
                 wandb.finish()
-
-                api = wandb.Api()
                 swept = "".join([args.entity_name, sweep_config["name"], sweep_id])
+                print("Sweep end:\n", swept)
+                api = wandb.Api()
                 sweep = api.sweep(swept)
                 best_run = sweep.best_run()
                 print(best_run)
