@@ -570,6 +570,7 @@ def main():
                         )
                         # start training loop
                         trainer.train()
+                        wandb.save(os.path.join(wandb.run.dir, "model.h5"))
                     return
 
                 # allow passing of argument with variable outside namespace
@@ -584,25 +585,6 @@ def main():
                 entity_project_id = "/".join([entity_name, project_name, sweep_id])
                 sweep = api.sweep(entity_project_id)
                 print("Entity / Project / Sweep ID:", sweep)
-
-                # download best model file from the sweep
-                print("Get best model file from the sweep:")
-                best_run = sweep.best_run()
-                print(best_run)
-                runs = sorted(
-                    sweep.runs,
-                    key=lambda run: run.summary.get("val_acc", 0),
-                    reverse=True
-                    )
-                val_acc = runs[0].summary.get("val_acc", 0)
-                print(f"Best run {runs[0].name} with {val_acc}% valn accuracy")
-                best_model = "/".join([args.output_dir, "model.h5"])
-                runs[0].file(best_model).download(replace=True)
-                print("Best model saved to", best_model)
-                print("\nTUNED:\n", best_run.hyperparameters, "\n")
-                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
-                with open(tuned_path, 'w', encoding='utf-8') as f:
-                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
 
                 # download metrics from all runs
                 print("Get metrics from all runs")
@@ -625,6 +607,25 @@ def main():
                     "name": name_list
                     })
                 runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
+
+                # download best model file from the sweep
+                print("Get best model file from the sweep:")
+                best_run = sweep.best_run()
+                print(best_run)
+                runs = sorted(
+                    sweep.runs,
+                    key=lambda run: run.summary.get("val_acc", 0),
+                    reverse=True
+                    )
+                val_acc = runs[0].summary.get("val_acc", 0)
+                print(f"Best run {runs[0].name} with {val_acc}% valn accuracy")
+                best_model = "/".join([args.output_dir, "model.h5"])
+                runs[0].file("model.h5").download(replace=True)
+                print("Best model saved to model.h5")#, best_model)
+                print("\nTUNED:\n", best_run.hyperparameters, "\n")
+                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+                with open(tuned_path, 'w', encoding='utf-8') as f:
+                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
         else:
             warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
             reporter = CLIReporter(
