@@ -63,13 +63,10 @@ def train():
   Y = dataset[:,-1] # Y is label of sequence embeddings
   
   # split data into train and test sets
-  X_train, X_test, y_train, y_test = train_test_split(X, Y,
-                                                      test_size=config.test_size,
-                                                      random_state=config.seed)
+  X_train, X_test, y_train, y_test = train_test_split(X, Y,test_size=config.test_size,random_state=config.seed)
 
   # fit model on train
-  model = XGBClassifier(booster=config.booster, max_depth=config.max_depth,
-                        learning_rate=config.learning_rate, subsample=config.subsample)
+  model = XGBClassifier(booster=config.booster, max_depth=config.max_depth,learning_rate=config.learning_rate, subsample=config.subsample)
   model.fit(X_train, y_train)
 
   # make predictions on test
