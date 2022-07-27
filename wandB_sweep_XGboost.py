@@ -1,7 +1,7 @@
 import wandb
 wandb.login()
 sweep_config = {
-    "method": "random", # try grid or random
+    "method": "random", # try grid, random, bayes
     "metric": {
       "name": "accuracy",
       "goal": "maximize"   
