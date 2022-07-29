@@ -495,6 +495,10 @@ def main():
                     sweep_config = {
                         'name': 'random',
                         'method': 'random',
+                        "metric": {
+                            "name": "val_loss",
+                            "goal": "minimize"
+                            },
                         'parameters': {
                             'epochs': {
                                 'values': [1, 2, 3, 4, 5]
@@ -570,8 +574,11 @@ def main():
                         )
                         # start training loop
                         trainer.train()
-                        wandb.save(os.path.join(wandb.run.dir, "model.h5"))
-                    return
+                        print("Saving model to:", wandb.run.dir)
+                        trainer.save_model(wandb.run.dir)
+                        wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
+                        # print(os.path.join(wandb.run.dir, "model.h5"))
+                        # wandb.save(os.path.join(wandb.run.dir, "model.h5"))
 
                 # allow passing of argument with variable outside namespace
                 wandb_train_func = functools.partial(_sweep_wandb, sweep_config)
@@ -617,11 +624,14 @@ def main():
                     key=lambda run: run.summary.get("val_acc", 0),
                     reverse=True
                     )
-                val_acc = runs[0].summary.get("val_acc", 0)
-                print(f"Best run {runs[0].name} with {val_acc}% valn accuracy")
-                best_model = "/".join([args.output_dir, "model.h5"])
-                runs[0].file("model.h5").download(replace=True)
-                print("Best model saved to model.h5")#, best_model)
+                metric_opt = sweep_config["metric"]["name"]
+                metric_opt = runs[0].summary.get(metric_opt, 0)
+                print(f"Best run {runs[0].name} with {metric_opt}% metric")
+                best_model = "/".join([args.output_dir, "pytorch_model.bin"])
+                runs[0].file("pytorch_model.bin").download(
+                    root=best_model, replace=True
+                    )
+                print("\nBEST MODEL SAVED TO:\n", best_model)
                 print("\nTUNED:\n", best_run.hyperparameters, "\n")
                 tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
                 with open(tuned_path, 'w', encoding='utf-8') as f:
