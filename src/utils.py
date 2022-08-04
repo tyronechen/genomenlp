@@ -9,7 +9,16 @@ import matplotlib.pyplot as plt
 from transformers import PreTrainedTokenizerFast
 
 def bootstrap_seq(seq: str, block_size: int=2):
-    """Take a string and shuffle it in blocks of N length"""
+    """
+    Take a string and shuffle it in blocks of N length
+
+    :param seq: Input string
+    :type seq: str
+    :param block_size: Size of block to shuffle
+    :type block_size: int
+    :return: Shuffled sequence
+    :rtype: str
+    """
     chunks, chunk_size = len(seq), block_size
     seq = [ seq[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
     shuffle(seq)
@@ -17,7 +26,20 @@ def bootstrap_seq(seq: str, block_size: int=2):
 
 def generate_from_freq(seq: str, block_size: int=2,
                        alphabet: list=["A","C","G","T"], offset: float=0.01):
-    """Take a string and sample from freq distribution to fill up seq length"""
+    """
+    Take a string and sample from freq distribution to fill up seq length
+
+    :param seq: Input string
+    :type seq: str
+    :param block_size: Size of block to shuffle
+    :type block_size: int
+    :param alphabet: Biological alphabet present in input sequences
+    :type alphabet: list[str]
+    :param offset: Add an offset to avoid zero division errors in small datasets
+    :type offset: float
+    :return: Resampled sequence with matching frequency distribution
+    :rtype: str
+    """
     if len(seq) == 0:
         return
     assert block_size <= len(seq), "Block size exceeds sequence length!"
@@ -29,14 +51,30 @@ def generate_from_freq(seq: str, block_size: int=2,
     return "".join(new)[:len(seq)]
 
 def reverse_complement(dna: str):
-    """Take a dna string as input and return reverse complement"""
+    """
+    Take a dna string as input and return reverse complement
+
+    :param dna: DNA string as input
+    :type dna: str
+    :return: Reverse complemented DNA string
+    :rtype: str
+    """
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
     return "".join([complement[base] for base in dna[::-1]])
 
 def get_tokens_from_sp(tokeniser_path: str,
                        special_tokens: list=["<s>", "</s>", "<unk>", "<pad>",
                        "<mask>"]):
-    """Take path to SentencePiece tokeniser + special tokens, return tokens"""
+    """
+    Take path to SentencePiece tokeniser + special tokens, return tokens
+
+    :param tokeniser_path: Path to sequence tokeniser file (from SentencePiece)
+    :type tokeniser_path: str
+    :param special_tokens: Special tokens to substitute in tokens
+    :type special_tokens: list[str]
+    :return: Tokens
+    :rtype: list
+    """
     # if we dont specify the special tokens below it will break
     tokeniser = PreTrainedTokenizerFast(
         tokenizer_file=tokeniser_path,
@@ -53,7 +91,18 @@ def get_tokens_from_sp(tokeniser_path: str,
 
 def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
                     "<unk>", "<pad>", "<mask>"], outfile_dir: str="./"):
-    """Plot distribution of token lengths"""
+    """
+    Plot distribution of token lengths. Calls :py:func:`get_tokens_from_sp`
+
+    :param tokeniser_path: Path to sequence tokeniser file (from SentencePiece)
+    :type tokeniser_path: str
+    :param special_tokens: Special tokens to substitute in tokens
+    :type special_tokens: list[str]
+    :param outfile_dir: Path to output plots
+    :type outfile_dir: str
+    :return: Tokens
+    :rtype: list
+    """
     tokens = get_tokens_from_sp(tokeniser_path, special_tokens)
     for special_token in special_tokens:
         tokens.remove(special_token)
