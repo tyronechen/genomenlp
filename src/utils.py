@@ -1,8 +1,12 @@
 #!/usr/bin/python
 # generic tools
 import itertools
+import os
 from math import ceil
 from random import choices, shuffle
+import pandas as pd
+import matplotlib.pyplot as plt
+from transformers import PreTrainedTokenizerFast
 
 def bootstrap_seq(seq: str, block_size: int=2):
     """Take a string and shuffle it in blocks of N length"""
@@ -28,3 +32,45 @@ def reverse_complement(dna: str):
     """Take a dna string as input and return reverse complement"""
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
     return "".join([complement[base] for base in dna[::-1]])
+
+def get_tokens_from_sp(tokeniser_path: str,
+                       special_tokens: list=["<s>", "</s>", "<unk>", "<pad>",
+                       "<mask>"]):
+    """Take path to SentencePiece tokeniser + special tokens, return tokens"""
+    # if we dont specify the special tokens below it will break
+    tokeniser = PreTrainedTokenizerFast(
+        tokenizer_file=tokeniser_path,
+        special_tokens=special_tokens,
+        bos_token="<s>",
+        eos_token="</s>",
+        unk_token="<unk>",
+        sep_token="<sep>",
+        pad_token="<pad>",
+        cls_token="<cls>",
+        mask_token="<mask>",
+        )
+    return [x.replace("▁", "") for x in list(tokeniser.vocab.keys())]
+
+def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
+                    "<unk>", "<pad>", "<mask>"], outfile_dir: str="./"):
+    """Plot distribution of token lengths"""
+    tokens = get_tokens_from_sp(tokeniser_path, special_tokens)
+    for special_token in special_tokens:
+        tokens.remove(special_token)
+    tokens_len = [len(x) for x in tokens]
+
+    for_plot = pd.DataFrame(pd.Series(tokens_len))
+    for_plot.columns = ["Selected k-mer lengths (base pairs)"]
+    for_plot.index.name = "Quantity (units)"
+
+    hist = for_plot.plot(kind="hist", grid=False, legend=False)
+    hist.set_xlabel("Selected k-mer lengths (base pairs)")
+    title = "".join(
+        ["Selected k-mer length distribution (of ", str(len(tokens_len)), ")"]
+        )
+    hist.set_title(title)
+    plt_out = ["".join(
+        [outfile_dir, "kmer_length_histogram.", i]
+        ) for i in ["pdf", "png"]]
+    [plt.savefig(i, dpi=300) for i in plt_out]
+    return hist
