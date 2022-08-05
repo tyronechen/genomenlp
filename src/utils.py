@@ -9,16 +9,30 @@ import matplotlib.pyplot as plt
 from transformers import PreTrainedTokenizerFast
 
 def bootstrap_seq(seq: str, block_size: int=2):
-    """
-    Take a string and shuffle it in blocks of N length
+    """Take a string and reshuffle it in blocks of N length.
 
-    :param seq: Input string
-    :type seq: str
-    :param block_size: Size of block to shuffle
-    :type block_size: int
-    :return: Shuffled sequence
-    :rtype: str
+    Shuffles a sequence in the user-defined block size. Joins the
+    sequence back together at the end.
+
+    Args:
+        seq (str): A string of biological sequence data.
+        block_size (int): An integer specifying the size of block to shuffle.
+
+    Returns:
+        str:
+
+        A reshuffled string of the same length as the original input
+
+        'ACGT'
+
+        If the reconstructed seq exceeds seq length it will be truncated.
     """
+        # :param seq: Input string
+        # :type seq: str
+        # :param block_size: Size of block to shuffle
+        # :type block_size: int
+        # :return: Shuffled sequence
+        # :rtype: str
     chunks, chunk_size = len(seq), block_size
     seq = [ seq[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
     shuffle(seq)
