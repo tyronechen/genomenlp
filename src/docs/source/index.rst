@@ -6,6 +6,9 @@ Welcome to ziran's documentation!
    :caption: Contents:
 
   intro
+  generate_synthetic
+  tokenise
+  create_dataset
 
 Indices and tables
 ==================

@@ -25,16 +25,12 @@ Code in this repository is provided under a `MIT license`_. This documentation i
 
 .. NOTE::
 
-  No raw data is present in this repository as manuscript(s) associated with the primary data are unpublished.
+  No raw data is present in this repository at time of writing as manuscript(s) associated with the primary data are unpublished.
 
 
 Background
 ----------
 
-`The name is a reference to a "base state"`_ which we are trying to achieve with our data representation.
+.. `The name is a reference to a "base state"`_ which we are trying to achieve with our data representation.
 
 .. _The name is a reference to a "base state": https://en.wikipedia.org/wiki/Ziran
-
-.. Package structure:
-
-.. ![Package structure](img/recode_genome_ml.png)
