@@ -14,6 +14,8 @@ def bootstrap_seq(seq: str, block_size: int=2):
     Shuffles a sequence in the user-defined block size. Joins the
     sequence back together at the end.
 
+    Compare :py:func:`generate_from_freq`.
+
     Args:
         seq (str): A string of biological sequence data.
         block_size (int): An integer specifying the size of block to shuffle.
@@ -23,16 +25,12 @@ def bootstrap_seq(seq: str, block_size: int=2):
 
         A reshuffled string of the same length as the original input
 
-        'ACGT'
+        Input: 'ACGT'
+
+        Output: 'GTAC'
 
         If the reconstructed seq exceeds seq length it will be truncated.
     """
-        # :param seq: Input string
-        # :type seq: str
-        # :param block_size: Size of block to shuffle
-        # :type block_size: int
-        # :return: Shuffled sequence
-        # :rtype: str
     chunks, chunk_size = len(seq), block_size
     seq = [ seq[i:i+chunk_size] for i in range(0, chunks, chunk_size) ]
     shuffle(seq)
@@ -40,19 +38,28 @@ def bootstrap_seq(seq: str, block_size: int=2):
 
 def generate_from_freq(seq: str, block_size: int=2,
                        alphabet: list=["A","C","G","T"], offset: float=0.01):
-    """
-    Take a string and sample from freq distribution to fill up seq length
+    """Take a string and sample from freq distribution to fill up seq length.
 
-    :param seq: Input string
-    :type seq: str
-    :param block_size: Size of block to shuffle
-    :type block_size: int
-    :param alphabet: Biological alphabet present in input sequences
-    :type alphabet: list[str]
-    :param offset: Add an offset to avoid zero division errors in small datasets
-    :type offset: float
-    :return: Resampled sequence with matching frequency distribution
-    :rtype: str
+    Compare :py:func:`bootstrap_seq`.
+
+    Args:
+        seq (str): A string of biological sequence data
+        block_size (int): Size of block to shuffle
+        alphabet (list[str]): Biological alphabet present in input sequences
+        offset (float): Adding offset avoids 0 division errors in small datasets
+
+    Returns:
+        str:
+
+        Resampled sequence with matching frequency distribution of the same
+        length as the original input. Frequency distribution is sampled as
+        n-length blocks (eg: [AA, AC, ..] or [AAA, AAC, ...]).
+
+        Input: 'AAAACGT'
+
+        Output: 'ACGTAAA'
+
+        If the reconstructed seq exceeds seq length it will be truncated.
     """
     if len(seq) == 0:
         return
@@ -65,13 +72,21 @@ def generate_from_freq(seq: str, block_size: int=2,
     return "".join(new)[:len(seq)]
 
 def reverse_complement(dna: str):
-    """
-    Take a dna string as input and return reverse complement
+    """Take a dna string as input and return reverse complement.
 
-    :param dna: DNA string as input
-    :type dna: str
-    :return: Reverse complemented DNA string
-    :rtype: str
+    Args:
+        dna (str): A string of dna sequence data.
+
+    Returns:
+        str:
+
+        Reverse complemented DNA string.
+
+        Input: 'ACGT'
+
+        Output: 'TGCA'
+
+        Note that no sequence cleaning is performed, 'N' gets mapped to itself.
     """
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
     return "".join([complement[base] for base in dna[::-1]])
@@ -79,15 +94,19 @@ def reverse_complement(dna: str):
 def get_tokens_from_sp(tokeniser_path: str,
                        special_tokens: list=["<s>", "</s>", "<unk>", "<pad>",
                        "<mask>"]):
-    """
-    Take path to SentencePiece tokeniser + special tokens, return tokens
+    """Take path to SentencePiece tokeniser + special tokens, return tokens
 
-    :param tokeniser_path: Path to sequence tokeniser file (from SentencePiece)
-    :type tokeniser_path: str
-    :param special_tokens: Special tokens to substitute in tokens
-    :type special_tokens: list[str]
-    :return: Tokens
-    :rtype: list
+    The input `tokeniser_path` is a `json` file generated from the HuggingFace
+    implementation of SentencePiece.
+
+    Args:
+        tokeniser_path (str): Path to sequence tokens file (from SentencePiece)
+        special_tokens (list[str]): Special tokens to substitute for
+
+    Returns:
+        list:
+
+        A list of cleaned tokens corresponding to variable length k-mers.
     """
     # if we dont specify the special tokens below it will break
     tokeniser = PreTrainedTokenizerFast(
@@ -105,17 +124,21 @@ def get_tokens_from_sp(tokeniser_path: str,
 
 def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
                     "<unk>", "<pad>", "<mask>"], outfile_dir: str="./"):
-    """
-    Plot distribution of token lengths. Calls :py:func:`get_tokens_from_sp`
+    """Plot distribution of token lengths. Calls :py:func:`get_tokens_from_sp`
 
-    :param tokeniser_path: Path to sequence tokeniser file (from SentencePiece)
-    :type tokeniser_path: str
-    :param special_tokens: Special tokens to substitute in tokens
-    :type special_tokens: list[str]
-    :param outfile_dir: Path to output plots
-    :type outfile_dir: str
-    :return: Tokens
-    :rtype: list
+    The input `tokeniser_path` is a `json` file generated from the HuggingFace
+    implementation of SentencePiece.
+
+    Args:
+        tokeniser_path (str): Path to sequence tokens file (from SentencePiece)
+        special_tokens (list[str]): Special tokens to substitute for
+        outfile_dir (str): Path to output plots
+
+    Returns:
+        matplotlib.pyplot:
+
+        Token histogram plots are written to `outfile_dir` in `png` and `pdf`
+        formats.
     """
     tokens = get_tokens_from_sp(tokeniser_path, special_tokens)
     for special_token in special_tokens:
