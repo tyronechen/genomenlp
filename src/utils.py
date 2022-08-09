@@ -4,6 +4,7 @@ import itertools
 import os
 from math import ceil
 from random import choices, shuffle
+from warnings import warn
 import pandas as pd
 import matplotlib.pyplot as plt
 from transformers import PreTrainedTokenizerFast
@@ -25,9 +26,9 @@ def bootstrap_seq(seq: str, block_size: int=2):
 
         A reshuffled string of the same length as the original input
 
-        Input: 'ACGT'
+        Input: ``ACGT``
 
-        Output: 'GTAC'
+        Output: ``GTAC``
 
         If the reconstructed seq exceeds seq length it will be truncated.
     """
@@ -55,9 +56,9 @@ def generate_from_freq(seq: str, block_size: int=2,
         length as the original input. Frequency distribution is sampled as
         n-length blocks (eg: [AA, AC, ..] or [AAA, AAC, ...]).
 
-        Input: 'AAAACGT'
+        Input: ``AAAACGT``
 
-        Output: 'ACGTAAA'
+        Output: ``ACGTAAA``
 
         If the reconstructed seq exceeds seq length it will be truncated.
     """
@@ -82,9 +83,9 @@ def reverse_complement(dna: str):
 
         Reverse complemented DNA string.
 
-        Input: 'ACGT'
+        Input: ``ACGT``
 
-        Output: 'TGCA'
+        Output: ``TGCA``
 
         Note that no sequence cleaning is performed, 'N' gets mapped to itself.
     """
@@ -96,8 +97,8 @@ def get_tokens_from_sp(tokeniser_path: str,
                        "<mask>"]):
     """Take path to SentencePiece tokeniser + special tokens, return tokens
 
-    The input `tokeniser_path` is a `json` file generated from the HuggingFace
-    implementation of SentencePiece.
+    The input ``tokeniser_path`` is a ``json`` file generated from the
+    HuggingFace implementation of SentencePiece.
 
     Args:
         tokeniser_path (str): Path to sequence tokens file (from SentencePiece)
@@ -126,8 +127,8 @@ def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
                     "<unk>", "<pad>", "<mask>"], outfile_dir: str="./"):
     """Plot distribution of token lengths. Calls :py:func:`get_tokens_from_sp`
 
-    The input `tokeniser_path` is a `json` file generated from the HuggingFace
-    implementation of SentencePiece.
+    The input ``tokeniser_path`` is a ``json`` file generated from the
+    HuggingFace implementation of SentencePiece.
 
     Args:
         tokeniser_path (str): Path to sequence tokens file (from SentencePiece)
@@ -137,8 +138,8 @@ def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
     Returns:
         matplotlib.pyplot:
 
-        Token histogram plots are written to `outfile_dir` in `png` and `pdf`
-        formats.
+        Token histogram plots are written to ``outfile_dir`` in ``png`` and
+        ``pdf`` formats.
     """
     tokens = get_tokens_from_sp(tokeniser_path, special_tokens)
     for special_token in special_tokens:
@@ -160,3 +161,116 @@ def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
         ) for i in ["pdf", "png"]]
     [plt.savefig(i, dpi=300) for i in plt_out]
     return hist
+
+def remove_stopwords(dataset: str, column: str=None, highmem: bool=True):
+    """Remove english language stopwords from text. Stopwords from SpaCy 3.2.4.
+
+    Args:
+        dataset (str): A path to a comma separated .csv file
+        column (str): The name of the column to be cleaned
+        highmem (bool): Use pandas by default, if not stream file through
+
+    Returns:
+        str:
+
+        New file path with removed stopwords, named ``dataset.CLEAN``.
+        To obtain stopwords list for English::
+
+            #!/bin/bash
+            python -m spacy download en
+
+            #!/usr/bin/python
+            import spacy
+            sp = spacy.load('en_core_web_sm')
+            stopwords_en = sp.Defaults.stop_words
+    """
+
+    # obtained from spacy
+    stopwords_en = {
+        'twelve', 'along', 'for', 'most', '‘d', 'as', 'the', 'in', 'ever',
+        'themselves', 'whole', 'here', 'do', 'so', 'elsewhere', 'therefore',
+        "'ve", '‘re', 'alone', 'make', 'just', '’ve', 'on', 'eight', 'such',
+        'hereupon', "'re", 'whereas', 'is', 'might', 'thereupon', 'yours',
+        'because', 'almost', 'how', 'amongst', 'it', 'everything', 'while',
+        'anyone', 'whom', 'namely', 'hereafter', 'during', 'quite', "n't",
+        'those', 'every', 'beforehand', 'wherein', 'his', 'our', 'beyond', 'no',
+        'done', 'six', 'used', 'become', 'within', 'seems', 'have', 'well',
+        '’s', 'top', 'keep', 'another', 'none', 'although', 'per', '‘s',
+        'which', 'toward', 'four', 'first', 'anyway', '’re', 'her', 'take',
+        'am', 'himself', 'too', 'call', 'wherever', 'down', 'into', 'up',
+        'unless', 'seemed', 'what', 'thru', 'hundred', 'your', "'m", 'each',
+        'does', 'though', 'name', 'hers', 'afterwards', 'some', 'front', 'made',
+        'show', 'its', 'perhaps', 'were', 'other', 'than', 'without', 'least',
+        'enough', 'by', 'until', 'him', 'from', 'amount', 'say', 'became',
+        'yourself', 'throughout', 'about', 'where', 'can', 'former', 'two',
+        'rather', 'anywhere', 'off', 'indeed', 'give', 'mostly', 'only', 'back',
+        'go', 'put', 'more', 'onto', 'somehow', '’d', '’m', 'ca', 'bottom',
+        'cannot', '‘ll', 'we', 'any', 'would', 'nor', 'whither', 'one', 'n’t',
+        'herself', 'at', 'everywhere', 'few', 'been', 'between', 'please',
+        'below', 'around', 'regarding', 'using', 'across', 'several', 'whereby',
+        'fifty', 'less', 'someone', 'get', 'before', 'seeming', 'since',
+        'therein', 'myself', 'be', 'sometime', 'to', 'was', 'whenever',
+        'latterly', 'three', 'nevertheless', 'whereafter', 'still', 'always',
+        'five', 'ourselves', 'serious', 'has', 'should', 'their', 'ours',
+        'hence', 'empty', 'n‘t', 'upon', 'formerly', 'them', 'itself', 'all',
+        'besides', 'i', 'due', 'under', 'others', 'through', 'whose', 'if',
+        'did', 'why', 'mine', 'beside', 'third', 'moreover', 'otherwise', 'via',
+        'whoever', "'d", 'or', 'together', 'whence', 'doing', 'thence', 'he',
+        'they', 'sometimes', "'s", 'see', 'never', 'against', 'over',
+        'whatever', 'next', 'yourselves', 'now', 'part', 'even', 'except',
+        'twenty', 'once', 'both', 'thereby', 'ten', 'full', 'anyhow', 'also',
+        'noone', 'among', 'are', 'very', '‘ve', 'herein', 'eleven', 'and',
+        'after', 'often', 'with', 'nowhere', 'may', 'becoming', 'really', '‘m',
+        'my', 'whereupon', 'fifteen', 'same', 'various', 'again', 'nine', 'of',
+        'you', 'a', 'behind', 'everyone', '’ll', 'side', 'else', 'further',
+        'an', 'either', 'last', "'ll", 'could', 'will', 'must', 'who', 'forty',
+        'neither', 'when', 'being', 'move', 'she', 'there', 'us', 'nothing',
+        'seem', 'had', 'many', 'that', 'becomes', 'not', 'already', 'towards',
+        'this', 'but', 'whether', 'sixty', 'thus', 'these', 'then', 'nobody',
+        'anything', 'latter', 're', 'much', 'hereby', 'something', 'me', 'yet',
+        'thereafter', 'out', 'meanwhile', 'above', 'however', 'somewhere', 'own'
+        }
+    # we correctly ignore indexes out of range
+    stopwords_en_case = {"".join([i[0].upper(), i[1:]]) for i in stopwords_en}
+    stopwords_en = stopwords_en.union(stopwords_en_case)
+
+    outfile_path = ".".join([dataset, "CLEAN"])
+    if os.path.exists(outfile_path):
+        warn("This will overwrite any existing file(s) with the same name!")
+        os.remove(outfile_path)
+
+    if highmem is True:
+        dataset = pd.read_csv(dataset, sep=",")
+        # parse everything by default
+        # "的 " is used here as a filler to parse "\nFOO" strings (en) correctly
+        if column == None:
+            for col in dataset.columns:
+                if dataset[col].dtype == "object":
+                    dataset[col] = [
+                        " ".join(i).replace("的 ", "\n") for i in [
+                            [i for i in text.replace("\n", "的 ").split(" ")
+                             if not i in stopwords_en]
+                                for text in dataset[col]
+                            ]
+                        ]
+        # target a specific column to parse
+        else:
+            dataset[column] = [
+                " ".join(i).replace("的 ", "\n") for i in [
+                    [i for i in text.replace("\n", "的 ").split(" ")
+                     if not i in stopwords_en]
+                        for text in dataset[column]
+                    ]
+                ]
+        dataset.to_csv(outfile_path, index=False)
+
+    else:
+        # this hits all columns!
+        with open(outfile_path, mode="a+") as outfile:
+            with open(dataset) as infile:
+                for line in infile:
+                    outfile.write(" ".join(
+                        [i for i in line.replace("\n", "的 ").split(" ")
+                         if not i in stopwords_en]
+                        ).replace("的 ", "\n"))
+    return outfile_path
