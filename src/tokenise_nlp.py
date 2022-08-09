@@ -10,17 +10,18 @@ import pandas as pd
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
 
-def remove_stopwords(dataset, column):
+def remove_stopwords(dataset: str, column: str=None, highmem: bool=True):
     """Remove english language stopwords from text. Stopwords from SpaCy 3.2.4.
 
     Args:
         dataset (str): A path to a comma separated .csv file
         column (str): The name of the column to be cleaned
+        highmem (bool): Use pandas by default, if not stream file through
 
     Returns:
-        pd.DataFrame:
+        str:
 
-        A pandas dataframe with stopwords removed from the relevant column
+        New file path with removed stopwords, named ``dataset.CLEAN``.
 
         ``
         # to obtain stopwords list
@@ -80,19 +81,50 @@ def remove_stopwords(dataset, column):
         'anything', 'latter', 're', 'much', 'hereby', 'something', 'me', 'yet',
         'thereafter', 'out', 'meanwhile', 'above', 'however', 'somewhere', 'own'
         }
+    # we correctly ignore indexes out of range
+    stopwords_en_case = {"".join([i[0].upper(), i[1:]]) for i in stopwords_en}
+    stopwords_en = stopwords_en.union(stopwords_en_case)
 
-    # FIXME: untested on big datasets, may need to stream file line by line!
-    dataset = pd.read_csv(dataset, index_col=0, sep=",")
-    dataset[column] = [
-        " ".join([i for i in text.split(" ") if not i in stopwords_en])
-        for text in dataset[column]
-        ]
-    return dataset
-    # dataset["train"]["text"] = [
-    #     " ".join([i for i in text.split(" ") if not i in stopwords_en])
-    #     for text in dataset["train"]["text"]
-    #     ]
-    # return dataset
+    outfile_path = ".".join([dataset, "CLEAN"])
+    if os.path.exists(outfile_path):
+        warn("This will overwrite any existing file(s) with the same name!")
+        os.remove(outfile_path)
+
+    if highmem is True:
+        dataset = pd.read_csv(dataset, sep=",")
+        # parse everything by default
+        # "的 " is used here as a filler to parse "\nFOO" strings (en) correctly
+        if column == None:
+            for col in dataset.columns:
+                if dataset[col].dtype == "object":
+                    dataset[col] = [
+                        " ".join(i).replace("的 ", "\n") for i in [
+                            [i for i in text.replace("\n", "的 ").split(" ")
+                             if not i in stopwords_en]
+                                for text in dataset[col]
+                            ]
+                        ]
+        # target a specific column to parse
+        else:
+            dataset[column] = [
+                " ".join(i).replace("的 ", "\n") for i in [
+                    [i for i in text.replace("\n", "的 ").split(" ")
+                     if not i in stopwords_en]
+                        for text in dataset[column]
+                    ]
+                ]
+        dataset.to_csv(outfile_path, index=False)
+
+    else:
+        # this hits all columns!
+        with open(outfile_path, mode="a+") as outfile:
+            with open(dataset) as infile:
+                for line in infile:
+                    outfile.write(" ".join(
+                        [i for i in line.replace("\n", "的 ").split(" ")
+                         if not i in stopwords_en]
+                        ).replace("的 ", "\n"))
+    return outfile_path
 
 def main():
     parser = argparse.ArgumentParser(
@@ -106,11 +138,17 @@ def main():
                         default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
                         help='assign special tokens, eg space and pad tokens \
                         (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
+    parser.add_argument('-c', '--col_name', type=str, default=None,
+                        help='name of column to parse data on (DEFAULT: None) \
+                        Note that this only works in highmem mode (DEFAULT)')
     parser.add_argument('-e', '--example_seq', type=str, default="AACCGGTT",
                         help='show token to seq map for a sequence \
                         (DEFAULT: AACCGGTT)')
     parser.add_argument('--dont_remove_stopwords_en', action="store_false",
                         help='dont remove english language stopwords')
+    parser.add_argument('--use_lowmem', action="store_false",
+                        help='stream file instead of reading with pandas \
+                        (useful when memory is low or file is too big)')
 
     args = parser.parse_args()
     infile_paths = args.infile_paths
@@ -118,6 +156,8 @@ def main():
     special_tokens = args.special_tokens
     example_seq = args.example_seq
     remove_stopwords_en = args.dont_remove_stopwords_en
+    use_highmem = args.use_lowmem
+    col_name = args.col_name
 
     if infile_paths == None and tokeniser_path == "":
         raise OSError("Provide either input csv/gz file or existing tokeniser!")
@@ -137,16 +177,13 @@ def main():
     # spm_export_vocab --model=tmp_model.model --output=out.txt
 
     if remove_stopwords_en is True:
-        stop_present = [remove_stopwords(i, "text") for i in infile_paths]
-        stop_absent = dict(zip(infile_paths, stop_present))
-        infile_paths = [".".join([i, "CLEAN"]) for i in stop_absent.keys()]
-        [j.to_csv(".".join([i, "CLEAN"])) for i, j in stop_absent.items()]
+        infile_paths = [
+            remove_stopwords(dataset=i, column=col_name, highmem=use_highmem)
+            for i in infile_paths
+            ]
+        print("\nOUTPUT FILES WITHOUT STOPWORDS:\n", infile_paths, "\n")
 
     dataset = load_dataset("csv", data_files=infile_paths)
-    # if remove_stopwords_en is True:
-    #     dataset = remove_stopwords(dataset)
-    # print(dataset["train"]["text"][0])
-    # print(dataset)
 
     if infile_paths:
         tokeniser = SentencePieceUnigramTokenizer()
@@ -161,7 +198,7 @@ def main():
         )
         if tokeniser_path != "":
             if os.path.exists(tokeniser_path):
-                warn("This will overwrite existing tokeniser!")
+                warn("This will overwrite any existing tokeniser!")
             tokeniser.save(tokeniser_path)
 
     if os.path.exists(tokeniser_path):
