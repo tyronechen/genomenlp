@@ -5,55 +5,15 @@ import gzip
 import itertools
 import os
 import sys
-from math import ceil
-from random import choices, shuffle
 from warnings import warn
-from datasets import ClassLabel, Dataset, DatasetDict, Value
+from datasets import Dataset, DatasetDict
 import pandas as pd
 import screed
 import torch
 from datasets import load_dataset
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
-from utils import reverse_complement
-
-def dataset_to_disk(dataset: Dataset, outfile_dir: str, name: str):
-    """Take a 🤗 dataset object, path as output and write files to disk"""
-    if os.path.exists(outfile_dir):
-        warn("".join(["Overwriting contents in directory!: ", outfile_dir]))
-    dataset.to_csv("".join([outfile_dir, "/", name, ".csv"]))
-    dataset.to_json("".join([outfile_dir, "/", name, ".json"]))
-    dataset.to_parquet("".join([outfile_dir, "/", name, ".parquet"]))
-    dataset.save_to_disk("".join([outfile_dir, "/", name]))
-
-def split_datasets(dataset: DatasetDict, outfile_dir: str, train: float,
-                   test: float=0, val: float=0, shuffle: bool=False):
-    """Split data into training | testing | validation sets"""
-    assert train + test + val == 1, "Proportions of datasets must sum to 1!"
-    train_split = 1 - train
-    test_split = 1 - test / (test + val)
-    val_split = 1 - val / (test + val)
-
-    train = dataset.train_test_split(test_size=train_split, shuffle=shuffle)
-    if val > 0:
-        test_valid = train['test'].train_test_split(test_size=test_split, shuffle=shuffle)
-        data = DatasetDict({
-            'train': train['train'],
-            'test': test_valid['test'],
-            'valid': test_valid['train'],
-            })
-        dataset_to_disk(data["train"], outfile_dir, "train")
-        dataset_to_disk(data["test"], outfile_dir, "test")
-        dataset_to_disk(data["valid"], outfile_dir, "valid")
-        return data
-    else:
-        data = DatasetDict({
-            'train': train['train'],
-            'test': train['test'],
-            })
-        dataset_to_disk(data["train"], outfile_dir, "train")
-        dataset_to_disk(data["test"], outfile_dir, "test")
-        return data
+from utils import reverse_complement, split_datasets
 
 def main():
     parser = argparse.ArgumentParser(
@@ -155,7 +115,7 @@ def main():
     # see https://huggingface.co/docs/transformers/fast_tokenizers for ref
     special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
     if os.path.exists(tokeniser_path):
-        print("USING EXISTING TOKENISER:", tokeniser_path)
+        print("\nUSING EXISTING TOKENISER:", tokeniser_path)
         tokeniser = PreTrainedTokenizerFast(
             tokenizer_file=tokeniser_path,
             special_tokens=special_tokens,
