@@ -290,15 +290,6 @@ import wandb
 #         )
 #     pass
 
-def load_data(infile_path: str):
-    """Take a 🤗 dataset object, path as output and write files to disk"""
-    if infile_path.endswith(".csv") or infile_path.endswith(".csv.gz"):
-        return load_dataset("csv", data_files=infile_path)
-    elif infile_path.endswith(".json"):
-        return load_dataset("json", data_files=infile_path)
-    elif infile_path.endswith(".parquet"):
-        return load_dataset("parquet", data_files=infile_path)
-
 def main():
     parser = HfArgumentParser(
         [TrainingArguments], description='Take HuggingFace dataset and train.\
@@ -415,6 +406,7 @@ def main():
         num_train_epochs=args.num_train_epochs, #1,
         weight_decay=args.weight_decay, #0.1,
         warmup_steps=args.warmup_steps, #1_000,
+        local_rank=args.local_rank,
         lr_scheduler_type=args.lr_scheduler_type, #"cosine",
         learning_rate=args.learning_rate, #5e-4,
         save_steps=args.save_steps, #5_000,
@@ -536,9 +528,9 @@ def main():
                                        entity=entity_name,
                                        project=project_name)
                 # function needs to be defined internally to access namespace
-                def _sweep_wandb(config: dict):
+                def _sweep_wandb(config=None):
                     with wandb.init(
-                        config=sweep_config,
+                        config=config,
                         settings=wandb.Settings(console='off', start_method='fork'),
                         entity=args.entity_name
                         ):
@@ -581,9 +573,10 @@ def main():
                         # wandb.save(os.path.join(wandb.run.dir, "model.h5"))
 
                 # allow passing of argument with variable outside namespace
-                wandb_train_func = functools.partial(_sweep_wandb, sweep_config)
+                # wandb_train_func = functools.partial(_sweep_wandb, sweep_config)
                 wandb.agent(sweep_id,
-                            function=wandb_train_func,
+                            # function=wandb_train_func,
+                            function=_sweep_wandb,
                             count=sweep_count)
                 wandb.finish()
 
