@@ -5,6 +5,7 @@ import os
 from math import ceil
 from random import choices, shuffle
 from warnings import warn
+from datasets import Dataset, DatasetDict
 import pandas as pd
 import matplotlib.pyplot as plt
 from transformers import PreTrainedTokenizerFast
@@ -282,3 +283,82 @@ def remove_stopwords(dataset: str, column: str=None, highmem: bool=True):
                          if not i in stopwords_en]
                         ).replace("的 ", "\n"))
     return outfile_path
+
+def dataset_to_disk(dataset: Dataset, outfile_dir: str, name: str):
+    """Take a 🤗 dataset object, path as output and write files to disk
+
+    Args:
+        dataset (Dataset): A ``HuggingFace`` ``Dataset`` object
+        outfile_dir (str): Write the dataset files to this path
+        name (str): The name of the split, ie ``train``, ``test``,
+            ``validation``. The file names will correspond to these.
+            Validation set is optional.
+
+    Returns:
+        None:
+
+        Nothing is returned, this writes files directly to ``outfile_dir``.
+
+        This is normally called by :py:func:`split_datasets` but can be used
+        directly if needed. Files are written directly to disk in multiple
+        formats for use in downstream operations, e.g. model training.
+    """
+    if os.path.exists(outfile_dir):
+        warn("".join(["Overwriting contents in directory!: ", outfile_dir]))
+    dataset.to_csv("".join([outfile_dir, "/", name, ".csv"]))
+    dataset.to_json("".join([outfile_dir, "/", name, ".json"]))
+    dataset.to_parquet("".join([outfile_dir, "/", name, ".parquet"]))
+    dataset.save_to_disk("".join([outfile_dir, "/", name]))
+
+def split_datasets(dataset: DatasetDict, outfile_dir: str, train: float,
+                   test: float=0, val: float=0, shuffle: bool=False):
+    """Split data into training | testing | validation sets
+
+    Args:
+        dataset (DatasetDict): A ``HuggingFace`` ``DatasetDict`` object
+        outfile_dir (str): Write the dataset files to this path
+        train (float): Proportion of dataset for training
+        test (float): Proportion of dataset for testing
+        val (float): Proportion of dataset for validation
+        shuffle (bool): Shuffle the dataset before splitting
+
+    Returns:
+        None:
+
+        Nothing is returned, this writes files directly to ``outfile_dir``.
+
+        Specifying the validation set is optional. However, note that train +
+        test + validation proportions must sum to 1!
+        This calls :py:func:`dataset_to_disk` to write files to disk.
+        File names will match the corresponding split: ``train | test | valid``
+    """
+    assert train + test + val == 1, "Proportions of datasets must sum to 1!"
+    train_split = 1 - train
+    test_split = 1 - test / (test + val)
+    val_split = 1 - val / (test + val)
+
+    train = dataset.train_test_split(test_size=train_split, shuffle=shuffle)
+    if val > 0:
+        test_valid = train['test'].train_test_split(test_size=test_split, shuffle=shuffle)
+        data = DatasetDict({
+            'train': train['train'],
+            'test': test_valid['test'],
+            'valid': test_valid['train'],
+            })
+        print("Writing training set to disk...")
+        dataset_to_disk(data["train"], outfile_dir, "train")
+        print("Writing testing set to disk...")
+        dataset_to_disk(data["test"], outfile_dir, "test")
+        print("Writing validation set to disk...")
+        dataset_to_disk(data["valid"], outfile_dir, "valid")
+        return data
+    else:
+        data = DatasetDict({
+            'train': train['train'],
+            'test': train['test'],
+            })
+        print("Writing training set to disk...")
+        dataset_to_disk(data["train"], outfile_dir, "train")
+        print("Writing testing set to disk...")
+        dataset_to_disk(data["test"], outfile_dir, "test")
+        return data
