@@ -378,7 +378,7 @@ def main():
     dataset = dataset.remove_columns("token_type_ids")
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
 
-    col_torch = ['input_ids', 'attention_mask', 'labels']
+    col_torch = ['input_ids', 'attention_mask', args.label_names]
     # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
     print(dataset)
     dataset.set_format(type='torch', columns=col_torch)
