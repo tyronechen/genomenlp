@@ -136,13 +136,13 @@ def main():
         seqs = pd.read_csv(tmp_control, chunksize=10000, sep=",", header=None)
         for i in seqs:
             i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
-            i["labels"] = 0
+            i["labels"] = "NEGATIVE"
             tmp_out.write(i.to_csv(index=False, header=False, sep=","))
         os.remove(tmp_control)
         seqs = pd.read_csv(tmp_infile, chunksize=10000, sep=",", header=None)
         for i in seqs:
             i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
-            i["labels"] = 1
+            i["labels"] = "POSITIVE"
             tmp_out.write(i.to_csv(index=False, header=False, sep=","))
         os.remove(tmp_infile)
 
@@ -174,11 +174,9 @@ def main():
     # TODO: add padding
     # https://discuss.huggingface.co/t/padding-in-datasets/2345/5
     dataset = data.map(lambda data: tokeniser(data['feature']), batched=True)
-    tmp = dataset.features.copy()
-    tmp["labels"] = Value('bool')
-    tmp["labels"] = ClassLabel(num_classes=2, names=['negative', 'positive'])
-    tmp["idx"] = Value('string')
-    dataset = dataset.cast(tmp)
+    # https://discuss.huggingface.co/t/class-labels-for-custom-datasets/15130
+    dataset = dataset.class_encode_column('labels')
+
     print("\nDATASET FEATURES:\n", dataset.features, "\n")
     print("CLASS NAMES:", dataset.features["labels"].names)
     print("CLASS COUNT:", dataset.features["labels"].num_classes)
