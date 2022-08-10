@@ -15,7 +15,7 @@ def main():
         description='Take gzip csv file(s), run SentencePiece and export json.'
     )
     parser.add_argument('-i', '--infile_paths', type=str, default=None, nargs="+",
-                        help='path to files with biological seqs split by line')
+                        help='path to files with English language split by line')
     parser.add_argument('-t', '--tokeniser_path', type=str, default="",
                         help='path to tokeniser.json file to save or load data')
     parser.add_argument('-s', '--special_tokens', type=str, nargs="+",
@@ -25,9 +25,9 @@ def main():
     parser.add_argument('-c', '--col_name', type=str, default=None,
                         help='name of column to parse data on (DEFAULT: None) \
                         Note that this only works in highmem mode (DEFAULT)')
-    parser.add_argument('-e', '--example_seq', type=str, default="AACCGGTT",
+    parser.add_argument('-e', '--example_seq', type=str, default="hello",
                         help='show token to seq map for a sequence \
-                        (DEFAULT: AACCGGTT)')
+                        (DEFAULT: hello)')
     parser.add_argument('--dont_remove_stopwords_en', action="store_false",
                         help='dont remove english language stopwords')
     parser.add_argument('--use_lowmem', action="store_false",
