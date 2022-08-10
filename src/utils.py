@@ -54,7 +54,7 @@ def generate_from_freq(seq: str, block_size: int=2,
 
         Resampled sequence with matching frequency distribution of the same
         length as the original input. Frequency distribution is sampled as
-        n-length blocks (eg: [AA, AC, ..] or [AAA, AAC, ...]).
+        n-length blocks (eg: ``[AA, AC, ..]`` or ``[AAA, AAC, ...]``).
 
         Input: ``AAAACGT``
 
@@ -88,6 +88,7 @@ def reverse_complement(dna: str):
         Output: ``TGCA``
 
         Note that no sequence cleaning is performed, 'N' gets mapped to itself.
+        Uppercase is assumed. Does not work on RNA!
     """
     complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
     return "".join([complement[base] for base in dna[::-1]])
@@ -95,13 +96,13 @@ def reverse_complement(dna: str):
 def get_tokens_from_sp(tokeniser_path: str,
                        special_tokens: list=["<s>", "</s>", "<unk>", "<pad>",
                        "<mask>"]):
-    """Take path to SentencePiece tokeniser + special tokens, return tokens
+    """Take path to ``SentencePiece`` tokeniser + special tokens, return tokens
 
     The input ``tokeniser_path`` is a ``json`` file generated from the
-    HuggingFace implementation of SentencePiece.
+    ``HuggingFace`` implementation of ``SentencePiece``.
 
     Args:
-        tokeniser_path (str): Path to sequence tokens file (from SentencePiece)
+        tokeniser_path (str): Path to sequence tokens file (from ``SentencePiece``)
         special_tokens (list[str]): Special tokens to substitute for
 
     Returns:
@@ -128,10 +129,10 @@ def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
     """Plot distribution of token lengths. Calls :py:func:`get_tokens_from_sp`
 
     The input ``tokeniser_path`` is a ``json`` file generated from the
-    HuggingFace implementation of SentencePiece.
+    ``HuggingFace`` implementation of ``SentencePiece``.
 
     Args:
-        tokeniser_path (str): Path to sequence tokens file (from SentencePiece)
+        tokeniser_path (str): Path to sequence tokens file (from ``SentencePiece``)
         special_tokens (list[str]): Special tokens to substitute for
         outfile_dir (str): Path to output plots
 
@@ -163,18 +164,25 @@ def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
     return hist
 
 def remove_stopwords(dataset: str, column: str=None, highmem: bool=True):
-    """Remove english language stopwords from text. Stopwords from SpaCy 3.2.4.
+    """Remove English language stopwords from text. Stopwords are obtained from
+    ``SpaCy 3.2.4``.
 
     Args:
-        dataset (str): A path to a comma separated .csv file
-        column (str): The name of the column to be cleaned
-        highmem (bool): Use pandas by default, if not stream file through
+        dataset (str): A path to a comma separated ``.csv`` file
+        column (str): The name of the column to be cleaned. If no column text is
+            provided (*default*), parses all columns. This option is disabled if
+            highmem is set to ``False``!
+        highmem (bool): If ``True`` (*default*), uses ``pandas`` to operate on
+            the file. If ``False``, parses the file line by line, overriding
+            column selection!
 
     Returns:
         str:
 
         New file path with removed stopwords, named ``dataset.CLEAN``.
-        To obtain stopwords list for English::
+        Note that stopwords with leading uppercase are also removed.
+        For example "the" and "The" will be treated the same and removed.
+        To obtain the stopwords list for English used in this function::
 
             #!/bin/bash
             python -m spacy download en
