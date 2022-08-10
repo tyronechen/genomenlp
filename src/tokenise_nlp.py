@@ -4,6 +4,7 @@ import argparse
 import gzip
 import os
 import sys
+from warnings import warn
 from datasets import load_dataset
 import pandas as pd
 from tokenizers import SentencePieceUnigramTokenizer
