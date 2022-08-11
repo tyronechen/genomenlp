@@ -103,8 +103,11 @@ def get_tokens_from_sp(tokeniser_path: str,
     ``HuggingFace`` implementation of ``SentencePiece``.
 
     Args:
-        tokeniser_path (str): Path to sequence tokens file (from ``SentencePiece``)
-        special_tokens (list[str]): Special tokens to substitute for
+        tokeniser_path (str): Path to sequence tokens file
+            (from ``SentencePiece``)
+        special_tokens (list[str]): Special tokens to substitute for.
+            This should match the list of special tokens used in the original
+            tokeniser (which defaults to the five special tokens shown here).
 
     Returns:
         list:
@@ -193,8 +196,7 @@ def remove_stopwords(dataset: str, column: str=None, highmem: bool=True):
             sp = spacy.load('en_core_web_sm')
             stopwords_en = sp.Defaults.stop_words
     """
-
-    # obtained from spacy
+    # obtained from SpaCy 3.2.4
     stopwords_en = {
         'twelve', 'along', 'for', 'most', '‘d', 'as', 'the', 'in', 'ever',
         'themselves', 'whole', 'here', 'do', 'so', 'elsewhere', 'therefore',
@@ -288,7 +290,7 @@ def dataset_to_disk(dataset: Dataset, outfile_dir: str, name: str):
     """Take a 🤗 dataset object, path as output and write files to disk
 
     Args:
-        dataset (Dataset): A ``HuggingFace`` ``Dataset`` object
+        dataset (Dataset): A ``HuggingFace`` ``datasets.Dataset`` object
         outfile_dir (str): Write the dataset files to this path
         name (str): The name of the split, ie ``train``, ``test``,
             ``validation``. The file names will correspond to these.
@@ -323,9 +325,10 @@ def split_datasets(dataset: DatasetDict, outfile_dir: str, train: float,
         shuffle (bool): Shuffle the dataset before splitting
 
     Returns:
-        None:
+        DatasetDict:
 
-        Nothing is returned, this writes files directly to ``outfile_dir``.
+        Returns a ``datasets.DatasetDict`` object with corresponding
+        ``train | test | valid`` splits. Writes files to ``outfile_dir``.
 
         Specifying the validation set is optional. However, note that train +
         test + validation proportions must sum to 1!
