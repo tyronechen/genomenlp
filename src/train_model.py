@@ -353,6 +353,8 @@ def main():
     if wandb_state is True:
         wandb.login()
 
+    print("\nARGUMENTS:\n", args)
+
     if os.path.exists(tokeniser_path):
         special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
         print("USING EXISTING TOKENISER:", tokeniser_path)
@@ -378,7 +380,7 @@ def main():
     dataset = dataset.remove_columns("token_type_ids")
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
 
-    col_torch = ['input_ids', 'attention_mask', args.label_names]
+    col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
     # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
     print(dataset)
     dataset.set_format(type='torch', columns=col_torch)
@@ -461,18 +463,17 @@ def main():
             warn("\nHyperparameter file was provided, skipping tuning...\n")
         else:
             warn("\nNo hyperparameter file found! Using default settings...\n")
+            print(trainer)
+            train = trainer.train()
+            print(train)
+            trainer.save_model()
+
+            # evaluate model using desired metrics
+            eval = trainer.evaluate()
+            print(eval)
+        return
 
     if hyperparameter_tune is True:
-        trainer = Trainer(
-            model_init=_model_init,
-            tokenizer=tokeniser,
-            args=args_train,
-            train_dataset=dataset["train"],#.shard(index=1, num_shards=100),
-            eval_dataset=dataset["valid"],
-            # disable_tqdm=args.disable_tqdm,
-            # compute_metrics=_compute_metrics,
-        )
-
         # if hyperparameter sweep is provided or set to True,
         if hyperparameter_sweep != "":
             if wandb_state == True:
@@ -488,8 +489,8 @@ def main():
                         'name': 'random',
                         'method': 'random',
                         "metric": {
-                            "name": "val_loss",
-                            "goal": "minimize"
+                            "name": "eval/f1",
+                            "goal": "maximize"
                             },
                         'parameters': {
                             'epochs': {
@@ -612,12 +613,12 @@ def main():
                 print("Get best model file from the sweep:")
                 best_run = sweep.best_run()
                 print(best_run)
+                metric_opt = sweep_config["metric"]["name"]
                 runs = sorted(
                     sweep.runs,
-                    key=lambda run: run.summary.get("val_acc", 0),
+                    key=lambda run: run.summary.get(metric_opt, 0),
                     reverse=True
                     )
-                metric_opt = sweep_config["metric"]["name"]
                 metric_opt = runs[0].summary.get(metric_opt, 0)
                 print(f"Best run {runs[0].name} with {metric_opt}% metric")
                 best_model = "/".join([args.output_dir, "pytorch_model.bin"])
@@ -629,52 +630,52 @@ def main():
                 tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
                 with open(tuned_path, 'w', encoding='utf-8') as f:
                     json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
-        else:
-            warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
-            reporter = CLIReporter(
-                parameter_columns={
-                    "weight_decay": "w_decay",
-                    "learning_rate": "lr",
-                    "per_device_train_batch_size": "train_bs/gpu",
-                    "num_train_epochs": "num_epochs",
-                },
-                metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
-            )
-            best_run = trainer.hyperparameter_search(
-                n_trials=10,
-                direction="maximize",
-                backend="ray",
-                resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
-                # stop={"training_iteration": 1} if smoke_test else None,
-                progress_reporter=reporter,
-                # scheduler=scheduler,
-                # local_dir="".join([args.output_dir, "./ray_results/"]),
-                log_to_file=True,
+                print("Hyperparameter sweep end")
+            else:
+                warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
+                trainer = Trainer(
+                    model_init=_model_init,
+                    tokenizer=tokeniser,
+                    args=args_train,
+                    train_dataset=dataset["train"],#.shard(index=1, num_shards=100),
+                    eval_dataset=dataset["valid"],
+                    # disable_tqdm=args.disable_tqdm,
+                    # compute_metrics=_compute_metrics,
                 )
+                reporter = CLIReporter(
+                    parameter_columns={
+                        "weight_decay": "w_decay",
+                        "learning_rate": "lr",
+                        "per_device_train_batch_size": "train_bs/gpu",
+                        "num_train_epochs": "num_epochs",
+                    },
+                    metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
+                )
+                best_run = trainer.hyperparameter_search(
+                    n_trials=10,
+                    direction="maximize",
+                    backend="ray",
+                    resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
+                    # stop={"training_iteration": 1} if smoke_test else None,
+                    progress_reporter=reporter,
+                    # scheduler=scheduler,
+                    # local_dir="".join([args.output_dir, "./ray_results/"]),
+                    log_to_file=True,
+                    )
 
-            print("\nTUNED:\n", best_run.hyperparameters, "\n")
-            tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
-            with open(tuned_path, 'w', encoding='utf-8') as f:
-                json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
-            warn_tune = "".join([
-                "It is not possible to pass tuned hyperparameters \
-                directly due to a bug in how the random number generation \
-                seed is handled! The tuned hyperparameters are output to:",
-                "\n", tuned_path, "\nand you can pass these to the trainer \
-                with --hyperparameter_file"
-            ])
-            warn(warn_tune)
-        print("Hyperparameter tune end")
-        return
+                print("\nTUNED:\n", best_run.hyperparameters, "\n")
+                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+                with open(tuned_path, 'w', encoding='utf-8') as f:
+                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
+                warn_tune = "".join([
+                    "It is not possible to pass tuned hyperparameters \
+                    directly due to a bug in how the random number generation \
+                    seed is handled! The tuned hyperparameters are output to:",
+                    "\n", tuned_path, "\nand you can pass these to the trainer \
+                    with --hyperparameter_file"
+                ])
+                warn(warn_tune)
 
-    print(trainer)
-    train = trainer.train()
-    print(train)
-    trainer.save_model()
-
-    # evaluate model using desired metrics
-    eval = trainer.evaluate()
-    print(eval)
 
 if __name__ == "__main__":
     main()
