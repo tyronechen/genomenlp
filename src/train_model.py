@@ -24,272 +24,6 @@ from ray.tune.examples.pbt_transformers.utils import download_data, \
     build_compute_metrics_fn
 import wandb
 
-# def __todo_in_future():
-# from ray.tune.schedulers import PopulationBasedTraining
-# from ray.tune.suggest.basic_variant import BasicVariantGenerator
-# from ray.tune.suggest.bayesopt import BayesOptSearch
-# from ray.tune.suggest.bohb import TuneBOHB
-# from ray.tune.suggest.dragonfly import DragonflySearch
-# # from ray.tune.suggest.flaml import BlendSearch, CFO
-# from ray.tune.suggest.hebo import HEBOSearch
-# from ray.tune.suggest.hyperopt import HyperOptSearch
-# from ray.tune.suggest.nevergrad import NevergradSearch
-# from ray.tune.suggest.optuna import OptunaSearch
-# from ray.tune.suggest.sigopt import SigOptSearch
-# from ray.tune.suggest.skopt import SkOptSearch
-# from ray.tune.suggest.zoopt import ZOOptSearch
-# from ray.tune.suggest import Repeater, ConcurrencyLimiter
-#     # TODO:
-#     # algorithm
-#     # small model
-#     #   random search
-#     #   grid search
-#     # big model + small hyperparams
-#     #   bayesopt
-#     #   dragonfly
-#     #   ax
-#     #   population
-#     config = {
-#         "width": tune.uniform(0, 20),
-#         "height": tune.uniform(-100, 100)
-#     }
-#     bayesopt = BayesOptSearch(metric="mean_loss", mode="min")
-#     tune.run(my_func, config=config, search_alg=bayesopt)
-#
-#     config = {
-#         "width": tune.uniform(0, 20),
-#         "height": tune.uniform(-100, 100),
-#         "activation": tune.choice(["relu", "tanh"])
-#     }
-#     algo = TuneBOHB(metric="mean_loss", mode="min")
-#     bohb = HyperBandForBOHB(
-#         time_attr="training_iteration",
-#         metric="mean_loss",
-#         mode="min",
-#         max_t=100)
-#     run(my_trainable, config=config, scheduler=bohb, search_alg=algo)
-#
-#     config = {
-#         "LiNO3_vol": tune.uniform(0, 7),
-#         "Li2SO4_vol": tune.uniform(0, 7),
-#         "NaClO4_vol": tune.uniform(0, 7)
-#     }
-#     df_search = DragonflySearch(
-#         optimizer="bandit",
-#         domain="euclidean",
-#         metric="objective",
-#         mode="max")
-#     tune.run(my_func, config=config, search_alg=df_search)
-#
-#     config = {
-#         "width": tune.uniform(0, 20),
-#         "height": tune.uniform(-100, 100)
-#     }
-#     hebo = HEBOSearch(metric="mean_loss", mode="min")
-#     tune.run(my_func, config=config, search_alg=hebo)
-#
-#     config = {
-#         'width': tune.uniform(0, 20),
-#         'height': tune.uniform(-100, 100),
-#         'activation': tune.choice(["relu", "tanh"])
-#     }
-#     current_best_params = [{
-#         'width': 10,
-#         'height': 0,
-#         'activation': "relu",
-#     }]
-#     hyperopt_search = HyperOptSearch(
-#         metric="mean_loss", mode="min",
-#         points_to_evaluate=current_best_params)
-#     tune.run(trainable, config=config, search_alg=hyperopt_search)
-#
-#     config = {
-#         "width": tune.uniform(0, 20),
-#         "height": tune.uniform(-100, 100),
-#         "activation": tune.choice(["relu", "tanh"])
-#     }
-#     current_best_params = [{
-#         "width": 10,
-#         "height": 0,
-#         "activation": "relu",
-#     }]
-#     ng_search = NevergradSearch(
-#         optimizer=ng.optimizers.OnePlusOne,
-#         metric="mean_loss",
-#         mode="min",
-#         points_to_evaluate=current_best_params)
-#     run(my_trainable, config=config, search_alg=ng_search)
-#
-#     config = {
-#         "a": tune.uniform(6, 8),
-#         "b": tune.loguniform(1e-4, 1e-2)
-#     }
-#     optuna_search = OptunaSearch(
-#         metric="loss",
-#         mode="min")
-#     tune.run(trainable, config=config, search_alg=optuna_search)
-#
-#     config = {
-#         "a": tune.uniform(6, 8),
-#         "b": tune.loguniform(1e-4, 1e-2)
-#     }
-#     optuna_search = OptunaSearch(
-#         metric="loss",
-#         mode="min")
-#     tune.run(trainable, config=config, search_alg=optuna_search)
-#
-#     config = {
-#         "width": tune.uniform(0, 20),
-#         "height": tune.uniform(-100, 100)
-#     }
-#     current_best_params = [
-#         {
-#             "width": 10,
-#             "height": 0,
-#         },
-#         {
-#             "width": 15,
-#             "height": -20,
-#         }
-#     ]
-#     skopt_search = SkOptSearch(
-#         metric="mean_loss",
-#         mode="min",
-#         points_to_evaluate=current_best_params)
-#     tune.run(my_trainable, config=config, search_alg=skopt_search)
-#
-#     config = {
-#         "iterations": 10,  # evaluation times
-#         "width": tune.uniform(-10, 10),
-#         "height": tune.uniform(-10, 10)
-#     }
-#     zoopt_search_config = {
-#         "parallel_num": 8,  # how many workers to parallel
-#     }
-#     zoopt_search = ZOOptSearch(
-#         algo="Asracos",  # only support Asracos currently
-#         budget=20,  # must match `num_samples` in `tune.run()`.
-#         dim_dict=dim_dict,
-#         metric="mean_loss",
-#         mode="min",
-#         **zoopt_search_config
-#     )
-#
-#     tune.run(my_objective,
-#         config=config,
-#         search_alg=zoopt_search,
-#         name="zoopt_search",
-#         num_samples=20,
-#         stop={"timesteps_total": 10})
-#
-#     # WARNING: meta-algorithm, do not use with schedulers!
-#     # re_search_alg = Repeater(search_alg, repeat=10)
-#     # Repeat 2 samples 10 times each.
-#     tune.run(trainable, num_samples=20, search_alg=re_search_alg)
-#
-#     # WARNING: meta-algorithm, useful in less parallel settings!
-#     search_alg = ConcurrencyLimiter(search_alg, max_concurrent=2)
-#     tune.run(trainable, search_alg=search_alg)
-#
-#     # small hyperparams in general
-#     #   BOHB + ASHA
-#     #   optuna + ASHA
-#     # continuous hyperparams
-#     #   Bayesian
-#     # categorical hyperparams
-#     #   Bayesian
-#     #   random search
-#     # # scheduler
-#     # HyperBand
-#     # ASHA
-#     # MedianStoppingRule
-#     # PopulationBasedTraining
-#     # PopulationBasedBandits - gaussian instead of random perturbation
-#     # HyperBandForBOHB - what the name implies
-#     # FIFOscheduler - runs in submission order
-#     # # Shim instantiation
-#     # TODO: flaml and cfo (both require strong initial seed)
-#
-#     smoke_test = True
-#     tune_config = {
-#         "per_device_train_batch_size": 32,
-#         "per_device_eval_batch_size": 32,
-#         "num_train_epochs": tune.choice([2, 3, 4, 5]),
-#         "max_steps": 1 if smoke_test else -1,  # Used for smoke test.
-#     }
-#
-#     scheduler = PopulationBasedTraining(
-#         time_attr="training_iteration",
-#         metric="eval_acc",
-#         mode="max",
-#         perturbation_interval=1,
-#         hyperparam_mutations={
-#             "weight_decay": tune.uniform(0.0, 0.3),
-#             "learning_rate": tune.uniform(1e-5, 5e-5),
-#             "per_device_train_batch_size": [16, 32, 64],
-#         },
-#     )
-#     reporter = CLIReporter(
-#         parameter_columns={
-#             "weight_decay": "w_decay",
-#             "learning_rate": "lr",
-#             "per_device_train_batch_size": "train_bs/gpu",
-#             "num_train_epochs": "num_epochs",
-#         },
-#         metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
-#     )
-#
-#     ray_default = {
-#         "learning_rate": tune.loguniform(1e-6, 1e-4),
-#         "num_train_epochs": tune.choice(list(range(1, 6))),
-#         "seed": tune.uniform(1, 40),
-#         "per_device_train_batch_size": tune.choice([4, 8, 16, 32, 64]),
-#     }
-#
-#     trainer.hyperparameter_search(
-#         hp_space=lambda _: tune_config,
-#         backend="ray",
-#         n_trials=num_samples,
-#         resources_per_trial={"cpu": 1, "gpu": gpus_per_trial},
-#         scheduler=scheduler,
-#         keep_checkpoints_num=1,
-#         checkpoint_score_attr="training_iteration",
-#         stop={"training_iteration": 1} if smoke_test else None,
-#         progress_reporter=reporter,
-#         local_dir="~/ray_results/",
-#         name="tune_transformer_pbt",
-#         log_to_file=True,
-#     )
-#
-#     tune_config = {
-#         "per_device_train_batch_size": 32,
-#         "per_device_eval_batch_size": 32,
-#         "num_train_epochs": tune.choice([2, 3, 4, 5]),
-#         "max_steps": 1 if smoke_test else -1,  # Used for smoke test.
-#     }
-#     search_alg = HyperOptSearch()
-#     search_alg = BasicVariantGenerator(points_to_evaluate=[
-#             {"a": 2, "b": 2},
-#             {"a": 1},
-#             {"b": 2}
-#         ])
-#     experiment_1 = tune.run(
-#         trainable,
-#         search_alg=search_alg
-#         )
-#
-#     search_alg.save("./my-checkpoint.pkl")
-#     # Restore the saved state onto another search algorithm
-#
-#     search_alg2 = HyperOptSearch()
-#     # search_alg2.restore("./my-checkpoint.pkl")
-#
-#     experiment_2 = tune.run(
-#         trainable,
-#         search_alg=search_alg2
-#         )
-#     pass
-
 def main():
     parser = HfArgumentParser(
         [TrainingArguments], description='Take HuggingFace dataset and train.\
@@ -570,8 +304,6 @@ def main():
                         print("Saving model to:", wandb.run.dir)
                         trainer.save_model(wandb.run.dir)
                         wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
-                        # print(os.path.join(wandb.run.dir, "model.h5"))
-                        # wandb.save(os.path.join(wandb.run.dir, "model.h5"))
 
                 # allow passing of argument with variable outside namespace
                 # wandb_train_func = functools.partial(_sweep_wandb, sweep_config)
@@ -619,18 +351,22 @@ def main():
                     key=lambda run: run.summary.get(metric_opt, 0),
                     reverse=True
                     )
-                metric_opt = runs[0].summary.get(metric_opt, 0)
-                print(f"Best run {runs[0].name} with {metric_opt}% metric")
+                score = runs[0].summary.get(metric_opt, 0)
+                print(f"Best run {runs[0].name} with {metric_opt}={score}%")
                 best_model = "/".join([args.output_dir, "pytorch_model.bin"])
                 runs[0].file("pytorch_model.bin").download(
                     root=best_model, replace=True
                     )
                 print("\nBEST MODEL SAVED TO:\n", best_model)
-                print("\nTUNED:\n", best_run.hyperparameters, "\n")
-                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+                print("\nTUNED:\n", best_run.json_config, "\n")
+                tuned_path = "".join(
+                    [args.output_dir, "/tuned_hyperparameters.json"]
+                    )
                 with open(tuned_path, 'w', encoding='utf-8') as f:
-                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
-                print("Hyperparameter sweep end")
+                    json.dump(json.loads(
+                        best_run.json_config
+                        ), f, ensure_ascii=False, indent=4)
+                print("\nHYPERPARAMETER SWEEP END")
             else:
                 warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
                 trainer = Trainer(
@@ -649,7 +385,8 @@ def main():
                         "per_device_train_batch_size": "train_bs/gpu",
                         "num_train_epochs": "num_epochs",
                     },
-                    metric_columns=["eval_acc", "eval_loss", "epoch", "training_iteration"],
+                    metric_columns=["eval_acc", "eval_loss",
+                                    "epoch", "training_iteration"],
                 )
                 best_run = trainer.hyperparameter_search(
                     n_trials=10,
@@ -664,9 +401,14 @@ def main():
                     )
 
                 print("\nTUNED:\n", best_run.hyperparameters, "\n")
-                tuned_path = "".join([args.output_dir, "/tuned_hyperparameters.json"])
+                tuned_path = "".join(
+                    [args.output_dir, "/tuned_hyperparameters.json"]
+                    )
                 with open(tuned_path, 'w', encoding='utf-8') as f:
-                    json.dump(best_run.hyperparameters, f, ensure_ascii=False, indent=4)
+                    json.dump(
+                        best_run.hyperparameters, f, ensure_ascii=False, indent=4
+                        )
+                print("\nHYPERPARAMETER SWEEP END")
                 warn_tune = "".join([
                     "It is not possible to pass tuned hyperparameters \
                     directly due to a bug in how the random number generation \
