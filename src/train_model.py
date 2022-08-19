@@ -200,7 +200,10 @@ def main():
             print(trainer)
             train = trainer.train()
             print(train)
-            trainer.save_model()
+            model_out = "/".join([args.output_dir, "model_files"])
+            print("Saving model to:", model_out)
+            wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
+            trainer.save_model(model_out)
 
             # evaluate model using desired metrics
             eval = trainer.evaluate()
@@ -354,7 +357,7 @@ def main():
                 print("Get best model file from the sweep:", runs[0])
                 score = runs[0].summary.get(metric_opt, 0)
                 print(f"Best run {runs[0].name} with {metric_opt}={score}%")
-                best_model = "/".join([args.output_dir, "pytorch_model.bin"])
+                best_model = "/".join([args.output_dir, "model_files"])
                 for i in runs[0].files():
                     i.download(root=best_model, replace=True)
                 # runs[0].file("pytorch_model.bin").download(
