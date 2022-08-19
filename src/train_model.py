@@ -342,21 +342,24 @@ def main():
                 runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
 
                 # download best model file from the sweep
-                print("Get best model file from the sweep:")
-                best_run = sweep.best_run()
-                print(best_run)
+                # these two lines dont work for some reason
+                # best_run = sweep.best_run()
+                # print(best_run)
                 metric_opt = sweep_config["metric"]["name"]
                 runs = sorted(
                     sweep.runs,
                     key=lambda run: run.summary.get(metric_opt, 0),
                     reverse=True
                     )
+                print("Get best model file from the sweep:", runs[0])
                 score = runs[0].summary.get(metric_opt, 0)
                 print(f"Best run {runs[0].name} with {metric_opt}={score}%")
                 best_model = "/".join([args.output_dir, "pytorch_model.bin"])
-                runs[0].file("pytorch_model.bin").download(
-                    root=best_model, replace=True
-                    )
+                for i in runs[0].files():
+                    i.download(root=best_model, replace=True)
+                # runs[0].file("pytorch_model.bin").download(
+                #     root=best_model, replace=True
+                #     )
                 print("\nBEST MODEL SAVED TO:\n", best_model)
                 print("\nTUNED:\n", best_run.json_config, "\n")
                 tuned_path = "".join(
