@@ -11,7 +11,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, plot_confusion_matrix
 from pprint import pprint
 import matplotlib.pyplot as plt
-%matplotlib inline
+%matplotlib 
+
+#wandb
+#!pip install wandb
+import wandb
+
 # Bayesian optimization
 from hyperopt import hp,fmin,tpe,STATUS_OK,Trials
 
@@ -56,6 +61,7 @@ classifier.fit(x_train, y_train)
 
 # predicted values from the model
 y_pred=classifier.predict(x_test)
+y_probas =classifier.predict_proba(x_test)
 
 # accuracy prediction
 accuracy = accuracy_score(y_test, y_pred)
@@ -74,6 +80,28 @@ print("Confusion matrix:\n", conf)
 print("Confusion matrix plot:\n")
 plot_confusion_matrix(classifier, x_test, y_test) 
 plt.show() 
+
+# Wandb plots
+# Weights and biases
+import wandb
+wandb.init(project="RF classifier", name="RF-base model")
+# Feature importance
+wandb.sklearn.plot_feature_importances(classifier)
+# metrics summary
+wandb.sklearn.plot_summary_metrics(classifier, x_train, y_train, x_test, y_test)
+# precision recall
+wandb.sklearn.plot_precision_recall(y_test, y_probas, labels=None)
+# ROC curve
+wandb.sklearn.plot_roc(y_test, y_probas, labels=None)
+# Learning curve
+wandb.sklearn.plot_learning_curve(classifier, x_train, y_train)
+# class proportions
+wandb.sklearn.plot_class_proportions(y_train, y_test, labels=None)
+# calibration curve
+wandb.sklearn.plot_calibration_curve(classifier, X, Y, 'RandomForestClassifier- Base model')
+#confusion matrix
+wandb.sklearn.plot_confusion_matrix(y_test, y_pred, labels=None)
+
 
 # parameters cuurently used
 print('Parameters currently in use:')
@@ -115,6 +143,8 @@ print(classifier_grid.best_params_)
 # predicted values from the grid search model
 cl_g=classifier_grid.best_estimator_
 pred=cl_g.predict(x_test)
+y_probas = cl_g.predict_proba(x_test)
+
 
 # accuracy prediction for grid search model
 accuracy = accuracy_score(y_test, pred)
@@ -132,6 +162,26 @@ print("Confusion matrix\n", conf_g)
 print("Confusion matrix plot:\n")
 plot_confusion_matrix(classifier_grid, x_test, y_test)  
 plot.show()
+
+# Weights and biases plot for Grid Search Model
+wandb.init(project="RF classifier", name="RF-gridsearch model")
+# Feature importance
+wandb.sklearn.plot_feature_importances(cl_g)
+# metrics summary
+wandb.sklearn.plot_summary_metrics(cl_g, x_train, y_train, x_test, y_test)
+# precision recall
+wandb.sklearn.plot_precision_recall(y_test, y_probas, labels=None)
+# ROC curve
+wandb.sklearn.plot_roc(y_test, y_probas, labels=None)
+# Learning curve
+wandb.sklearn.plot_learning_curve(cl_g, x_train, y_train)
+# class proportions
+wandb.sklearn.plot_class_proportions(y_train, y_test, labels=None)
+# calibration curve
+wandb.sklearn.plot_calibration_curve(cl_g, X, Y, 'RandomForestClassifier-Grid search model')
+# confusion matrix
+wandb.sklearn.plot_confusion_matrix(y_test, y_pred, labels=None)
+
 
 # Random search implementation
 # Module for hyperparameter tuning
@@ -174,6 +224,7 @@ print(classifier_random.best_params_)
 # predicted values from the random search model using best parameters
 cl_r=classifier_random.best_estimator_
 pred=cl_r.predict(x_test)
+y_probas = cl_r.predict_proba(x_test)
 
 # accuracy prediction for random search model
 accuracy = accuracy_score(y_test, pred)
@@ -191,6 +242,25 @@ print("Confusion matrix\n", conf_r)
 print("Confusion matrix plot:\n")
 plot_confusion_matrix(classifier_random, x_test, y_test)  
 plt.show()
+
+# Wandb plot for Randomized Search Model
+wandb.init(project="RF classifier", name="RF-random search model")
+# Feature importance
+wandb.sklearn.plot_feature_importances(cl_r)
+# metrics summary
+wandb.sklearn.plot_summary_metrics(cl_r, x_train, y_train, x_test, y_test)
+# precision recall
+wandb.sklearn.plot_precision_recall(y_test, y_probas, labels=None)
+# ROC curve
+wandb.sklearn.plot_roc(y_test, y_probas, labels=None)
+# Learning curve
+wandb.sklearn.plot_learning_curve(cl_r, x_train, y_train)
+# class proportions
+wandb.sklearn.plot_class_proportions(y_train, y_test, labels=None)
+# calibration curve
+wandb.sklearn.plot_calibration_curve(cl_r, X, Y, 'RandomForestClassifier-Random search model')
+# confusion matrix
+wandb.sklearn.plot_confusion_matrix(y_test, y_pred, labels=None)
 
 # Bayesian optimization
 print("\nBAYESIAN OPTIMIZATION")
@@ -232,7 +302,10 @@ rf_bayesian=RandomForestClassifier(criterion = crit[best['criterion']], max_dept
                                        min_samples_leaf = best['min_samples_leaf'], 
                                        min_samples_split = best['min_samples_split'], 
                                        n_estimators = est[best['n_estimators']]).fit(x_train,y_train)
+
+# predicted values from the model
 pred_b=rf_bayesian.predict(x_test)
+y_probas = rf_bayesian.predict_proba(x_test)
 
 # accuracy prediction
 accuracy = accuracy_score(y_test, pred_b)
@@ -250,3 +323,51 @@ print("Confusion matrix:\n", conf)
 print("Confusion matrix plot:\n")
 plot_confusion_matrix(rf_bayesian, x_test, y_test)  
 plt.show()
+
+# Wandb plot for Bayesian Optimization
+wandb.init(project="RF classifier", name="RF-Bayesian optimization model")
+# Feature importance
+wandb.sklearn.plot_feature_importances(model=rf_bayesian, title="RF-Bayesian model")
+# metrics summary
+wandb.sklearn.plot_summary_metrics(rf_bayesian, x_train, y_train, x_test, y_test)
+# precision recall
+wandb.sklearn.plot_precision_recall(y_test, y_probas, labels=None)
+# ROC curve
+wandb.sklearn.plot_roc(y_test, y_probas, labels=None)
+# Learning curve
+wandb.sklearn.plot_learning_curve(rf_bayesian, x_train, y_train)
+# class proportions
+wandb.sklearn.plot_class_proportions(y_train, y_test, labels=None)
+# calibration curve
+wandb.sklearn.plot_calibration_curve(rf_bayesian, X, Y, 'RandomForestClassifier-Bayesian optimization model')
+# confusion matrix
+wandb.sklearn.plot_confusion_matrix(y_test, y_pred, labels=None)
+
+
+# Exporting metrics from a project in to a CSV file
+
+api = wandb.Api()
+entity, project = "tyagilab", "RF classifier"  # set to your entity and project 
+runs = api.runs(entity + "/" + project) 
+
+summary_list, config_list, name_list = [], [], []
+for run in runs: 
+    # .summary contains the output keys/values for metrics like accuracy.
+    summary_list.append(run.summary._json_dict)
+
+    # .config contains the hyperparameters.
+    #  We remove special values that start with _.
+    config_list.append(
+        {k: v for k,v in run.config.items()
+         if not k.startswith('_')})
+
+    # .name is the human-readable name of the run.
+    name_list.append(run.name)
+
+runs_df = pd.DataFrame({
+    "summary": summary_list,
+    "config": config_list,
+    "name": name_list
+    })
+
+runs_df.to_csv("project.csv")
