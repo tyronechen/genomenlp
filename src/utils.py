@@ -8,7 +8,9 @@ from warnings import warn
 from datasets import Dataset, DatasetDict
 import pandas as pd
 import matplotlib.pyplot as plt
-from transformers import PreTrainedTokenizerFast
+import numpy as np
+from transformers import PreTrainedTokenizerFast, AutoModel
+import weightwatcher as ww
 
 def bootstrap_seq(seq: str, block_size: int=2):
     """Take a string and reshuffle it in blocks of N length.
@@ -365,3 +367,107 @@ def split_datasets(dataset: DatasetDict, outfile_dir: str, train: float,
         print("Writing testing set to disk...")
         dataset_to_disk(data["test"], outfile_dir, "test")
         return data
+
+def plot_hist(model_info: pd.DataFrame, outfile_path: str=None,
+              compare: list=None):
+    """Plot histogram of alphas. Writes plot directly to disk. Also see
+    :py:func:`plot_scatter`
+
+    Args:
+        model_details (pd.DataFrame): Calculated weights and alpha values
+        outfile_path (str): Write the plot to this path
+        compare (list): Paths to NLP models on disk to compare
+
+    Returns:
+        None:
+
+        Smaller alpha is better [2, 4]. Computer Vision best models are ~2.
+        If at least 1 layer has a score approaching 0, this indicates
+        scale collapse.
+        NLP models in the HuggingFace ``transformers`` library are
+        deliberately overparameterised as they are intended as a base for
+        fine tuning and are not a complete model. You will see values of
+        [2, 6] before these are fine tuned, this is expected behaviour.
+
+        If you want to compare your models against existing ones in HuggingFace
+        as a quick comparison, you can download a model to disk, substituting
+        out your model of interest as needed in the example below, then you can
+        pass the path to the model as an argument to ``compare``::
+
+            from transformers import DistilBertModel
+            model = DistilBertModel.from_pretrained('distilbert-base-uncased')
+            model.save_pretrained("/path/to/distilbert")
+    """
+    model_info.alpha.plot.hist(bins=100, label='main', density=True, color='blue')
+    plt.axvline(model_info.alpha.mean(), color='blue', linestyle='dashed')
+
+    def _plot_single(model, color: str=None):
+        """Helper function to automate plotting of individual models."""
+        watched = ww.WeightWatcher(model=model)
+        model_info = watched.analyze(randomize=True, min_evals=50)
+        model_info.alpha.plot.hist(bins=100, label='main', density=True,)# color=color)
+        plt.axvline(model_info.alpha.mean(), linestyle='dashed',) # color=color,)
+
+    if compare != None:
+        for i in compare:
+            print(i)
+            model = AutoModel.from_pretrained(i)
+            _plot_single(model, None)
+
+    plt.legend()
+    plt.savefig(outfile_path, dpi=300)
+    plt.close()
+
+def plot_scatter(model_info: pd.DataFrame, outfile_path: str=None,
+                 compare: list=None):
+    """Plot scatterplot of alphas. Writes plot directly to disk. Also see
+    :py:func:`plot_hist`
+
+    Args:
+        model_details (pd.DataFrame): Calculated weights and alpha values
+        outfile_path (str): Write the plot to this path
+        compare (list): Paths to NLP models on disk to compare
+
+    Returns:
+        None:
+
+        Smaller alpha is better [2, 4]. Computer Vision best models are ~2.
+        If at least 1 layer has a score approaching 0, this indicates
+        scale collapse.
+        NLP models in the HuggingFace ``transformers`` library are
+        deliberately overparameterised as they are intended as a base for
+        fine tuning and are not a complete model. You will see values of
+        [2, 6] before these are fine tuned, this is expected behaviour.
+
+        If you want to compare your models against existing ones in HuggingFace
+        as a quick comparison, you can download a model to disk, substituting
+        out your model of interest as needed in the example below, then you can
+        pass the path to the model as an argument to ``compare``::
+
+            from transformers import DistilBertModel
+            model = DistilBertModel.from_pretrained('distilbert-base-uncased')
+            model.save_pretrained("/path/to/distilbert")
+    """
+    x = model_info.layer_id.to_numpy()
+    y = model_info.alpha.to_numpy()
+    plt.scatter(x, y, color='blue')
+    plt.axhline(np.mean(y), color='blue', linestyle='dashed')
+
+    def _plot_single(model, color: str=None):
+        """Helper function to automate plotting of individual models."""
+        watched = ww.WeightWatcher(model=model)
+        model_info = watched.analyze(randomize=True, min_evals=50)
+        x = model_info.layer_id.to_numpy()
+        y = model_info.alpha.to_numpy()
+        plt.scatter(x, y,)# color=color,)
+        plt.axhline(np.mean(y), linestyle='dashed',)# color=color,)
+
+    if compare != None:
+        for i in compare:
+            print(i)
+            model = AutoModel.from_pretrained(i)
+            _plot_single(model, None)
+
+    plt.legend()
+    plt.savefig(outfile_path, dpi=300)
+    plt.close()
