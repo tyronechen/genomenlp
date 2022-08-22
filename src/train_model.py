@@ -356,22 +356,12 @@ def main():
                     )
                 print("Get best model file from the sweep:", runs[0])
                 score = runs[0].summary.get(metric_opt, 0)
+                best_run[0]
                 print(f"Best run {runs[0].name} with {metric_opt}={score}%")
                 best_model = "/".join([args.output_dir, "model_files"])
                 for i in runs[0].files():
                     i.download(root=best_model, replace=True)
-                # runs[0].file("pytorch_model.bin").download(
-                #     root=best_model, replace=True
-                #     )
-                print("\nBEST MODEL SAVED TO:\n", best_model)
-                print("\nTUNED:\n", best_run.json_config, "\n")
-                tuned_path = "".join(
-                    [args.output_dir, "/tuned_hyperparameters.json"]
-                    )
-                with open(tuned_path, 'w', encoding='utf-8') as f:
-                    json.dump(json.loads(
-                        best_run.json_config
-                        ), f, ensure_ascii=False, indent=4)
+                print("\nBEST MODEL AND CONFIG FILES SAVED TO:\n", best_model)
                 print("\nHYPERPARAMETER SWEEP END")
             else:
                 warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
