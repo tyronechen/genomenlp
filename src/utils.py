@@ -376,7 +376,7 @@ def plot_hist(model_info: pd.DataFrame, outfile_path: str=None,
     Args:
         model_details (pd.DataFrame): Calculated weights and alpha values
         outfile_path (str): Write the plot to this path
-        compare (list): Paths to NLP models on disk to compare
+        compare (list[pd.DataFrame]): Paths to pandas dataframes with model info
 
     Returns:
         None:
@@ -401,18 +401,14 @@ def plot_hist(model_info: pd.DataFrame, outfile_path: str=None,
     model_info.alpha.plot.hist(bins=100, label='main', density=True, color='blue')
     plt.axvline(model_info.alpha.mean(), color='blue', linestyle='dashed')
 
-    def _plot_single(model, color: str=None):
+    def _plot_single(model_info, model_name: str=None, color: str=None):
         """Helper function to automate plotting of individual models."""
-        watched = ww.WeightWatcher(model=model)
-        model_info = watched.analyze(randomize=True, min_evals=50)
-        model_info.alpha.plot.hist(bins=100, label='main', density=True,)# color=color)
+        model_info.alpha.plot.hist(bins=100, label=model_name, density=True,)# color=color)
         plt.axvline(model_info.alpha.mean(), linestyle='dashed',) # color=color,)
 
     if compare != None:
-        for i in compare:
-            print(i)
-            model = AutoModel.from_pretrained(i)
-            _plot_single(model, None)
+        for name, info in compare:
+            _plot_single(info, name)
 
     plt.legend()
     plt.savefig(outfile_path, dpi=300)
@@ -426,7 +422,7 @@ def plot_scatter(model_info: pd.DataFrame, outfile_path: str=None,
     Args:
         model_details (pd.DataFrame): Calculated weights and alpha values
         outfile_path (str): Write the plot to this path
-        compare (list): Paths to NLP models on disk to compare
+        compare (list[pd.DataFrame]): Paths to pandas dataframes with model info
 
     Returns:
         None:
@@ -453,20 +449,16 @@ def plot_scatter(model_info: pd.DataFrame, outfile_path: str=None,
     plt.scatter(x, y, color='blue')
     plt.axhline(np.mean(y), color='blue', linestyle='dashed')
 
-    def _plot_single(model, color: str=None):
+    def _plot_single(model_info, model_name: str=None, color: str=None):
         """Helper function to automate plotting of individual models."""
-        watched = ww.WeightWatcher(model=model)
-        model_info = watched.analyze(randomize=True, min_evals=50)
         x = model_info.layer_id.to_numpy()
         y = model_info.alpha.to_numpy()
         plt.scatter(x, y,)# color=color,)
         plt.axhline(np.mean(y), linestyle='dashed',)# color=color,)
 
     if compare != None:
-        for i in compare:
-            print(i)
-            model = AutoModel.from_pretrained(i)
-            _plot_single(model, None)
+        for name, info in compare:
+            _plot_single(info)
 
     plt.legend()
     plt.savefig(outfile_path, dpi=300)

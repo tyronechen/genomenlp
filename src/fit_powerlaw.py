@@ -2,6 +2,7 @@ import argparse
 import os
 import logging
 import sys
+from warnings import warn
 import matplotlib.pyplot as plt
 from transformers import \
     AutoModel, BertModel, DistilBertModel, RobertaModel, XLNetModel
@@ -34,8 +35,11 @@ def main():
 
     if output_dir == None:
         output_dir = "/".join([model_path, "fit_powerlaw"])
+        print("No output_dir provided, default to:", output_dir)
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
+    else:
+        warn("".join(["Overwriting files in: ", output_dir]))
 
     # logging.basicConfig(level=logging.INFO)
     # logger = logging.getLogger('weightwatcher')
@@ -51,29 +55,24 @@ def main():
     print("\nMODEL_DETAILS (with fit):\n")
     print(details)
 
-    alpha_list = "/".join([output_dir, "alpha_list.tsv"])
-    details.to_csv(alpha_list, sep="\t")
-
+    alpha_main = "/".join([output_dir, "alpha_main.tsv"])
     alpha_hist = "/".join([output_dir, "alpha_hist.pdf"])
     alpha_plot = "/".join([output_dir, "alpha_plot.pdf"])
 
+    details.to_csv(alpha_main, sep="\t")
+
     model_info = details[(details.alpha < alpha_max) & (details.alpha > 0)]
-    print("\nCOMPARISONS:", compare_to, "\n")
+
+    # save all the trained weights for further reuse and write to output_dir
+    if compare_to != None:
+        print("\nCOMPARISONS:\n", compare_to, "\n")
+        compare_to = [(i,ww.WeightWatcher(AutoModel.from_pretrained(i)).analyze(
+                        randomize=True, min_evals=50)) for i in compare_to]
+        for i, j in compare_to:
+            j.to_csv("".join([output_dir,"/",i.split("/")[-1],".tsv"]),sep="\t")
+
     plot_hist(model_info, alpha_hist, compare_to)
     plot_scatter(model_info, alpha_plot, compare_to)
-
-    # model_info.alpha.plot.hist(bins=100, label='main', density=True, color='blue')
-    # plt.axvline(model_info.alpha.mean(), color='blue', linestyle='dashed')
-    # plt.legend()
-    # plt.savefig(alpha_hist, dpi=300)
-    # plt.close()
-
-    # x = model_info.layer_id.to_numpy()
-    # y = model_info.alpha.to_numpy()
-    # plt.scatter(x, y, color='blue')
-    # plt.axhline(np.mean(y), color='blue', linestyle='dashed')
-    # plt.savefig(alpha_plot, dpi=300)
-    # plt.close()
 
 if __name__ == "__main__":
     main()
