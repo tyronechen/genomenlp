@@ -398,8 +398,8 @@ def plot_hist(model_info: pd.DataFrame, outfile_path: str=None,
             model = DistilBertModel.from_pretrained('distilbert-base-uncased')
             model.save_pretrained("/path/to/distilbert")
     """
-    model_info.alpha.plot.hist(bins=100, label='main', density=True, color='blue')
-    plt.axvline(model_info.alpha.mean(), color='blue', linestyle='dashed')
+    model_info.alpha.plot.hist(bins=100, label='main', density=True,)
+    plt.axvline(model_info.alpha.mean(), linestyle='dashed')
 
     def _plot_single(model_info, model_name: str=None, color: str=None):
         """Helper function to automate plotting of individual models."""
@@ -446,8 +446,8 @@ def plot_scatter(model_info: pd.DataFrame, outfile_path: str=None,
     """
     x = model_info.layer_id.to_numpy()
     y = model_info.alpha.to_numpy()
-    plt.scatter(x, y, color='blue', label='main')
-    plt.axhline(np.mean(y), color='blue', linestyle='dashed')
+    plt.scatter(x, y, label='main')
+    plt.axhline(np.mean(y), linestyle='dashed')
 
     def _plot_single(model_info, model_name: str=None, color: str=None):
         """Helper function to automate plotting of individual models."""
