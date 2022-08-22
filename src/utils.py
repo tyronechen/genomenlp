@@ -446,19 +446,19 @@ def plot_scatter(model_info: pd.DataFrame, outfile_path: str=None,
     """
     x = model_info.layer_id.to_numpy()
     y = model_info.alpha.to_numpy()
-    plt.scatter(x, y, color='blue')
+    plt.scatter(x, y, color='blue', label='main')
     plt.axhline(np.mean(y), color='blue', linestyle='dashed')
 
     def _plot_single(model_info, model_name: str=None, color: str=None):
         """Helper function to automate plotting of individual models."""
         x = model_info.layer_id.to_numpy()
         y = model_info.alpha.to_numpy()
-        plt.scatter(x, y,)# color=color,)
+        plt.scatter(x, y, label=model_name)# color=color,)
         plt.axhline(np.mean(y), linestyle='dashed',)# color=color,)
 
     if compare != None:
         for name, info in compare:
-            _plot_single(info)
+            _plot_single(info, name)
 
     plt.legend()
     plt.savefig(outfile_path, dpi=300)

@@ -51,7 +51,9 @@ def main():
     details = watcher.describe()
     print("\nMODEL_DETAILS (summary):\n")
     print(details)
-    details = watcher.analyze(randomize=True, min_evals=50)
+    details = watcher.analyze(
+        randomize=True, min_evals=50, plot=True, savefig=output_dir
+        )
     print("\nMODEL_DETAILS (with fit):\n")
     print(details)
 
