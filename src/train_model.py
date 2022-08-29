@@ -356,7 +356,6 @@ def main():
                     )
                 print("Get best model file from the sweep:", runs[0])
                 score = runs[0].summary.get(metric_opt, 0)
-                best_run[0]
                 print(f"Best run {runs[0].name} with {metric_opt}={score}%")
                 best_model = "/".join([args.output_dir, "model_files"])
                 for i in runs[0].files():
