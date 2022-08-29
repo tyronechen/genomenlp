@@ -86,8 +86,14 @@ def main():
     project_name = args.project_name
     if wandb_state is True:
         wandb.login()
-
-    print("\nARGUMENTS:\n", args)
+    if torch.cuda.is_available():
+        device = "cuda:0"
+        fp16 = True
+    else:
+        device = "cpu"
+        fp16 = False
+    print("\n\nUSING DEVICE:\n", device)
+    print("\n\nARGUMENTS:\n", args, "\n\n")
 
     if os.path.exists(tokeniser_path):
         special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
@@ -122,10 +128,10 @@ def main():
     print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
     config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
-    model = DistilBertForSequenceClassification(config)
+    model = DistilBertForSequenceClassification(config).to(device)
 
     def _model_init():
-        return DistilBertForSequenceClassification(config)
+        return DistilBertForSequenceClassification(config).to(device)
 
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
@@ -146,7 +152,7 @@ def main():
         lr_scheduler_type=args.lr_scheduler_type, #"cosine",
         learning_rate=args.learning_rate, #5e-4,
         save_steps=args.save_steps, #5_000,
-        fp16=args.fp16, #True,
+        fp16=fp16, #True,
         push_to_hub=args.push_to_hub, #False,
         label_names=args.label_names, #["labels"],
         report_to=args.report_to,
