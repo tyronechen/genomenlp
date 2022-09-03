@@ -12,8 +12,9 @@ import torch
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 import transformers
-from transformers import AutoModelForSequenceClassification, DistilBertConfig, \
-    DistilBertForSequenceClassification, HfArgumentParser, \
+from transformers import AutoModelForSequenceClassification, \
+    DistilBertConfig, DistilBertForSequenceClassification, HfArgumentParser, \
+    LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
 # import nevergrad as ng
@@ -42,6 +43,11 @@ def main():
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('-v', '--valid', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
+    parser.add_argument('-m', '--model', type=str, default="distilbert",
+                        help='choose model [ distilbert | longformer ] \
+                        distilbert handles shorter sequences up to 512 tokens \
+                        longformer handles longer sequences up to 4096 tokens \
+                        (DEFAULT: distilbert)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
                         help='vocabulary size for model configuration')
     parser.add_argument('-c', '--hyperparameter_cpus', type=int, default=1,
@@ -71,6 +77,7 @@ def main():
     args = parser.parse_args()
     train = args.train
     format = args.format
+    model = args.model
     test = args.test
     valid = args.valid
     tokeniser_path = args.tokeniser_path
@@ -127,11 +134,16 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
     print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
-    config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
-    model = DistilBertForSequenceClassification(config).to(device)
-
-    def _model_init():
-        return DistilBertForSequenceClassification(config).to(device)
+    if model == "distilbert":
+        config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
+        model = DistilBertForSequenceClassification(config).to(device)
+        def _model_init():
+            return DistilBertForSequenceClassification(config).to(device)
+    if model == "longformer":
+        config = LongformerConfig(vocab_size=vocab_size, num_labels=2)
+        model = LongformerForSequenceClassification(config).to(device)
+        def _model_init():
+            return LongformerForSequenceClassification(config).to(device)
 
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
@@ -296,7 +308,7 @@ def main():
                             logging_strategy='epoch',
                             load_best_model_at_end=True,
                             remove_unused_columns=False,
-                            fp16=False,
+                            fp16=fp16,
                             bf16=False,
                         )
                         # define training loop
