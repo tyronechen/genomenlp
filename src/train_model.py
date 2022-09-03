@@ -48,6 +48,8 @@ def main():
                         distilbert handles shorter sequences up to 512 tokens \
                         longformer handles longer sequences up to 4096 tokens \
                         (DEFAULT: distilbert)')
+    parser.add_argument('-d', '--device', type=str, default=None,
+                        help='choose device [ cpu | cuda:0 ] (DEFAULT: detect)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
                         help='vocabulary size for model configuration')
     parser.add_argument('-c', '--hyperparameter_cpus', type=int, default=1,
@@ -78,6 +80,7 @@ def main():
     train = args.train
     format = args.format
     model = args.model
+    device = args.device
     test = args.test
     valid = args.valid
     tokeniser_path = args.tokeniser_path
@@ -93,12 +96,13 @@ def main():
     project_name = args.project_name
     if wandb_state is True:
         wandb.login()
-    if torch.cuda.is_available():
-        device = "cuda:0"
-        fp16 = True
-    else:
-        device = "cpu"
-        fp16 = False
+    if device == None:
+        if torch.cuda.is_available():
+            device = "cuda:0"
+            fp16 = True
+        else:
+            device = "cpu"
+            fp16 = False
     print("\n\nUSING DEVICE:\n", device)
     print("\n\nARGUMENTS:\n", args, "\n\n")
 
