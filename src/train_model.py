@@ -128,7 +128,8 @@ def main():
     if valid != None:
         infile_paths["valid"] = valid
     dataset = load_dataset(format, data_files=infile_paths)
-    dataset = dataset.remove_columns("token_type_ids")
+    if "token_type_ids" in dataset:
+        dataset = dataset.remove_columns("token_type_ids")
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
 
     col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
