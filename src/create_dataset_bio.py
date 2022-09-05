@@ -13,7 +13,7 @@ import torch
 from datasets import load_dataset
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
-from utils import process_seqs, reverse_complement, split_datasets
+from utils import csv_to_hf, process_seqs, reverse_complement, split_datasets
 
 def main():
     parser = argparse.ArgumentParser(
@@ -76,20 +76,10 @@ def main():
     tmp_hf_out = "".join([outfile_dir, "data.hf.csv"])
     if os.path.exists(tmp_hf_out):
         os.remove(tmp_hf_out)
-    with open(tmp_hf_out, mode="a+") as tmp_out:
-        tmp_out.write("idx,feature,labels\n")
-        seqs = pd.read_csv(tmp_control, chunksize=10000, sep=",", header=None)
-        for i in seqs:
-            i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
-            i["labels"] = "NEGATIVE"
-            tmp_out.write(i.to_csv(index=False, header=False, sep=","))
-        os.remove(tmp_control)
-        seqs = pd.read_csv(tmp_infile, chunksize=10000, sep=",", header=None)
-        for i in seqs:
-            i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
-            i["labels"] = "POSITIVE"
-            tmp_out.write(i.to_csv(index=False, header=False, sep=","))
-        os.remove(tmp_infile)
+
+    csv_to_hf(tmp_control, tmp_infile, tmp_hf_out)
+    os.remove(tmp_control)
+    os.remove(tmp_infile)
 
     # configure data into a huggingface compatible dataset object
     # see https://huggingface.co/docs/datasets/access
@@ -121,6 +111,8 @@ def main():
     dataset = data.map(lambda data: tokeniser(data['feature']), batched=True)
     # https://discuss.huggingface.co/t/class-labels-for-custom-datasets/15130
     dataset = dataset.class_encode_column('labels')
+    # dont need this for most tasks, but keep it anyway and remove in training
+    # dataset = dataset.remove_columns("token_type_ids")
 
     print("\nDATASET FEATURES:\n", dataset.features, "\n")
     print("CLASS NAMES:", dataset.features["labels"].names)

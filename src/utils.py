@@ -78,7 +78,7 @@ def generate_from_freq(seq: str, block_size: int=2,
 
 def process_seqs(infile_path: str, outfile_path: str, rc: bool=True, chunk: int=None):
     """Take a file of biological sequences, process and stream to csv-like file.
-    Calls :py:func:`reverse_complement`.
+    Calls :py:func:`reverse_complement`. Used before :py:func:`csv_to_hf`.
 
     Args:
         infile_path (str): A path to a file containing biological sequence data
@@ -120,6 +120,40 @@ def process_seqs(infile_path: str, outfile_path: str, rc: bool=True, chunk: int=
                         if rc is True:
                             tmp.write("".join([subhead, "__RC", ","]))
                             tmp.write("".join([reverse_complement(seq[i]), "\n"]))
+
+def csv_to_hf(infile_neg: str, infile_pos: str, outfile_path: str):
+    """Add hf formatting to an existing csv-like file and stream to csv-like file.
+    Used downstream of :py:func:`process_seqs`.
+
+    Args:
+        infile_neg (str): Path to file containing negative / condition 0 data
+        infile_pos (str): Path to file containing positive / condition 1 data
+        outfile_path (str): Write huggingface dataset compatible output
+
+    Returns:
+        None:
+
+        The file is written directly to disk and the sequences are not returned.
+
+        Input: ``/path/to/infile_one /path/to/infile_two /path/to/output``
+
+        Output: ``None``
+
+        This is intended to be used after :py:func:`process_seqs`. If
+        used directly, it may not work as intended as some things are hardcoded.
+    """
+    with open(outfile_path, mode="a+") as tmp_out:
+        tmp_out.write("idx,feature,labels\n")
+        seqs = pd.read_csv(infile_neg, chunksize=10000, sep=",", header=None)
+        for i in seqs:
+            i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
+            i["labels"] = "NEGATIVE"
+            tmp_out.write(i.to_csv(index=False, header=False, sep=","))
+        seqs = pd.read_csv(infile_pos, chunksize=10000, sep=",", header=None)
+        for i in seqs:
+            i.rename(columns={0: "idx", 1: "feature"}, inplace=True)
+            i["labels"] = "POSITIVE"
+            tmp_out.write(i.to_csv(index=False, header=False, sep=","))
 
 def reverse_complement(dna: str):
     """Take a dna string as input and return reverse complement.
