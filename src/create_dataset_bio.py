@@ -13,7 +13,7 @@ import torch
 from datasets import load_dataset
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
-from utils import reverse_complement, split_datasets
+from utils import process_seqs, reverse_complement, split_datasets
 
 def main():
     parser = argparse.ArgumentParser(
@@ -31,6 +31,8 @@ def main():
                         default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
                         help='assign special tokens, eg space and pad tokens \
                         (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
+    parser.add_argument('-c', '--chunk', type=int, default=None,
+                        help='split seqss into n-length blocks (DEFAULT: None)')
     parser.add_argument('--split_train', type=float, default=0.90,
                         help='proportion of training data (DEFAULT: 0.90)')
     parser.add_argument('--split_test', type=float, default=0.05,
@@ -46,6 +48,7 @@ def main():
     tokeniser_path = args.tokeniser_path
     outfile_dir = args.outfile_dir
     special_tokens = args.special_tokens
+    chunk = args.chunk
     split_train = args.split_train
     split_test = args.split_test
     split_val = args.split_val
@@ -57,36 +60,18 @@ def main():
     if not os.path.isdir(outfile_dir):
         os.makedirs(outfile_dir)
 
-    warn("Any commas in fasta headers will be replaced with __!")
-
     # TODO: theres probably a better way to optimise this, all disk operations
     #   write seqs as sql db and read sequentially into pd df?
     #   but need to handle the conversion to huggingface dataset object also
     tmp_control = "".join([outfile_dir, "/.null.tmp"])
     if os.path.exists(tmp_control):
         os.remove(tmp_control)
-    with open(tmp_control, mode="a+") as tmp:
-        with screed.open(control_dist) as nullfile:
-            for read in nullfile:
-                head = read.name.replace(",", "__")
-                seq = read.sequence.upper()
-                tmp.write(head + "," + seq + "\n")
-                if do_reverse_complement is True:
-                    tmp.write("__".join(["RC", head]) + ",")
-                    tmp.write(reverse_complement(seq) + "\n")
+    process_seqs(control_dist, tmp_control, rc=do_reverse_complement, chunk=chunk)
 
     tmp_infile = "".join([outfile_dir, "/.data.tmp"])
     if os.path.exists(tmp_infile):
         os.remove(tmp_infile)
-    with open(tmp_infile, mode="a+") as tmp:
-        with screed.open(infile_path) as seqfile:
-            for read in seqfile:
-                head = read.name.replace(",", "__")
-                seq = read.sequence.upper()
-                tmp.write(head + "," + seq + "\n")
-                if do_reverse_complement is True:
-                    tmp.write("__".join(["RC", head]) + ",")
-                    tmp.write(reverse_complement(seq) + "\n")
+    process_seqs(infile_path, tmp_infile, rc=do_reverse_complement, chunk=chunk)
 
     tmp_hf_out = "".join([outfile_dir, "data.hf.csv"])
     if os.path.exists(tmp_hf_out):
@@ -154,10 +139,10 @@ def main():
     for i in dataset["train"][0]["input_ids"][0:5]:
         print("TOKEN ID:", i, "\t|", "TOKEN:", tokeniser.decode(i))
 
-    col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
-    dataset.set_format(type='torch', columns=col_torch)
-    dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
-    print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
+    # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
+    # dataset.set_format(type='torch', columns=col_torch)
+    # dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
+    # print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
 if __name__ == "__main__":
     main()

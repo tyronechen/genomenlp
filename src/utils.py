@@ -98,6 +98,7 @@ def process_seqs(infile_path: str, outfile_path: str, rc: bool=True, chunk: int=
         Note that no sequence cleaning is performed, 'N' gets mapped to itself.
         Uppercase is assumed. Does not work on RNA!
     """
+    warn("Any commas in fasta headers will be replaced with __!")
     with open(outfile_path, mode="a+") as tmp:
         with screed.open(infile_path) as infile:
             if chunk == None:
