@@ -76,6 +76,44 @@ def generate_from_freq(seq: str, block_size: int=2,
     new = choices(list(freq.keys()), weights=freq.values(), k=draw_size)
     return "".join(new)[:len(seq)]
 
+def chunk_text(infile_path: str, outfile_path: str, title: str, labels: str,
+               content: str, chunk: int=512):
+    """Take a csv-like file of text, process and stream to csv-like file.
+
+    Args:
+        infile_path (str): A path to a file containing natural language data
+        outfile_path (str): A path to a file containing the output
+        title (str): Title of column containing titles (can be an identifier)
+        labels (str): Title of column containing labels
+        content (str): Title of column containing content
+        chunk (int): Chunk the data into seqs of n length (DEFAULT: 512)
+
+    Returns:
+        None:
+
+        The file is written directly to disk and the sequences are not returned.
+
+        Input: ``/path/to/infile /path/to/outfile title labels content chunk_size``
+
+        Output: ``None``
+
+        Note that this is specific for natural language data and will not work
+        on biological sequences directly (which have specific formatting).
+        Here we assume there are the columns: index, title, content, labels.
+    """
+    text = pd.read_csv(infile_path, chunksize=1, sep=",", header=0, index_col=0)
+    for i in text:
+        titles = i[title].values[0]
+        seq = i[content].values[0]
+        label = i[labels].values[0]
+        seqs = [seq[i:i + chunk] for i in range(0, len(seq), chunk)]
+        subtitles = ["".join([titles, "__PARTIAL_SEQ_CHUNK_", str(i)])
+                     for i in range(len(seqs))]
+        data = pd.DataFrame({title: subtitles, content: seqs})
+        data[labels] = label
+        data.to_csv(outfile_path, mode="a", index=False,
+                    header=not os.path.exists(outfile_path))
+
 def process_seqs(infile_path: str, outfile_path: str, rc: bool=True, chunk: int=None):
     """Take a file of biological sequences, process and stream to csv-like file.
     Calls :py:func:`reverse_complement`. Used before :py:func:`csv_to_hf`.

@@ -9,7 +9,7 @@ import torch
 from datasets import load_dataset
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
-from utils import split_datasets
+from utils import chunk_text, split_datasets
 
 def main():
     parser = argparse.ArgumentParser(
@@ -18,11 +18,13 @@ def main():
     )
     parser.add_argument('infile_path', type=str, help='path to csv/gz file')
     parser.add_argument('tokeniser_path', type=str, help='load tokeniser file')
+    parser.add_argument('title', type=str, help='name of the column in the \
+                        csv file which contains a unique identifier')
     parser.add_argument('labels', type=str, help='name of the column in the \
                         csv file which contains labels')
     parser.add_argument('content', type=str, help='name of the column in the \
                         csv file which contains content')
-    parser.add_argument('-c', '--control_dist', type=str, default=None,
+    parser.add_argument('-d', '--control_dist', type=str, default=None,
                         help='supply category 2')
     parser.add_argument('-o', '--outfile_dir', type=str, default="hf_out/",
                         help='write 🤗 dataset to directory as \
@@ -31,6 +33,8 @@ def main():
                         default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
                         help='assign special tokens, eg space and pad tokens \
                         (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
+    parser.add_argument('-c', '--chunk', type=int, default=None,
+                        help='split seqs into n-length blocks (DEFAULT: None)')
     parser.add_argument('--split_train', type=float, default=0.90,
                         help='proportion of training data (DEFAULT: 0.90)')
     parser.add_argument('--split_test', type=float, default=0.05,
@@ -44,11 +48,13 @@ def main():
     tokeniser_path = args.tokeniser_path
     outfile_dir = args.outfile_dir
     special_tokens = args.special_tokens
+    chunk = args.chunk
     split_train = args.split_train
     split_test = args.split_test
     split_val = args.split_val
     labels = args.labels
     content = args.content
+    title = args.title
 
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
@@ -56,10 +62,21 @@ def main():
     if not os.path.isdir(outfile_dir):
         os.makedirs(outfile_dir)
 
+    # chunk text into n-length blocks
+    if chunk != None:
+        print("DIVIDE TEXT INTO BLOCKS OF LENGTH:", chunk, "\n")
+        tmp_infile = "".join([outfile_dir, "/data.tmp"])
+        if os.path.exists(tmp_infile):
+            os.remove(tmp_infile)
+        chunk_text(infile_path, tmp_infile, title, labels, content, chunk)
+        data = load_dataset('csv', data_files=tmp_infile, split="train")
+        if os.path.exists(tmp_infile):
+            os.remove(tmp_infile)
+    else:
+        data = load_dataset('csv', data_files=infile_path, split="train")
+
     # configure data into a huggingface compatible dataset object
     # see https://huggingface.co/docs/datasets/access
-    data = load_dataset('csv', data_files=infile_path, split="train")
-    print(data)
 
     # we can tokenise separately if needed from the positive data
     # see https://huggingface.co/docs/transformers/fast_tokenizers for ref
@@ -104,9 +121,9 @@ def main():
     for i in dataset["train"][0]["input_ids"][0:5]:
         print("TOKEN ID:", i, "\t|", "TOKEN:", tokeniser.decode(i))
 
-    col_torch = ['input_ids', 'token_type_ids', 'attention_mask', labels]
-    dataset.set_format(type='torch', columns=col_torch)
-    dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
+    # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', labels]
+    # dataset.set_format(type='torch', columns=col_torch)
+    # dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
     # print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
 if __name__ == "__main__":
