@@ -9,6 +9,7 @@ from datasets import Dataset, DatasetDict
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import screed
 from transformers import PreTrainedTokenizerFast, AutoModel
 import weightwatcher as ww
 
@@ -74,6 +75,50 @@ def generate_from_freq(seq: str, block_size: int=2,
     draw_size = ceil(len(seq) / block_size)
     new = choices(list(freq.keys()), weights=freq.values(), k=draw_size)
     return "".join(new)[:len(seq)]
+
+def process_seqs(infile_path: str, outfile_path: str, rc: bool=True, chunk: int=None):
+    """Take a file of biological sequences, process and stream to csv-like file.
+    Calls :py:func:`reverse_complement`.
+
+    Args:
+        infile_path (str): A path to a file containing biological sequence data
+        outfile_path (str): A path to a file containing the output
+        rc (bool): reverse complement the data (DEFAULT: TRUE)
+        chunk (int): chunk the data into seqs of n length (DEFAULT: None)
+
+    Returns:
+        None:
+
+        The file is written directly to disk and the sequences are not returned.
+
+        Input: ``/path/to/infile``
+
+        Output: ``None``
+
+        Note that no sequence cleaning is performed, 'N' gets mapped to itself.
+        Uppercase is assumed. Does not work on RNA!
+    """
+    with open(outfile_path, mode="a+") as tmp:
+        with screed.open(infile_path) as infile:
+            if chunk == None:
+                for read in infile:
+                    head = read.name.replace(",", "__")
+                    seq = read.sequence.upper()
+                    tmp.write("".join([head, ",", seq, "\n"]))
+                    if rc is True:
+                        tmp.write("".join([head, "__RC", ","]))
+                        tmp.write("".join([reverse_complement(seq), "\n"]))
+            else:
+                for read in infile:
+                    head = read.name.replace(",", "__")
+                    seq = read.sequence.upper()
+                    seq = [seq[i:i + chunk] for i in range(0, len(seq), chunk)]
+                    for i in range(len(seq)):
+                        subhead = "".join([head, "__PARTIAL_SEQ_CHUNK_", str(i)])
+                        tmp.write("".join([subhead, ",", seq[i], "\n"]))
+                        if rc is True:
+                            tmp.write("".join([subhead, "__RC", ","]))
+                            tmp.write("".join([reverse_complement(seq[i]), "\n"]))
 
 def reverse_complement(dna: str):
     """Take a dna string as input and return reverse complement.
