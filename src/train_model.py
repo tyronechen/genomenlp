@@ -99,10 +99,14 @@ def main():
     if device == None:
         if torch.cuda.is_available():
             device = "cuda:0"
-            fp16 = True
         else:
             device = "cpu"
-            fp16 = False
+
+    if device == "cpu":
+        fp16 = False
+    else:
+        fp16 = True
+
     print("\n\nUSING DEVICE:\n", device)
     print("\n\nARGUMENTS:\n", args, "\n\n")
 
