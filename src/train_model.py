@@ -13,6 +13,7 @@ from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 import transformers
 from transformers import AutoModelForSequenceClassification, \
+    DataCollatorWithPadding, \
     DistilBertConfig, DistilBertForSequenceClassification, HfArgumentParser, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
@@ -124,6 +125,8 @@ def main():
             cls_token="<cls>",
             mask_token="<mask>",
             )
+        data_collator = DataCollatorWithPadding(tokenizer=tokeniser,
+                                                padding="longest")
 
     infile_paths = dict()
     infile_paths["train"] = train
@@ -162,6 +165,8 @@ def main():
         overwrite_output_dir=args.overwrite_output_dir,
         per_device_train_batch_size=args.per_device_train_batch_size,
         per_device_eval_batch_size=args.per_device_eval_batch_size,
+        per_gpu_train_batch_size=args.per_gpu_train_batch_size,
+        per_gpu_eval_batch_size=args.per_gpu_eval_batch_size,
         evaluation_strategy=args.evaluation_strategy, #"steps",
         eval_steps=args.eval_steps, #5_000,
         logging_steps=args.logging_steps, #5_000,
@@ -208,6 +213,7 @@ def main():
         train_dataset=dataset["train"],
         eval_dataset=dataset["test"],
         compute_metrics=_compute_metrics,
+        data_collator=data_collator,
         # disable_tqdm=args.disable_tqdm,
     )
 
@@ -327,7 +333,8 @@ def main():
                             tokenizer=tokeniser,
                             train_dataset=dataset['train'],
                             eval_dataset=dataset['valid'],#.shard(index=1, num_shards=10),
-                            compute_metrics=_compute_metrics
+                            compute_metrics=_compute_metrics,
+                            data_collator=data_collator,
                         )
                         # start training loop
                         trainer.train()
@@ -397,6 +404,7 @@ def main():
                     args=args_train,
                     train_dataset=dataset["train"],#.shard(index=1, num_shards=100),
                     eval_dataset=dataset["valid"],
+                    data_collator=data_collator,
                     # disable_tqdm=args.disable_tqdm,
                     # compute_metrics=_compute_metrics,
                 )
