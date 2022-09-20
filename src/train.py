@@ -181,6 +181,8 @@ def main():
             "This overrides all other command line arguments except output_dir!"
             ]))
         args_train = torch.load(hyperparameter_file)
+        assert type(args_train) == transformers.training_args.TrainingArguments,
+            "hyperparameter file must be a pytorch formatted training_args.bin!"
         args_train.output_dir = args.output_dir
     else:
         args_train = TrainingArguments(
