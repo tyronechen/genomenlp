@@ -131,6 +131,8 @@ def main():
     dataset = load_dataset(format, data_files=infile_paths)
     if "token_type_ids" in dataset:
         dataset = dataset.remove_columns("token_type_ids")
+    dataset = dataset.class_encode_column(args.label_names[0])
+    dataset.features[args.label_names].names = ["NEG", "POS"]
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
 
     col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
@@ -193,19 +195,19 @@ def main():
         logits = eval_preds.predictions
         labels = eval_preds.label_ids
         preds = np.argmax(logits, axis=-1)
+        y_probas = np.concatenate(
+            (1 - preds.reshape(-1,1), preds.reshape(-1,1)), axis=1
+            )
+        class_names = dataset["train"].features[args.label_names[0]].names
         wandb.log({"roc_curve" : wandb.plot.roc_curve(
-            labels, preds, labels=labels
+            labels, y_probas, labels=class_names
             )})
         wandb.log({"pr" : wandb.plot.pr_curve(
-            labels, preds, labels=labels, classes_to_plot=None
+            labels, y_probas, labels=class_names, #classes_to_plot=None
             )})
-        # wandb.log({'heatmap_with_text': wandb.plots.HeatMap(
-        #     x_labels, y_labels, matrix_values, show_text=True
-        #     )})
-        # wandb.log({'heatmap_no_text': wandb.plots.HeatMap(
-        #     x_labels, y_labels, matrix_values, show_text=False
-        #     )})
-        # wandb.sklearn.plot_confusion_matrix(y_test, y_pred, nb.classes_)
+        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(
+            probs=y_probas, y_true=labels, class_names=class_names
+            )})
         metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
         metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
         metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
