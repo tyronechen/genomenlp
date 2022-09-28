@@ -6,18 +6,20 @@
 import warnings
 warnings.filterwarnings('ignore')
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV, cross_val_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, plot_confusion_matrix
 from pprint import pprint
 import matplotlib.pyplot as plt
 %matplotlib 
-
 #wandb
 #!pip install wandb
 import wandb
 #wandb.init('RF classifier')
-
+#SHAP
+#!pip install shap
+import shap
 # Bayesian optimization
 from hyperopt import hp,fmin,tpe,STATUS_OK,Trials
 
