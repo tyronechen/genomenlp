@@ -23,6 +23,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
+from utils import _compute_metrics
 # import nevergrad as ng
 import ray
 from ray import tune
@@ -159,33 +160,6 @@ def main():
     # https://huggingface.co/course/chapter3/3?fw=pt
     # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
     # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
-    def _compute_metrics(eval_preds):
-        metrics = dict()
-        accuracy_metric = load_metric('accuracy')
-        precision_metric = load_metric('precision')
-        recall_metric = load_metric('recall')
-        f1_metric = load_metric('f1')
-        logits = eval_preds.predictions
-        labels = eval_preds.label_ids
-        preds = np.argmax(logits, axis=-1)
-        y_probas = np.concatenate(
-            (1 - preds.reshape(-1,1), preds.reshape(-1,1)), axis=1
-            )
-        class_names = dataset["train"].features[args.label_names[0]].names
-        wandb.log({"roc_curve" : wandb.plot.roc_curve(
-            labels, y_probas, labels=class_names
-            )})
-        wandb.log({"pr" : wandb.plot.pr_curve(
-            labels, y_probas, labels=class_names, #classes_to_plot=None
-            )})
-        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(
-            probs=y_probas, y_true=labels, class_names=class_names
-            )})
-        metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
-        metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
-        return metrics
 
     args_train = TrainingArguments(
         output_dir=args.output_dir,
@@ -280,38 +254,6 @@ def main():
         "name": name_list
         })
     runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
-
-    # regarding evaluation metrics:
-    # https://huggingface.co/course/chapter3/3?fw=pt
-    # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
-    # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
-    def _compute_metrics(eval_preds):
-        metrics = dict()
-        accuracy_metric = load_metric('accuracy')
-        precision_metric = load_metric('precision')
-        recall_metric = load_metric('recall')
-        f1_metric = load_metric('f1')
-        logits = eval_preds.predictions
-        labels = eval_preds.label_ids
-        preds = np.argmax(logits, axis=-1)
-        y_probas = np.concatenate(
-            (1 - preds.reshape(-1,1), preds.reshape(-1,1)), axis=1
-            )
-        class_names = dataset["train"].features[args.label_names[0]].names
-        wandb.log({"roc_curve" : wandb.plot.roc_curve(
-            labels, y_probas, labels=class_names
-            )})
-        wandb.log({"pr" : wandb.plot.pr_curve(
-            labels, y_probas, labels=class_names, #classes_to_plot=None
-            )})
-        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(
-            probs=y_probas, y_true=labels, class_names=class_names
-            )})
-        metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
-        metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
-        return metrics
 
     # hyperparameter tuning on 10% of original datasett following:
     # https://github.com/huggingface/notebooks/blob/main/examples/text_classification.ipynb

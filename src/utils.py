@@ -13,6 +13,54 @@ import screed
 from transformers import PreTrainedTokenizerFast, AutoModel
 import weightwatcher as ww
 
+def _compute_metrics(eval_preds):
+    """Compute metrics during the training run using transformers and wandb API.
+
+    This is configured to capture metrics using the transformers `dataset` API,
+    and upload the metrics to `wandb` for interactive logging and visualisation.
+    Not intended for direct use, this is called by `transformers.Trainer()`.
+
+    More information regarding evaluation metrics.
+    - https://huggingface.co/course/chapter3/3?fw=pt
+    - https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
+    - https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
+
+    Args:
+        eval_preds (torch): a tensor passed in as part of the training process.
+
+    Returns:
+        dict:
+
+        A dictionary of metrics from the transformers `dataset` API.
+        This is specifically configured for plotting `wandb` interactive plots.
+    """
+    metrics = dict()
+    accuracy_metric = load_metric('accuracy')
+    precision_metric = load_metric('precision')
+    recall_metric = load_metric('recall')
+    f1_metric = load_metric('f1')
+    logits = eval_preds.predictions
+    labels = eval_preds.label_ids
+    preds = np.argmax(logits, axis=-1)
+    y_probas = np.concatenate(
+        (1 - preds.reshape(-1,1), preds.reshape(-1,1)), axis=1
+        )
+    class_names = dataset["train"].features[args.label_names[0]].names
+    wandb.log({"roc_curve" : wandb.plot.roc_curve(
+        labels, y_probas, labels=class_names
+        )})
+    wandb.log({"pr" : wandb.plot.pr_curve(
+        labels, y_probas, labels=class_names, #classes_to_plot=None
+        )})
+    wandb.log({"conf_mat" : wandb.plot.confusion_matrix(
+        probs=y_probas, y_true=labels, class_names=class_names
+        )})
+    metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
+    metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
+    metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
+    metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
+    return metrics
+
 def bootstrap_seq(seq: str, block_size: int=2):
     """Take a string and reshuffle it in blocks of N length.
 

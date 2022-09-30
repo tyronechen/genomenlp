@@ -18,6 +18,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
+from utils import _compute_metrics
 import wandb
 
 def main():
@@ -142,38 +143,6 @@ def main():
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
     tokeniser.pad_token = tokeniser.eos_token
-
-    # regarding evaluation metrics:
-    # https://huggingface.co/course/chapter3/3?fw=pt
-    # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
-    # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
-    def _compute_metrics(eval_preds):
-        metrics = dict()
-        accuracy_metric = load_metric('accuracy')
-        precision_metric = load_metric('precision')
-        recall_metric = load_metric('recall')
-        f1_metric = load_metric('f1')
-        logits = eval_preds.predictions
-        labels = eval_preds.label_ids
-        preds = np.argmax(logits, axis=-1)
-        wandb.log({"roc_curve" : wandb.plot.roc_curve(
-            labels, preds, labels=labels
-            )})
-        wandb.log({"pr" : wandb.plot.pr_curve(
-            labels, preds, labels=labels, classes_to_plot=None
-            )})
-        # wandb.log({'heatmap_with_text': wandb.plots.HeatMap(
-        #     x_labels, y_labels, matrix_values, show_text=True
-        #     )})
-        # wandb.log({'heatmap_no_text': wandb.plots.HeatMap(
-        #     x_labels, y_labels, matrix_values, show_text=False
-        #     )})
-        # wandb.sklearn.plot_confusion_matrix(y_test, y_pred, nb.classes_)
-        metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
-        metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
-        return metrics
 
     if os.path.exists(hyperparameter_file):
         warn("".join([
