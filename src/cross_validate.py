@@ -250,6 +250,9 @@ def main():
 
     wandb.finish()
 
+    # TODO: get metrics from group
+    sys.exit()
+
     # connect to the finished sweep using API
     api = wandb.Api()
     entity_project_id = "/".join([entity_name, project_name, sweep_id])
@@ -277,57 +280,6 @@ def main():
         "name": name_list
         })
     runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
-
-    die
-
-    num_folds = 5
-
-    # Spin up workers before calling wandb.init()
-    # Workers will be blocked on a queue waiting to start
-    sweep_q = multiprocessing.Queue()
-    workers = []
-    for num in range(num_folds):
-        q = multiprocessing.Queue()
-        p = multiprocessing.Process(
-            target=train, kwargs=dict(sweep_q=sweep_q, worker_q=q)
-        )
-        p.start()
-        workers.append(Worker(queue=q, process=p))
-
-    sweep_run = wandb.init()
-    sweep_id = sweep_run.sweep_id or "unknown"
-    sweep_url = sweep_run.get_sweep_url()
-    project_url = sweep_run.get_project_url()
-    sweep_group_url = "{}/groups/{}".format(project_url, sweep_id)
-    sweep_run.notes = sweep_group_url
-    sweep_run.save()
-    sweep_run_name = sweep_run.name or sweep_run.id or "unknown"
-
-
-
-    metrics = []
-    for num in range(num_folds):
-        worker = workers[num]
-        # start worker
-        worker.queue.put(
-            WorkerInitData(
-                sweep_id=sweep_id,
-                num=num,
-                sweep_run_name=sweep_run_name,
-                config=dict(sweep_run.config),
-            )
-        )
-        # get metric from worker
-        result = sweep_q.get()
-        # wait for worker to finish
-        worker.process.join()
-        # log metric to sweep_run
-        metrics.append(result.val_accuracy)
-
-    sweep_run.log(dict(val_accuracy=sum(metrics) / len(metrics)))
-    wandb.join()
-
-    sys.exit()
 
     # regarding evaluation metrics:
     # https://huggingface.co/course/chapter3/3?fw=pt
