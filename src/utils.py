@@ -296,6 +296,32 @@ def get_tokens_from_sp(tokeniser_path: str,
         )
     return [x.replace("▁", "") for x in list(tokeniser.vocab.keys())]
 
+def parse_sp_tokenised(infile_path: str):
+    """Extract entries tokenised by SentencePiece into a pandas.DataFrame object
+
+    The input ``infile_path`` is a ``csv`` file containing tokenised data as
+    positional ordinal encodings. The data should have been tokenised using the
+    ``HuggingFace`` implementation of ``SentencePiece``.
+
+    Args:
+        infile_path (str): Path to ``csv`` file containing tokenised data.
+
+    Returns:
+        pandas.DataFrame
+
+        The pandas.DataFrame contains the contents of the ``csv`` file, but
+        corresponding columns are correctly formatted as ``numpy.array``.
+    """
+    data = pd.read_csv(infile_path, index_col=0)
+    data["input_ids"] = data["input_ids"].apply(
+        lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
+        )
+    if "token_type_ids" in data:
+        data["token_type_ids"] = data["token_type_ids"].apply(
+            lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
+            )
+    return data
+
 def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
                     "<unk>", "<pad>", "<mask>"], outfile_dir: str="./"):
     """Plot distribution of token lengths. Calls :py:func:`get_tokens_from_sp`
