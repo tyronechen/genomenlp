@@ -41,6 +41,8 @@ def main():
                         help='proportion of testing data (DEFAULT: 0.05)')
     parser.add_argument('--split_val', type=float, default=0.05,
                         help='proportion of validation data (DEFAULT: 0.05)')
+    parser.add_argument('--no_shuffle', action="store_false",
+                        help='turn off shuffle for data split (DEFAULT: ON)')
 
     args = parser.parse_args()
     infile_path = args.infile_path
@@ -55,6 +57,7 @@ def main():
     labels = args.labels
     content = args.content
     title = args.title
+    do_shuffle = args.no_shuffle
 
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
@@ -111,7 +114,8 @@ def main():
 
     print("\nDATASET BEFORE SPLIT:\n", dataset)
     dataset = split_datasets(
-        dataset, outfile_dir, train=split_train, test=split_test, val=split_val
+        dataset, outfile_dir, train=split_train, test=split_test, val=split_val,
+        shuffle=do_shuffle
         )
     print("\nDATASET AFTER SPLIT:\n", dataset)
 

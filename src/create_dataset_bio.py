@@ -32,7 +32,7 @@ def main():
                         help='assign special tokens, eg space and pad tokens \
                         (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
     parser.add_argument('-c', '--chunk', type=int, default=None,
-                        help='split seqss into n-length blocks (DEFAULT: None)')
+                        help='split seqs into n-length blocks (DEFAULT: None)')
     parser.add_argument('--split_train', type=float, default=0.90,
                         help='proportion of training data (DEFAULT: 0.90)')
     parser.add_argument('--split_test', type=float, default=0.05,
@@ -41,6 +41,8 @@ def main():
                         help='proportion of validation data (DEFAULT: 0.05)')
     parser.add_argument('--no_reverse_complement', action="store_false",
                         help='turn off reverse complement (DEFAULT: ON)')
+    parser.add_argument('--no_shuffle', action="store_false",
+                        help='turn off shuffle for data split (DEFAULT: ON)')
 
     args = parser.parse_args()
     infile_path = args.infile_path
@@ -53,6 +55,7 @@ def main():
     split_test = args.split_test
     split_val = args.split_val
     do_reverse_complement = args.no_reverse_complement
+    do_shuffle = args.no_shuffle
 
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
@@ -121,7 +124,8 @@ def main():
 
     print("\nDATASET BEFORE SPLIT:\n", dataset)
     dataset = split_datasets(
-        dataset, outfile_dir, train=split_train, test=split_test, val=split_val
+        dataset, outfile_dir, train=split_train, test=split_test, val=split_val,
+        shuffle=do_shuffle
         )
     print("\nDATASET AFTER SPLIT:\n", dataset)
 
