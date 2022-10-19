@@ -217,7 +217,8 @@ def main():
         trainer.train()
         print("Saving model to:", wandb.run.dir)
         trainer.save_model(wandb.run.dir)
-        # trainer.evaluate(_compute_metrics)
+        eval_results = trainer.evaluate()
+        print(eval_results)
         wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
     wandb.finish()
 

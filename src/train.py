@@ -195,8 +195,6 @@ def main():
     model_out = "/".join([args.output_dir, "model_files"])
     print("Saving model to:", model_out)
     trainer.save_model(model_out)
-    # eval = trainer.evaluate(_compute_metrics)
-    # print(eval)
     eval_results = trainer.evaluate()
     print(eval_results)
     wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
