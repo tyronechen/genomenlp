@@ -18,7 +18,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import _compute_metrics
+from utils import _compute_metrics, load_args_json, load_args_cmd
 import wandb
 
 def main():
@@ -49,14 +49,20 @@ def main():
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
                         help='vocabulary size for model configuration')
     parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
-                        help='provide a torch.bin file of hyperparameters. \
-                        NOTE: if given, this overrides all other arguments!')
+                        help='provide torch.bin or json file of hyperparameters. \
+                        NOTE: if given, this overrides all HfTrainingArguments!')
     parser.add_argument('-e', '--entity_name', type=str, default="",
                         help='provide wandb team name (if available). \
                         NOTE: has no effect if wandb is disabled.')
     parser.add_argument('-p', '--project_name', type=str, default="",
                         help='provide wandb project name (if available). \
                         NOTE: has no effect if wandb is disabled.')
+    parser.add_argument('-g', '--group_name', type=str, default="train",
+                        help='provide wandb group name (if desired).')
+    parser.add_argument('-o', '--metric_opt', type=str, default="eval/f1",
+                        help='score to maximise [ eval/accuracy | \
+                        eval/validation | eval/loss | eval/precision | \
+                        eval/recall ] (DEFAULT: eval/f1)')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -76,8 +82,11 @@ def main():
     wandb_state = args.wandb_off
     entity_name = args.entity_name
     project_name = args.project_name
+    group_name = args.group_name
+    metric_opt = args.metric_opt
     if wandb_state is True:
         wandb.login()
+        args.report_to = "wandb"
     else:
         args.report_to = None
     if device == None:
@@ -120,6 +129,7 @@ def main():
     dataset = load_dataset(format, data_files=infile_paths)
     if "token_type_ids" in dataset:
         dataset = dataset.remove_columns("token_type_ids")
+    dataset = dataset.class_encode_column(args.label_names[0])
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
 
     col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
@@ -147,38 +157,25 @@ def main():
     if os.path.exists(hyperparameter_file):
         warn("".join([
             "Loading existing hyperparameters from: ", hyperparameter_file,
-            "This overrides all other command line arguments except output_dir!"
+            "This overrides all HfTrainingArguments!"
             ]))
-        args_train = torch.load(hyperparameter_file)
-        assert type(args_train) == transformers.training_args.TrainingArguments,
-            "hyperparameter file must be a pytorch formatted training_args.bin!"
-        args_train.output_dir = args.output_dir
+        if hyperparameter_file.endswith(".json"):
+            args_train = load_args_json(hyperparameter_file)
+        if hyperparameter_file.endswith(".bin"):
+            args_train = torch.load(hyperparameter_file)
     else:
-        args_train = TrainingArguments(
-            output_dir=args.output_dir,
-            overwrite_output_dir=args.overwrite_output_dir,
-            per_device_train_batch_size=args.per_device_train_batch_size,
-            per_device_eval_batch_size=args.per_device_eval_batch_size,
-            per_gpu_train_batch_size=args.per_gpu_train_batch_size,
-            per_gpu_eval_batch_size=args.per_gpu_eval_batch_size,
-            evaluation_strategy=args.evaluation_strategy, #"steps",
-            eval_steps=args.eval_steps, #5_000,
-            logging_steps=args.logging_steps, #5_000,
-            gradient_accumulation_steps=args.gradient_accumulation_steps, #8,
-            num_train_epochs=args.num_train_epochs, #1,
-            weight_decay=args.weight_decay, #0.1,
-            warmup_steps=args.warmup_steps, #1_000,
-            local_rank=args.local_rank,
-            lr_scheduler_type=args.lr_scheduler_type, #"cosine",
-            learning_rate=args.learning_rate, #5e-4,
-            save_steps=args.save_steps, #5_000,
-            fp16=fp16, #True,
-            push_to_hub=args.push_to_hub, #False,
-            label_names=args.label_names, #["labels"],
-            report_to=args.report_to,
-            run_name=args.run_name,
-        )
+        args_train = load_args_cmd(args)
+    assert type(args_train) == transformers.training_args.TrainingArguments, \
+        "Must be instance of transformers.training_args.TrainingArguments"
 
+    wandb.init(
+        group=group_name,
+        job_type=group_name,
+        settings=wandb.Settings(console='off', start_method='fork'),
+        entity=entity_name,
+        project=project_name,
+        config=args_train,
+        )
     # hyperparameter tuning on 10% of original datasett following:
     # https://github.com/huggingface/notebooks/blob/main/examples/text_classification.ipynb
     trainer = Trainer(
@@ -197,12 +194,50 @@ def main():
     print(train)
     model_out = "/".join([args.output_dir, "model_files"])
     print("Saving model to:", model_out)
-    wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
     trainer.save_model(model_out)
+    # eval = trainer.evaluate(_compute_metrics)
+    # print(eval)
+    eval_results = trainer.evaluate()
+    print(eval_results)
+    wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
+    wandb.finish()
 
-    # evaluate model using desired metrics
-    eval = trainer.evaluate()
-    print(eval)
+    api = wandb.Api()
+    entity_project_id = "/".join([entity_name, project_name])
+    runs = api.runs(path="/".join([entity_name, project_name]),
+                    filters={"group_name": args.group_name})
+
+    print("Entity / Project / Group ID:", entity_project_id, args.group_name)
+
+    # download metrics from all runs
+    print("Get metrics from all runs")
+    summary_list, config_list, name_list = [], [], []
+    for run in runs:
+        # .summary contains the output keys/values for metrics
+        #  We call ._json_dict to omit large files
+        summary_list.append(run.summary._json_dict)
+        # .config contains the hyperparameters.
+        #  We remove special values that start with _.
+        config_list.append(
+            {k: v for k,v in run.config.items()
+             if not k.startswith('_')})
+        # .name is the human-readable name of the run
+        name_list.append(run.name)
+    runs_df = pd.DataFrame({
+        "summary": summary_list,
+        "config": config_list,
+        "name": name_list
+        })
+    runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
+
+    print("Model file:", runs[0])
+    score = runs[0].summary.get(metric_opt, 0)
+    print(f"Run {runs[0].name} with {metric_opt}={score}%")
+    best_model = "/".join([args.output_dir, "model_files"])
+    for i in runs[0].files():
+        i.download(root=best_model, replace=True)
+    print("\nMODEL AND CONFIG FILES SAVED TO:\n", best_model)
+    print("\nTRAIN SWEEP END")
 
 if __name__ == "__main__":
     main()

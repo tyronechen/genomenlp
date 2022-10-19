@@ -23,7 +23,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import _compute_metrics
+from utils import _compute_metrics, load_args_json, load_args_cmd
 # import nevergrad as ng
 import ray
 from ray import tune
@@ -67,6 +67,10 @@ def main():
                         help='provide wandb group name (if desired).')
     parser.add_argument('-p', '--project_name', type=str, default="",
                         help='provide wandb project name (if available).')
+    parser.add_argument('-o', '--metric_opt', type=str, default="eval/f1",
+                        help='score to maximise [ eval/accuracy | \
+                        eval/validation | eval/loss | eval/precision | \
+                        eval/recall ] (DEFAULT: eval/f1)')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -88,8 +92,10 @@ def main():
     entity_name = args.entity_name
     group_name = args.group_name
     project_name = args.project_name
+    metric_opt = args.metric_opt
     if wandb_state is True:
         wandb.login()
+        args.report_to = "wandb"
     if device == None:
         if torch.cuda.is_available():
             device = "cuda:0"
@@ -161,31 +167,19 @@ def main():
     # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
     # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
 
-    args_train = TrainingArguments(
-        output_dir=args.output_dir,
-        overwrite_output_dir=args.overwrite_output_dir,
-        per_device_train_batch_size=args.per_device_train_batch_size,
-        per_device_eval_batch_size=args.per_device_eval_batch_size,
-        per_gpu_train_batch_size=args.per_gpu_train_batch_size,
-        per_gpu_eval_batch_size=args.per_gpu_eval_batch_size,
-        evaluation_strategy=args.evaluation_strategy, #"steps",
-        eval_steps=args.eval_steps, #5_000,
-        logging_steps=args.logging_steps, #5_000,
-        gradient_accumulation_steps=args.gradient_accumulation_steps, #8,
-        num_train_epochs=args.num_train_epochs, #1,
-        weight_decay=args.weight_decay, #0.1,
-        warmup_steps=args.warmup_steps, #1_000,
-        local_rank=args.local_rank,
-        lr_scheduler_type=args.lr_scheduler_type, #"cosine",
-        learning_rate=args.learning_rate, #5e-4,
-        save_steps=args.save_steps, #5_000,
-        skip_memory_metrics=False,
-        fp16=fp16, #True,
-        push_to_hub=args.push_to_hub, #False,
-        label_names=args.label_names, #["labels"],
-        report_to=args.report_to,
-        run_name=args.run_name,
-    )
+    if os.path.exists(hyperparameter_file):
+        warn("".join([
+            "Loading existing hyperparameters from: ", hyperparameter_file,
+            "This overrides all HfTrainingArguments!"
+            ]))
+        if hyperparameter_file.endswith(".json"):
+            args_train = load_args_json(hyperparameter_file)
+        if hyperparameter_file.endswith(".bin"):
+            args_train = torch.load(hyperparameter_file)
+    else:
+        args_train = load_args_cmd(args)
+    assert type(args_train) == transformers.training_args.TrainingArguments, \
+        "Must be instance of transformers.training_args.TrainingArguments"
 
     # select the number of kfolds
     folds = StratifiedKFold(n_splits=args.kfolds)
@@ -202,10 +196,12 @@ def main():
             "test": dataset["valid"]
         })
         wandb.init(
-            group=args.group_name,
-            job_type=args.group_name,
+            group=group_name,
+            job_type=group_name,
             settings=wandb.Settings(console='off', start_method='fork'),
-            entity=args.entity_name
+            entity=entity_name,
+            project=project_name,
+            config=args_train,
             )
         # define training loop
         trainer = Trainer(
@@ -221,6 +217,7 @@ def main():
         trainer.train()
         print("Saving model to:", wandb.run.dir)
         trainer.save_model(wandb.run.dir)
+        # trainer.evaluate(_compute_metrics)
         wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
     wandb.finish()
 
@@ -259,9 +256,7 @@ def main():
     #     with open(hyperparameter_sweep, 'r') as infile:
     #         sweep_config = json.load(infile)
 
-    # download best model file from the sweep
-    # these two lines dont work for some reason
-    metric_opt = sweep_config["metric"]["name"]
+    # identify best model file from the sweep
     runs = sorted(
         runs, key=lambda run: run.summary.get(metric_opt, 0), reverse=True
         )

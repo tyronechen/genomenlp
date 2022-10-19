@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # generic tools
 import itertools
+import json
 import os
 from math import ceil
 from random import choices, shuffle
 from warnings import warn
-from datasets import Dataset, DatasetDict
+from datasets import Dataset, DatasetDict, load_metric
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -60,6 +61,253 @@ def _compute_metrics(eval_preds):
     metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
+
+def load_args_json(args_json: str):
+    """Helper function to load a `json` file into TrainingArguments
+
+    Loads a `json` file of arguments into a
+    `transformers.training_args.TrainingArguments` object.
+
+    Args:
+        args_json (str): Path to `json` file with training arguments
+
+    Returns:
+        transformers.training_args.TrainingArguments:
+
+        For more information please refer to the huggingface documentation
+        directly: https://huggingface.co/docs/transformers/v4.23.1/en/main_classes/trainer#transformers.TrainingArguments
+    """
+    with open(hyperparameter_file, mode="r") as infile:
+        args_json = json.load(infile)
+
+    args_train = TrainingArguments(
+        output_dir=args_json["output_dir"],
+        overwrite_output_dir=args_json["overwrite_output_dir"],
+        do_train=args_json["do_train"],
+        do_eval=args_json["do_eval"],
+        do_predict=args_json["do_predict"],
+        evaluation_strategy=args_json["evaluation_strategy"],
+        prediction_loss_only=args_json["prediction_loss_only"],
+        per_device_train_batch_size=args_json["per_device_train_batch_size"],
+        per_device_eval_batch_size=args_json["per_device_eval_batch_size"],
+        per_gpu_train_batch_size=args_json["per_gpu_train_batch_size"],
+        per_gpu_eval_batch_size=args_json["per_gpu_eval_batch_size"],
+        gradient_accumulation_steps=args_json["gradient_accumulation_steps"],
+        eval_accumulation_steps=args_json["eval_accumulation_steps"],
+        eval_delay=args_json["eval_delay"],
+        learning_rate=args_json["learning_rate"],
+        weight_decay=args_json["weight_decay"],
+        adam_beta1=args_json["adam_beta1"],
+        adam_beta2=args_json["adam_beta2"],
+        adam_epsilon=args_json["adam_epsilon"],
+        max_grad_norm=args_json["max_grad_norm"],
+        num_train_epochs=args_json["num_train_epochs"],
+        max_steps=args_json["max_steps"],
+        lr_scheduler_type=args_json["lr_scheduler_type"],
+        warmup_ratio=args_json["warmup_ratio"],
+        warmup_steps=args_json["warmup_steps"],
+        log_level=args_json["log_level"],
+        log_level_replica=args_json["log_level_replica"],
+        log_on_each_node=args_json["log_on_each_node"],
+        logging_dir=args_json["logging_dir"],
+        logging_strategy=args_json["logging_strategy"],
+        logging_first_step=args_json["logging_first_step"],
+        logging_steps=args_json["logging_steps"],
+        logging_nan_inf_filter=args_json["logging_nan_inf_filter"],
+        save_strategy=args_json["save_strategy"],
+        save_steps=args_json["save_steps"],
+        save_total_limit=args_json["save_total_limit"],
+        save_on_each_node=args_json["save_on_each_node"],
+        no_cuda=args_json["no_cuda"],
+        use_mps_device=args_json["use_mps_device"],
+        seed=args_json["seed"],
+        data_seed=args_json["data_seed"],
+        jit_mode_eval=args_json["jit_mode_eval"],
+        use_ipex=args_json["use_ipex"],
+        bf16=args_json["bf16"],
+        fp16=args_json["fp16"],
+        fp16_opt_level=args_json["fp16_opt_level"],
+        half_precision_backend=args_json["half_precision_backend"],
+        bf16_full_eval=args_json["bf16_full_eval"],
+        fp16_full_eval=args_json["fp16_full_eval"],
+        tf32=args_json["tf32"],
+        local_rank=args_json["local_rank"],
+        xpu_backend=args_json["xpu_backend"],
+        tpu_num_cores=args_json["tpu_num_cores"],
+        tpu_metrics_debug=args_json["tpu_metrics_debug"],
+        debug=args_json["debug"],
+        dataloader_drop_last=args_json["dataloader_drop_last"],
+        eval_steps=args_json["eval_steps"],
+        dataloader_num_workers=args_json["dataloader_num_workers"],
+        past_index=args_json["past_index"],
+        run_name=args_json["run_name"],
+        disable_tqdm=args_json["disable_tqdm"],
+        remove_unused_columns=args_json["remove_unused_columns"],
+        label_names=args_json["label_names"],
+        load_best_model_at_end=args_json["load_best_model_at_end"],
+        metric_for_best_model=args_json["metric_for_best_model"],
+        greater_is_better=args_json["greater_is_better"],
+        ignore_data_skip=args_json["ignore_data_skip"],
+        sharded_ddp=args_json["sharded_ddp"],
+        fsdp=args_json["fsdp"],
+        fsdp_min_num_params=args_json["fsdp_min_num_params"],
+        fsdp_transformer_layer_cls_to_wrap=args_json["fsdp_transformer_layer_cls_to_wrap"],
+        deepspeed=args_json["deepspeed"],
+        label_smoothing_factor=args_json["label_smoothing_factor"],
+        optim=args_json["optim"],
+        adafactor=args_json["adafactor"],
+        group_by_length=args_json["group_by_length"],
+        length_column_name=args_json["length_column_name"],
+        report_to=args_json["report_to"],
+        ddp_find_unused_parameters=args_json["ddp_find_unused_parameters"],
+        ddp_bucket_cap_mb=args_json["ddp_bucket_cap_mb"],
+        dataloader_pin_memory=args_json["dataloader_pin_memory"],
+        skip_memory_metrics=args_json["skip_memory_metrics"],
+        use_legacy_prediction_loop=args_json["use_legacy_prediction_loop"],
+        push_to_hub=args_json["push_to_hub"],
+        resume_from_checkpoint=args_json["resume_from_checkpoint"],
+        hub_model_id=args_json["hub_model_id"],
+        hub_strategy=args_json["hub_strategy"],
+        hub_token=args_json["hub_token"],
+        hub_private_repo=args_json["hub_private_repo"],
+        gradient_checkpointing=args_json["gradient_checkpointing"],
+        include_inputs_for_metrics=args_json["include_inputs_for_metrics"],
+        fp16_backend=args_json["fp16_backend"],
+        push_to_hub_model_id=args_json["push_to_hub_model_id"],
+        push_to_hub_organization=args_json["push_to_hub_organization"],
+        push_to_hub_token=args_json["push_to_hub_token"],
+        mp_parameters=args_json["mp_parameters"],
+        auto_find_batch_size=args_json["auto_find_batch_size"],
+        full_determinism=args_json["full_determinism"],
+        torchdynamo=args_json["torchdynamo"],
+        ray_scope=args_json["ray_scope"],
+        ddp_timeout=args_json["ddp_timeout"]
+    )
+    assert type(args_train) == transformers.training_args.TrainingArguments, \
+        "Must be an instance of transformers.training_args.TrainingArguments"
+    return args_train
+
+def load_args_cmd(args: class):
+    """Helper function to load a `HfArgumentParser` into `TrainingArguments`
+
+    Loads a `HfArgumentParser` class of arguments into a
+    `transformers.training_args.TrainingArguments` object.
+
+    Args:
+        args (class): A `HfArgumentParser` object
+
+    Returns:
+        transformers.training_args.TrainingArguments:
+
+        For more information please refer to the huggingface documentation
+        directly: https://huggingface.co/docs/transformers/v4.23.1/en/main_classes/trainer#transformers.TrainingArguments
+    """
+    args_train = TrainingArguments(
+        output_dir=args.output_dir,
+        overwrite_output_dir=args.overwrite_output_dir,
+        do_train=args.do_train,
+        do_eval=args.do_eval,
+        do_predict=args.do_predict,
+        evaluation_strategy=args.evaluation_strategy,
+        prediction_loss_only=args.prediction_loss_only,
+        per_device_train_batch_size=args.per_device_train_batch_size,
+        per_device_eval_batch_size=args.per_device_eval_batch_size,
+        per_gpu_train_batch_size=args.per_gpu_train_batch_size,
+        per_gpu_eval_batch_size=args.per_gpu_eval_batch_size,
+        gradient_accumulation_steps=args.gradient_accumulation_steps,
+        eval_accumulation_steps=args.eval_accumulation_steps,
+        eval_delay=args.eval_delay,
+        learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay,
+        adam_beta1=args.adam_beta1,
+        adam_beta2=args.adam_beta2,
+        adam_epsilon=args.adam_epsilon,
+        max_grad_norm=args.max_grad_norm,
+        num_train_epochs=args.num_train_epochs,
+        max_steps=args.max_steps,
+        lr_scheduler_type=args.lr_scheduler_type,
+        warmup_ratio=args.warmup_ratio,
+        warmup_steps=args.warmup_steps,
+        log_level=args.log_level,
+        log_level_replica=args.log_level_replica,
+        log_on_each_node=args.log_on_each_node,
+        logging_dir=args.logging_dir,
+        logging_strategy=args.logging_strategy,
+        logging_first_step=args.logging_first_step,
+        logging_steps=args.logging_steps,
+        logging_nan_inf_filter=args.logging_nan_inf_filter,
+        save_strategy=args.save_strategy,
+        save_steps=args.save_steps,
+        save_total_limit=args.save_total_limit,
+        save_on_each_node=args.save_on_each_node,
+        no_cuda=args.no_cuda,
+        use_mps_device=args.use_mps_device,
+        seed=args.seed,
+        data_seed=args.data_seed,
+        jit_mode_eval=args.jit_mode_eval,
+        use_ipex=args.use_ipex,
+        bf16=args.bf16,
+        fp16=args.fp16,
+        fp16_opt_level=args.fp16_opt_level,
+        half_precision_backend=args.half_precision_backend,
+        bf16_full_eval=args.bf16_full_eval,
+        fp16_full_eval=args.fp16_full_eval,
+        tf32=args.tf32,
+        local_rank=args.local_rank,
+        xpu_backend=args.xpu_backend,
+        tpu_num_cores=args.tpu_num_cores,
+        tpu_metrics_debug=args.tpu_metrics_debug,
+        debug=args.debug,
+        dataloader_drop_last=args.dataloader_drop_last,
+        eval_steps=args.eval_steps,
+        dataloader_num_workers=args.dataloader_num_workers,
+        past_index=args.past_index,
+        run_name=args.run_name,
+        disable_tqdm=args.disable_tqdm,
+        remove_unused_columns=args.remove_unused_columns,
+        label_names=args.label_names,
+        load_best_model_at_end=args.load_best_model_at_end,
+        metric_for_best_model=args.metric_for_best_model,
+        greater_is_better=args.greater_is_better,
+        ignore_data_skip=args.ignore_data_skip,
+        sharded_ddp=args.sharded_ddp,
+        fsdp=args.fsdp,
+        fsdp_min_num_params=args.fsdp_min_num_params,
+        fsdp_transformer_layer_cls_to_wrap=args.fsdp_transformer_layer_cls_to_wrap,
+        deepspeed=args.deepspeed,
+        label_smoothing_factor=args.label_smoothing_factor,
+        optim=args.optim,
+        adafactor=args.adafactor,
+        group_by_length=args.group_by_length,
+        length_column_name=args.length_column_name,
+        report_to=args.report_to,
+        ddp_find_unused_parameters=args.ddp_find_unused_parameters,
+        ddp_bucket_cap_mb=args.ddp_bucket_cap_mb,
+        dataloader_pin_memory=args.dataloader_pin_memory,
+        skip_memory_metrics=args.skip_memory_metrics,
+        use_legacy_prediction_loop=args.use_legacy_prediction_loop,
+        push_to_hub=args.push_to_hub,
+        resume_from_checkpoint=args.resume_from_checkpoint,
+        hub_model_id=args.hub_model_id,
+        hub_strategy=args.hub_strategy,
+        hub_token=args.hub_token,
+        hub_private_repo=args.hub_private_repo,
+        gradient_checkpointing=args.gradient_checkpointing,
+        include_inputs_for_metrics=args.include_inputs_for_metrics,
+        fp16_backend=args.fp16_backend,
+        push_to_hub_model_id=args.push_to_hub_model_id,
+        push_to_hub_organization=args.push_to_hub_organization,
+        push_to_hub_token=args.push_to_hub_token,
+        mp_parameters=args.mp_parameters,
+        auto_find_batch_size=args.auto_find_batch_size,
+        full_determinism=args.full_determinism,
+        torchdynamo=args.torchdynamo,
+        ray_scope=args.ray_scope,
+        ddp_timeout=args.ddp_timeout,
+    )
+    assert type(args_train) == transformers.training_args.TrainingArguments, \
+        "Must be an instance of transformers.training_args.TrainingArguments"
+    return args_train
 
 def bootstrap_seq(seq: str, block_size: int=2):
     """Take a string and reshuffle it in blocks of N length.

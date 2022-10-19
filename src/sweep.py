@@ -18,7 +18,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import _compute_metrics
+from utils import _compute_metrics, load_args_json
 import ray
 from ray import tune
 from ray.tune import CLIReporter
@@ -27,12 +27,8 @@ from ray.tune.examples.pbt_transformers.utils import download_data, \
 import wandb
 
 def main():
-    parser = HfArgumentParser(
-        [TrainingArguments], description='Take HuggingFace dataset and train.\
-          Arguments match that of TrainingArguments, with the addition of \
-         [ train, test, valid, tokeniser_path, vocab_size, hyperparameter_cpus,\
-           no_shuffle, wandb_off ]. See: \
-         https://huggingface.co/docs/transformers/v4.19.4/en/main_classes/trainer#transformers.TrainingArguments'
+    parser = argparse.ArgumentParser(
+         description='Take HuggingFace dataset and perform parameter sweeping.'
         )
     parser.add_argument('train', type=str,
                         help='path to [ csv | csv.gz | json | parquet ] file')
@@ -67,6 +63,12 @@ def main():
     parser.add_argument('-p', '--project_name', type=str, default="",
                         help='provide wandb project name (if available). \
                         NOTE: has no effect if wandb sweep is not enabled.')
+    parser.add_argument('-g', '--group_name', type=str, default="sweep",
+                        help='provide wandb group name (if desired).')
+    parser.add_argument('-o', '--metric_opt', type=str, default="eval/f1",
+                        help='score to maximise [ eval/accuracy | \
+                        eval/validation | eval/loss | eval/precision | \
+                        eval/recall ] (DEFAULT: eval/f1)')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -89,8 +91,11 @@ def main():
     wandb_state = args.wandb_off
     entity_name = args.entity_name
     project_name = args.project_name
+    group_name = args.group_name
+    metric_opt = args.metric_opt
     if wandb_state is True:
         wandb.login()
+        args.report_to = "wandb"
     if device == None:
         if torch.cuda.is_available():
             device = "cuda:0"
@@ -164,6 +169,8 @@ def main():
         per_gpu_train_batch_size=args.per_gpu_train_batch_size,
         per_gpu_eval_batch_size=args.per_gpu_eval_batch_size,
         evaluation_strategy=args.evaluation_strategy, #"steps",
+        logging_strategy=args.logging_strategy,
+        save_strategy=args.save_strategy,
         eval_steps=args.eval_steps, #5_000,
         logging_steps=args.logging_steps, #5_000,
         gradient_accumulation_steps=args.gradient_accumulation_steps, #8,
@@ -182,7 +189,7 @@ def main():
         run_name=args.run_name,
     )
 
-    # hyperparameter tuning on 10% of original datasett following:
+    # hyperparameter tuning on 10% of original dataset following:
     # https://github.com/huggingface/notebooks/blob/main/examples/text_classification.ipynb
 
     # if hyperparameter sweep is provided or set to True,
@@ -242,9 +249,12 @@ def main():
         # function needs to be defined internally to access namespace
         def _sweep_wandb(config=None):
             with wandb.init(
+                group=group_name,
+                job_type=group_name,
                 config=config,
                 settings=wandb.Settings(console='off', start_method='fork'),
-                entity=args.entity_name
+                entity=entity_name,
+                project=project_name
                 ):
                 # set sweep configuration
                 config = wandb.config
@@ -320,10 +330,6 @@ def main():
         runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
 
         # download best model file from the sweep
-        # these two lines dont work for some reason
-        # best_run = sweep.best_run()
-        # print(best_run)
-        metric_opt = sweep_config["metric"]["name"]
         runs = sorted(
             sweep.runs,
             key=lambda run: run.summary.get(metric_opt, 0),
