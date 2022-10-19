@@ -187,7 +187,7 @@ def load_args_json(args_json: str):
         "Must be an instance of transformers.training_args.TrainingArguments"
     return args_train
 
-def load_args_cmd(args: class):
+def load_args_cmd(args):
     """Helper function to load a `HfArgumentParser` into `TrainingArguments`
 
     Loads a `HfArgumentParser` class of arguments into a
