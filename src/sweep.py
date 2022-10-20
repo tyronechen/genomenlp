@@ -65,6 +65,8 @@ def main():
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')
+    parser.add_argument('--fp16_off', action="store_false",
+                        help='turn fp16 off for precision / cpu (DEFAULT: ON)')
     parser.add_argument('--wandb_off', action="store_false",
                         help='run hyperparameter tuning using the wandb api \
                         and log training in real time online (DEFAULT: ON)')
@@ -86,6 +88,7 @@ def main():
     group_name = args.group_name
     metric_opt = args.metric_opt
     output_dir = args.output_dir
+    fp16 = args.fp16_off
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
@@ -95,8 +98,11 @@ def main():
         else:
             device = "cpu"
 
-    if device == "gpu" and args.fp16 = False:
+    if device == "gpu" and fp16 == False:
         warn("Training on gpu but fp16 is off. Can enable to increase speed.")
+    if device == "cpu" and fp16 == True:
+        warn("Training on cpu but fp16 is on. Disabled as incompatible.")
+        fp16 = False
 
     print("\n\nUSING DEVICE:\n", device)
     print("\n\nARGUMENTS:\n", args, "\n\n")
