@@ -45,32 +45,26 @@ def main():
                         distilbert handles shorter sequences up to 512 tokens \
                         longformer handles longer sequences up to 4096 tokens \
                         (DEFAULT: distilbert)')
-    parser.add_argument('-d', '--device', type=str, default=None,
+    parser.add_argument('-o', '--output_dir', type=str, default="./sweep_out",
+                        help='specify path for output (DEFAULT: ./sweep_out)')
+    parser.add_argument('-d', '--device', type=str, default="auto",
                         help='choose device [ cpu | cuda:0 ] (DEFAULT: detect)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
                         help='vocabulary size for model configuration')
-    parser.add_argument('-c', '--hyperparameter_cpus', type=int, default=1,
-                        help='number of cpus for hyperparameter tuning. \
-                        NOTE: has no effect if wandb is on (default)')
     parser.add_argument('-w', '--hyperparameter_sweep', type=str, default="",
                         help='run a hyperparameter sweep with config from file')
     parser.add_argument('-n', '--sweep_count', type=int, default=8,
-                        help='run n hyperparameter sweeps (DEFAULT: 64) \
-                        NOTE: has no effect if wandb sweep is not enabled.')
+                        help='run n hyperparameter sweeps (DEFAULT: 64)')
     parser.add_argument('-e', '--entity_name', type=str, default="",
-                        help='provide wandb team name (if available). \
-                        NOTE: has no effect if wandb sweep is not enabled.')
+                        help='provide wandb team name (if available).')
     parser.add_argument('-p', '--project_name', type=str, default="",
-                        help='provide wandb project name (if available). \
-                        NOTE: has no effect if wandb sweep is not enabled.')
+                        help='provide wandb project name (if available).')
     parser.add_argument('-g', '--group_name', type=str, default="sweep",
                         help='provide wandb group name (if desired).')
-    parser.add_argument('-o', '--metric_opt', type=str, default="eval/f1",
+    parser.add_argument('-c', '--metric_opt', type=str, default="eval/f1",
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')
-    parser.add_argument('--no_shuffle', action="store_false",
-                        help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
                         help='run hyperparameter tuning using the wandb api \
                         and log training in real time online (DEFAULT: ON)')
@@ -83,29 +77,26 @@ def main():
     test = args.test
     valid = args.valid
     tokeniser_path = args.tokeniser_path
-    hyperparameter_cpus = args.hyperparameter_cpus
     hyperparameter_sweep = args.hyperparameter_sweep
     sweep_count = args.sweep_count
     vocab_size = args.vocab_size
-    shuffle = args.no_shuffle
     wandb_state = args.wandb_off
     entity_name = args.entity_name
     project_name = args.project_name
     group_name = args.group_name
     metric_opt = args.metric_opt
+    output_dir = args.output_dir
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
-    if device == None:
+    if device == "auto":
         if torch.cuda.is_available():
             device = "cuda:0"
         else:
             device = "cpu"
 
-    if device == "cpu":
-        fp16 = False
-    else:
-        fp16 = True
+    if device == "gpu" and args.fp16 = False:
+        warn("Training on gpu but fp16 is off. Can enable to increase speed.")
 
     print("\n\nUSING DEVICE:\n", device)
     print("\n\nARGUMENTS:\n", args, "\n\n")
@@ -161,33 +152,6 @@ def main():
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
     tokeniser.pad_token = tokeniser.eos_token
-    args_train = TrainingArguments(
-        output_dir=args.output_dir,
-        overwrite_output_dir=args.overwrite_output_dir,
-        per_device_train_batch_size=args.per_device_train_batch_size,
-        per_device_eval_batch_size=args.per_device_eval_batch_size,
-        per_gpu_train_batch_size=args.per_gpu_train_batch_size,
-        per_gpu_eval_batch_size=args.per_gpu_eval_batch_size,
-        evaluation_strategy=args.evaluation_strategy, #"steps",
-        logging_strategy=args.logging_strategy,
-        save_strategy=args.save_strategy,
-        eval_steps=args.eval_steps, #5_000,
-        logging_steps=args.logging_steps, #5_000,
-        gradient_accumulation_steps=args.gradient_accumulation_steps, #8,
-        num_train_epochs=args.num_train_epochs, #1,
-        weight_decay=args.weight_decay, #0.1,
-        warmup_steps=args.warmup_steps, #1_000,
-        local_rank=args.local_rank,
-        lr_scheduler_type=args.lr_scheduler_type, #"cosine",
-        learning_rate=args.learning_rate, #5e-4,
-        save_steps=args.save_steps, #5_000,
-        skip_memory_metrics=False,
-        fp16=fp16, #True,
-        push_to_hub=args.push_to_hub, #False,
-        label_names=args.label_names, #["labels"],
-        report_to=args.report_to,
-        run_name=args.run_name,
-    )
 
     # hyperparameter tuning on 10% of original dataset following:
     # https://github.com/huggingface/notebooks/blob/main/examples/text_classification.ipynb
@@ -343,57 +307,6 @@ def main():
             i.download(root=best_model, replace=True)
         print("\nBEST MODEL AND CONFIG FILES SAVED TO:\n", best_model)
         print("\nHYPERPARAMETER SWEEP END")
-    else:
-        warn("wandb hyperparameter tuning is disabled, using 🤗 tuner.")
-        trainer = Trainer(
-            model_init=_model_init,
-            tokenizer=tokeniser,
-            args=args_train,
-            train_dataset=dataset["train"],#.shard(index=1, num_shards=100),
-            eval_dataset=dataset["valid"],
-            data_collator=data_collator,
-            # disable_tqdm=args.disable_tqdm,
-            # compute_metrics=_compute_metrics,
-        )
-        reporter = CLIReporter(
-            parameter_columns={
-                "weight_decay": "w_decay",
-                "learning_rate": "lr",
-                "per_device_train_batch_size": "train_bs/gpu",
-                "num_train_epochs": "num_epochs",
-            },
-            metric_columns=["eval_acc", "eval_loss",
-                            "epoch", "training_iteration"],
-        )
-        best_run = trainer.hyperparameter_search(
-            n_trials=10,
-            direction="maximize",
-            backend="ray",
-            resources_per_trial={"cpu": hyperparameter_cpus, "gpu": 0},
-            # stop={"training_iteration": 1} if smoke_test else None,
-            progress_reporter=reporter,
-            # scheduler=scheduler,
-            # local_dir="".join([args.output_dir, "./ray_results/"]),
-            log_to_file=True,
-            )
-
-        print("\nTUNED:\n", best_run.hyperparameters, "\n")
-        tuned_path = "".join(
-            [args.output_dir, "/tuned_hyperparameters.json"]
-            )
-        with open(tuned_path, 'w', encoding='utf-8') as f:
-            json.dump(
-                best_run.hyperparameters, f, ensure_ascii=False, indent=4
-                )
-        print("\nHYPERPARAMETER SWEEP END")
-        warn_tune = "".join([
-            "It is not possible to pass tuned hyperparameters \
-            directly due to a bug in how the random number generation \
-            seed is handled! The tuned hyperparameters are output to:",
-            "\n", tuned_path,
-        ])
-        warn(warn_tune)
-
 
 if __name__ == "__main__":
     main()
