@@ -53,6 +53,8 @@ def main():
                         help='vocabulary size for model configuration')
     parser.add_argument('-w', '--hyperparameter_sweep', type=str, default="",
                         help='run a hyperparameter sweep with config from file')
+    parser.add_argument('-l', '--label_names', type=str, default="", nargs="+",
+                        help='provide column with label names (DEFAULT: "").')
     parser.add_argument('-n', '--sweep_count', type=int, default=8,
                         help='run n hyperparameter sweeps (DEFAULT: 64)')
     parser.add_argument('-e', '--entity_name', type=str, default="",
