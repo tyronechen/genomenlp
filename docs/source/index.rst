@@ -8,7 +8,8 @@ Welcome to ziran's documentation!
   intro
   generate_synthetic
   tokenise
-  create_dataset
+  create_dataset_bio
+  create_dataset_nlp
 
 Indices and tables
 ==================
