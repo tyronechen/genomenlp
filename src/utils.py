@@ -11,7 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import screed
-from transformers import PreTrainedTokenizerFast, AutoModel
+from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
 import weightwatcher as ww
 
 def _compute_metrics(eval_preds):
