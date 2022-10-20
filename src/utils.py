@@ -11,6 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import screed
+import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
 import weightwatcher as ww
 
