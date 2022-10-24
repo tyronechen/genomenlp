@@ -188,6 +188,7 @@ def main():
         pos=add_labels(sequence_file1, k_low, k_high, label_1)
         neg=add_labels(sequence_file2, k_low, k_high, label_2)
         dna=pd.concat([pos,neg]) 
+        dna.reset_index(drop=True, inplace=True)
         #print(dna.head())
         corpus=list(dna.kmer)
         X, Y, Feature_names=countvec(corpus, dna.labels, n_gram_from, n_gram_to, max_features)
