@@ -23,7 +23,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import _compute_metrics, load_args_json, load_args_cmd
+from utils import load_args_json, load_args_cmd#, _compute_metrics
 # import nevergrad as ng
 import ray
 from ray import tune
@@ -59,6 +59,9 @@ def main():
                         help='choose device [ cpu | cuda:0 ] (DEFAULT: detect)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
                         help='vocabulary size for model configuration')
+    parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
+                        help='provide torch.bin or json file of hyperparameters. \
+                        NOTE: if given, this overrides all HfTrainingArguments!')
     parser.add_argument('-k', '--kfolds', type=int, default=8,
                         help='run n number of kfolds (DEFAULT: 8)')
     parser.add_argument('-e', '--entity_name', type=str, default="",
@@ -85,6 +88,7 @@ def main():
     test = args.test
     valid = args.valid
     tokeniser_path = args.tokeniser_path
+    hyperparameter_file = args.hyperparameter_file
     kfolds = args.kfolds
     vocab_size = args.vocab_size
     shuffle = args.no_shuffle
@@ -134,8 +138,9 @@ def main():
     if valid != None:
         infile_paths["valid"] = valid
     dataset = load_dataset(format, data_files=infile_paths)
-    if "token_type_ids" in dataset:
-        dataset = dataset.remove_columns("token_type_ids")
+    for i in dataset:
+        if "token_type_ids" in dataset[i].features:
+            dataset[i] = dataset[i].remove_columns("token_type_ids")
     dataset = dataset.class_encode_column(args.label_names[0])
     # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
@@ -203,6 +208,54 @@ def main():
             project=project_name,
             config=args_train,
             )
+        def _compute_metrics(eval_preds):
+            """Compute metrics during the training run using transformers and wandb API.
+
+            This is configured to capture metrics using the transformers `dataset` API,
+            and upload the metrics to `wandb` for interactive logging and visualisation.
+            Not intended for direct use, this is called by `transformers.Trainer()`.
+
+            More information regarding evaluation metrics.
+            - https://huggingface.co/course/chapter3/3?fw=pt
+            - https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
+            - https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
+
+            Args:
+                eval_preds (torch): a tensor passed in as part of the training process.
+
+            Returns:
+                dict:
+
+                A dictionary of metrics from the transformers `dataset` API.
+                This is specifically configured for plotting `wandb` interactive plots.
+            """
+            metrics = dict()
+            accuracy_metric = load_metric('accuracy')
+            precision_metric = load_metric('precision')
+            recall_metric = load_metric('recall')
+            f1_metric = load_metric('f1')
+            logits = eval_preds.predictions
+            labels = eval_preds.label_ids
+            preds = np.argmax(logits, axis=-1)
+            y_probas = np.concatenate(
+                (1 - preds.reshape(-1,1), preds.reshape(-1,1)), axis=1
+                )
+            class_names = fold_dataset["train"].features[args.label_names[0]].names
+            wandb.log({"roc_curve" : wandb.plot.roc_curve(
+                labels, y_probas, labels=class_names
+                )})
+            wandb.log({"pr" : wandb.plot.pr_curve(
+                labels, y_probas, labels=class_names, #classes_to_plot=None
+                )})
+            wandb.log({"conf_mat" : wandb.plot.confusion_matrix(
+                probs=y_probas, y_true=labels, class_names=class_names
+                )})
+            metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
+            metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
+            metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
+            metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
+            return metrics
+
         # define training loop
         trainer = Trainer(
             model_init=_model_init,
@@ -230,7 +283,7 @@ def main():
     print("Entity / Project / Group ID:", entity_project_id, args.group_name)
 
     # download metrics from all runs
-    print("Get metrics from all runs")
+    print("Get metrics from all folds")
     summary_list, config_list, name_list = [], [], []
     for run in runs:
         # .summary contains the output keys/values for metrics
@@ -264,7 +317,7 @@ def main():
     # NOTE: it doesnt make sense to download the best model in cross validation
     # print("Get best model file from the sweep:", runs[0])
     score = runs[0].summary.get(metric_opt, 0)
-    print(f"Best run {runs[0].name} with {metric_opt}={score}%")
+    print(f"Best fold {runs[0].name} with {metric_opt}={score}%")
     # best_model = "/".join([args.output_dir, "model_files"])
     # for i in runs[0].files():
     #     i.download(root=best_model, replace=True)

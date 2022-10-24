@@ -17,6 +17,7 @@ import weightwatcher as ww
 
 def _compute_metrics(eval_preds):
     """Compute metrics during the training run using transformers and wandb API.
+    FOR REFERENCE ONLY. DO NOT IMPORT OR USE DIRECTLY, FUNNY THINGS WILL HAPPEN.
 
     This is configured to capture metrics using the transformers `dataset` API,
     and upload the metrics to `wandb` for interactive logging and visualisation.
