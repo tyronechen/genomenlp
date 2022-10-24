@@ -518,7 +518,8 @@ def get_tokens_from_sp(tokeniser_path: str,
     """Take path to ``SentencePiece`` tokeniser + special tokens, return tokens
 
     The input ``tokeniser_path`` is a ``json`` file generated from the
-    ``HuggingFace`` implementation of ``SentencePiece``.
+    ``HuggingFace`` implementation of ``SentencePiece``. Compare
+    :py:func:`parse_sp_tokenised`.
 
     Args:
         tokeniser_path (str): Path to sequence tokens file
@@ -546,21 +547,32 @@ def get_tokens_from_sp(tokeniser_path: str,
         )
     return [x.replace("▁", "") for x in list(tokeniser.vocab.keys())]
 
-def parse_sp_tokenised(infile_path: str):
+def parse_sp_tokenised(infile_path: str, tokeniser_path: str=None, special_tokens:
+                       list=["<s>", "</s>", "<unk>", "<pad>", "<mask>"]):
     """Extract entries tokenised by SentencePiece into a pandas.DataFrame object
 
     The input ``infile_path`` is a ``csv`` file containing tokenised data as
     positional ordinal encodings. The data should have been tokenised using the
-    ``HuggingFace`` implementation of ``SentencePiece``.
+    ``HuggingFace`` implementation of ``SentencePiece``. Specify ``remap_file``
+    (and corresponding special tokens) if you want to reconstitute the original
+    list of k-mers, which will be added on as an extra column in the dataframe.
+    Compare :py:func:`get_tokens_from_sp`.
 
     Args:
         infile_path (str): Path to ``csv`` file containing tokenised data.
+        tokeniser_path (str): Path to sequence tokens file
+            (from ``SentencePiece``)
+        special_tokens (list[str]): Special tokens to substitute for.
+            This should match the list of special tokens used in the original
+            tokeniser (which defaults to the five special tokens shown here).
 
     Returns:
         pandas.DataFrame
 
-        The pandas.DataFrame contains the contents of the ``csv`` file, but
-        corresponding columns are correctly formatted as ``numpy.array``.
+        The ``pandas.DataFrame`` contains the contents of the ``csv`` file, but
+        numeric columns are correctly formatted as ``numpy.array``. The
+        ``remap_file`` argument is useful if you want to extract the k-mers
+        directly for use in different workflows.
     """
     data = pd.read_csv(infile_path, index_col=0)
     data["input_ids"] = data["input_ids"].apply(
@@ -570,6 +582,24 @@ def parse_sp_tokenised(infile_path: str):
         data["token_type_ids"] = data["token_type_ids"].apply(
             lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
             )
+    # you can only remap if you know the original id: str mappings!
+    if tokeniser_path != None:
+        # if we dont specify the special tokens below it will break
+        tokeniser = PreTrainedTokenizerFast(
+            tokenizer_file=tokeniser_path,
+            special_tokens=special_tokens,
+            bos_token="<s>",
+            eos_token="</s>",
+            unk_token="<unk>",
+            sep_token="<sep>",
+            pad_token="<pad>",
+            cls_token="<cls>",
+            mask_token="<mask>",
+            )
+        token_map = {v: k.replace("▁", "")  for k, v in tokeniser.vocab.items()}
+        data["input_str"] = data["input_ids"].apply(
+            lambda x: np.vectorize(token_map.get)(x)
+        )
     return data
 
 def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
