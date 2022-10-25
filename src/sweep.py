@@ -359,7 +359,19 @@ def main():
             trainer.train()
             print("Saving model to:", wandb.run.dir)
             trainer.save_model(wandb.run.dir)
+            with open(
+                os.path.join(wandb.run.dir, "training_args.json"),
+                "w",
+                encoding="utf-8"
+                ) as args_json:
+                json.dump(
+                    training_args.to_json_string(),
+                    args_json,
+                    ensure_ascii=False,
+                    indent=4
+                    )
             wandb.save(os.path.join(wandb.run.dir, "pytorch_model.bin"))
+            wandb.save(os.path.join(wandb.run.dir, "training_args.json"))
 
     # allow passing of argument with variable outside namespace
     # wandb_train_func = functools.partial(_sweep_wandb, sweep_config)
