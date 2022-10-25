@@ -35,6 +35,8 @@ def main():
                         help='specify input file type [ csv | json | parquet ]')
     parser.add_argument('tokeniser_path', type=str,
                         help='path to tokeniser.json file to load data from')
+    parser.add_argument('--override_output_dir', type=str, default=None,
+                        help='path to output directory (which overrides -f!)')
     parser.add_argument('-t', '--test', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('-v', '--valid', type=str, default=None,
@@ -84,6 +86,7 @@ def main():
     project_name = args.project_name
     group_name = args.group_name
     metric_opt = args.metric_opt
+    override_output_dir = args.override_output_dir
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
@@ -215,6 +218,11 @@ def main():
             args_train = torch.load(hyperparameter_file)
     else:
         args_train = load_args_cmd(args)
+    if override_output_dir != None:
+        warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", override_output_dir, "\n"]))
+        args_train.output_dir = override_output_dir
+    else:
+        warn(" ".join(["\nOUTPUT DIR NOT OVERRIDEN:", args_train.output_dir, "\n"]))
     assert type(args_train) == transformers.training_args.TrainingArguments, \
         "Must be instance of transformers.training_args.TrainingArguments"
 
@@ -243,7 +251,7 @@ def main():
     train = trainer.train()
     print(train)
     model_out = "/".join([args.output_dir, "model_files"])
-    print("Saving model to:", model_out)
+    print("\nSAVING MODEL TO:", model_out, "\n")
     trainer.save_model(model_out)
     eval_results = trainer.evaluate()
     print(eval_results)
@@ -255,10 +263,10 @@ def main():
     runs = api.runs(path="/".join([entity_name, project_name]),
                     filters={"group_name": args.group_name})
 
-    print("Entity / Project / Group ID:", entity_project_id, args.group_name)
+    print("\nEntity / Project / Group ID:", entity_project_id, args.group_name)
 
     # download metrics from all runs
-    print("Get metrics from all runs")
+    print("\nGet metrics from all runs\n")
     summary_list, config_list, name_list = [], [], []
     for run in runs:
         # .summary contains the output keys/values for metrics
@@ -278,7 +286,7 @@ def main():
         })
     runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
 
-    print("Model file:", runs[0])
+    print("\nModel file:", runs[0], "\n")
     score = runs[0].summary.get(metric_opt, 0)
     print(f"Run {runs[0].name} with {metric_opt}={score}%")
     best_model = "/".join([args.output_dir, "model_files"])
