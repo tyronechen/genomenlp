@@ -35,8 +35,6 @@ def main():
                         help='specify input file type [ csv | json | parquet ]')
     parser.add_argument('tokeniser_path', type=str,
                         help='path to tokeniser.json file to load data from')
-    parser.add_argument('--override_output_dir', type=str, default=None,
-                        help='path to output directory (which overrides -f!)')
     parser.add_argument('-t', '--test', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('-v', '--valid', type=str, default=None,
@@ -65,6 +63,8 @@ def main():
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')
+    parser.add_argument('--override_output_dir', action="store_true",
+                        help='override output directory (DEFAULT: OFF)')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -86,6 +86,7 @@ def main():
     project_name = args.project_name
     group_name = args.group_name
     metric_opt = args.metric_opt
+    main_output_dir = args.output_dir
     override_output_dir = args.override_output_dir
     if wandb_state is True:
         wandb.login()
@@ -218,9 +219,9 @@ def main():
             args_train = torch.load(hyperparameter_file)
     else:
         args_train = load_args_cmd(args)
-    if override_output_dir != None:
+    if override_output_dir == True:
         warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", override_output_dir, "\n"]))
-        args_train.output_dir = override_output_dir
+        args_train.output_dir = main_output_dir
     else:
         warn(" ".join(["\nOUTPUT DIR NOT OVERRIDEN:", args_train.output_dir, "\n"]))
     assert type(args_train) == transformers.training_args.TrainingArguments, \
@@ -250,7 +251,7 @@ def main():
     print(trainer)
     train = trainer.train()
     print(train)
-    model_out = "/".join([args.output_dir, "model_files"])
+    model_out = "/".join([args_train.output_dir, "model_files"])
     print("\nSAVING MODEL TO:", model_out, "\n")
     trainer.save_model(model_out)
     eval_results = trainer.evaluate()
@@ -284,12 +285,12 @@ def main():
         "config": config_list,
         "name": name_list
         })
-    runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
+    runs_df.to_csv("/".join([args_train.output_dir, "metrics.csv"]))
 
     print("\nModel file:", runs[0], "\n")
     score = runs[0].summary.get(metric_opt, 0)
     print(f"Run {runs[0].name} with {metric_opt}={score}%")
-    best_model = "/".join([args.output_dir, "model_files"])
+    best_model = "/".join([args_train.output_dir, "model_files"])
     for i in runs[0].files():
         i.download(root=best_model, replace=True)
     print("\nMODEL AND CONFIG FILES SAVED TO:\n", best_model)
