@@ -67,6 +67,8 @@ def main():
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')
+    parser.add_argument('-r', '--resume_sweep', type=str, default=None,
+                        help='provide sweep id to resume sweep.')
     parser.add_argument('--fp16_off', action="store_false",
                         help='turn fp16 off for precision / cpu (DEFAULT: ON)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -91,6 +93,7 @@ def main():
     metric_opt = args.metric_opt
     output_dir = args.output_dir
     fp16 = args.fp16_off
+    resume_sweep = args.resume_sweep
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
@@ -311,9 +314,12 @@ def main():
         metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
         return metrics
 
-    sweep_id = wandb.sweep(sweep_config,
-                           entity=entity_name,
-                           project=project_name)
+    if resume_sweep == None:
+        sweep_id = wandb.sweep(sweep_config,
+                               entity=entity_name,
+                               project=project_name)
+    else:
+        sweep_id = resume_sweep
 
     # function needs to be defined internally to access namespace
     def _sweep_wandb(config=None):
