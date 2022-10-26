@@ -34,10 +34,12 @@ import wandb
 
 def main():
     parser = HfArgumentParser(
-        [TrainingArguments], description='Take HuggingFace dataset and train.\
-          Arguments match that of TrainingArguments, with the addition of \
-         [ train, test, valid, tokeniser_path, vocab_size, hyperparameter_cpus,\
-           no_shuffle, wandb_off ]. See: \
+        [TrainingArguments], description='Take HuggingFace dataset and train. \
+         Arguments match that of TrainingArguments, with the addition of \
+         [ train, test, valid, tokeniser_path, vocab_size, hyperparameter_file,\
+          model, device, kfolds, entity_name, group_name, project_name, \
+         config_from_run, metric_opt, override_output_dir, no_shuffle, \
+         wandb_off ]. See: \
          https://huggingface.co/docs/transformers/v4.19.4/en/main_classes/trainer#transformers.TrainingArguments'
         )
     parser.add_argument('train', type=str,
@@ -61,7 +63,8 @@ def main():
                         help='vocabulary size for model configuration')
     parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
                         help='provide torch.bin or json file of hyperparameters. \
-                        NOTE: if given, this overrides all HfTrainingArguments!')
+                        NOTE: if given, this overrides all HfTrainingArguments! \
+                        This is overridden by --config_from_run!')
     parser.add_argument('-k', '--kfolds', type=int, default=8,
                         help='run n number of kfolds (DEFAULT: 8)')
     parser.add_argument('-e', '--entity_name', type=str, default="",
@@ -70,10 +73,15 @@ def main():
                         help='provide wandb group name (if desired).')
     parser.add_argument('-p', '--project_name', type=str, default="",
                         help='provide wandb project name (if available).')
+    parser.add_argument('-c', '--config_from_run', type=str, default=None,
+                        help='load arguments from existing wandb run. \
+                        NOTE: if given, this overrides --hyperparameter_file!')
     parser.add_argument('-o', '--metric_opt', type=str, default="eval/f1",
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')
+    parser.add_argument('--override_output_dir', action="store_true",
+                        help='override output directory (DEFAULT: OFF)')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -97,6 +105,7 @@ def main():
     group_name = args.group_name
     project_name = args.project_name
     metric_opt = args.metric_opt
+    config_from_run = args.config_from_run
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
@@ -171,6 +180,17 @@ def main():
     # https://huggingface.co/course/chapter3/3?fw=pt
     # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
     # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
+
+    if config_from_run != None:
+        run_id = "/".join([entity_name, project_name, config_from_run])
+        api = wandb.Api()
+        run = api.run(run_id)
+        run.file("training_args.bin").download(root=config_from_run, replace=True)
+        hyperparameter_file = "/".join([config_from_run, "training_args.bin"])
+        warn("".join([
+            "Loading existing hyperparameters from: ", run_id, "!",
+            "This overrides all HfTrainingArguments AND --hyperparameter_file!"
+            ]))
 
     if os.path.exists(hyperparameter_file):
         warn("".join([
@@ -303,26 +323,14 @@ def main():
         })
     runs_df.to_csv("/".join([args.output_dir, "metrics.csv"]))
 
-    # TODO: to load training args as a json file of args later
-    # if os.path.exists(hyperparameter_sweep):
-    #     print(" ".join(["Loading sweep hyperparameters from",
-    #                    hyperparameter_sweep]))
-    #     with open(hyperparameter_sweep, 'r') as infile:
-    #         sweep_config = json.load(infile)
-
     # identify best model file from the sweep
     runs = sorted(
         runs, key=lambda run: run.summary.get(metric_opt, 0), reverse=True
         )
     # NOTE: it doesnt make sense to download the best model in cross validation
-    # print("Get best model file from the sweep:", runs[0])
     score = runs[0].summary.get(metric_opt, 0)
     print(f"Best fold {runs[0].name} with {metric_opt}={score}%")
-    # best_model = "/".join([args.output_dir, "model_files"])
-    # for i in runs[0].files():
-    #     i.download(root=best_model, replace=True)
-    # print("\nBEST MODEL AND CONFIG FILES SAVED TO:\n", best_model)
-    # print("\nCROSS VALIDATION END")
+    print("\nCROSS VALIDATION END")
 
 if __name__ == "__main__":
     main()
