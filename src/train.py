@@ -25,8 +25,9 @@ def main():
     parser = HfArgumentParser(
         [TrainingArguments], description='Take HuggingFace dataset and train.\
           Arguments match that of TrainingArguments, with the addition of \
-         [ train, test, valid, tokeniser_path, vocab_size, hyperparameter_cpus \
-         hyperparameter_tune hyperparameter_file no_shuffle, wandb_off ]. See: \
+         [ train, test, valid, tokeniser_path, vocab_size, model, device, \
+          entity_name, project_name, group_name, config_from_run, metric_opt, \
+          hyperparameter_file, no_shuffle, wandb_off, override_output_dir ]. See: \
          https://huggingface.co/docs/transformers/v4.19.4/en/main_classes/trainer#transformers.TrainingArguments'
         )
     parser.add_argument('train', type=str,
@@ -50,7 +51,8 @@ def main():
                         help='vocabulary size for model configuration')
     parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
                         help='provide torch.bin or json file of hyperparameters. \
-                        NOTE: if given, this overrides all HfTrainingArguments!')
+                        NOTE: if given, this overrides all HfTrainingArguments! \
+                        This is overridden by --config_from_run!')
     parser.add_argument('-e', '--entity_name', type=str, default="",
                         help='provide wandb team name (if available). \
                         NOTE: has no effect if wandb is disabled.')
@@ -59,6 +61,9 @@ def main():
                         NOTE: has no effect if wandb is disabled.')
     parser.add_argument('-g', '--group_name', type=str, default="train",
                         help='provide wandb group name (if desired).')
+    parser.add_argument('-c', '--config_from_run', type=str, default=None,
+                        help='load arguments from existing wandb run. \
+                        NOTE: if given, this overrides --hyperparameter_file!')
     parser.add_argument('-o', '--metric_opt', type=str, default="eval/f1",
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
@@ -88,6 +93,7 @@ def main():
     metric_opt = args.metric_opt
     main_output_dir = args.output_dir
     override_output_dir = args.override_output_dir
+    config_from_run = args.config_from_run
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
@@ -207,6 +213,17 @@ def main():
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
     tokeniser.pad_token = tokeniser.eos_token
+
+    if config_from_run != None:
+        run_id = "/".join([entity_name, project_name, config_from_run])
+        api = wandb.Api()
+        run = api.run(run_id)
+        run.file("training_args.bin").download(root=config_from_run, replace=True)
+        hyperparameter_file = "/".join([config_from_run, "training_args.bin"])
+        warn("".join([
+            "Loading existing hyperparameters from: ", run_id, "!",
+            "This overrides all HfTrainingArguments AND --hyperparameter_file!"
+            ]))
 
     if os.path.exists(hyperparameter_file):
         warn("".join([
