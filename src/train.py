@@ -237,7 +237,7 @@ def main():
     else:
         args_train = load_args_cmd(args)
     if override_output_dir == True:
-        warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", override_output_dir, "\n"]))
+        warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", main_output_dir, "\n"]))
         args_train.output_dir = main_output_dir
     else:
         warn(" ".join(["\nOUTPUT DIR NOT OVERRIDEN:", args_train.output_dir, "\n"]))
