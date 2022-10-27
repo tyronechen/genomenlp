@@ -105,6 +105,7 @@ def main():
     group_name = args.group_name
     project_name = args.project_name
     metric_opt = args.metric_opt
+    main_output_dir = args.output_dir
     config_from_run = args.config_from_run
     if wandb_state is True:
         wandb.login()
@@ -203,6 +204,11 @@ def main():
             args_train = torch.load(hyperparameter_file)
     else:
         args_train = load_args_cmd(args)
+    if override_output_dir == True:
+        warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", main_output_dir, "\n"]))
+        args_train.output_dir = main_output_dir
+    else:
+        warn(" ".join(["\nOUTPUT DIR NOT OVERRIDEN:", args_train.output_dir, "\n"]))
     assert type(args_train) == transformers.training_args.TrainingArguments, \
         "Must be instance of transformers.training_args.TrainingArguments"
 
