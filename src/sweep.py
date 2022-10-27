@@ -382,9 +382,10 @@ def main():
     # allow passing of argument with variable outside namespace
     # wandb_train_func = functools.partial(_sweep_wandb, sweep_config)
     wandb.agent(sweep_id,
-                # function=wandb_train_func,
                 function=_sweep_wandb,
-                count=sweep_count)
+                count=sweep_count,
+                entity=entity_name,
+                project=project_name)
     wandb.finish()
 
     # connect to the finished sweep using API
