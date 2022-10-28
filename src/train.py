@@ -18,7 +18,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import load_args_json, load_args_cmd#, _compute_metrics
+from utils import load_args_json, load_args_cmd, export_run_metrics
 import wandb
 
 def main():
@@ -288,25 +288,8 @@ def main():
     else:
         runs = api.runs(path="/".join([entity_name, project_name]),
                         filters={"group": group_name})
-        
-    summary_list, config_list, name_list = [], [], []
-    for run in runs:
-        # .summary contains the output keys/values for metrics
-        #  We call ._json_dict to omit large files
-        summary_list.append(run.summary._json_dict)
-        # .config contains the hyperparameters.
-        #  We remove special values that start with _.
-        config_list.append(
-            {k: v for k,v in run.config.items()
-             if not k.startswith('_')})
-        # .name is the human-readable name of the run
-        name_list.append(run.name)
-    runs_df = pd.DataFrame({
-        "summary": summary_list,
-        "config": config_list,
-        "name": name_list
-        })
-    runs_df.to_csv("/".join([args_train.output_dir, "metrics.csv"]))
+
+    export_run_metrics(runs, output_dir)
 
     print("\nModel file:", runs[0], "\n")
     score = runs[0].summary.get(metric_opt, 0)

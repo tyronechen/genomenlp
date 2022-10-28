@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import wandb
+from utils import export_run_metrics
 
 def main():
     parser = argparse.ArgumentParser(
@@ -64,26 +65,7 @@ def main():
 
     if runs != None:
         # this code was adapted directly from the wandb export API for python
-        summary_list, config_list, name_list = [], [], []
-        for run in runs:
-            # .summary contains the output keys/values for metrics
-            #  We call ._json_dict to omit large files
-            summary_list.append(run.summary._json_dict)
-            # .config contains the hyperparameters.
-            #  We remove special values that start with _.
-            config_list.append(
-                {k: v for k,v in run.config.items()
-                 if not k.startswith('_')})
-            # .name is the human-readable name of the run
-            name_list.append(run.name)
-        runs_df = pd.DataFrame({
-            "summary": summary_list,
-            "config": config_list,
-            "name": name_list
-            })
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-        runs_df.to_csv("/".join([output_dir, "metrics.csv"]))
+        export_run_metrics(runs, output_dir)
 
     # get the metrics from the run if not provided directly as a file
     if infile_path == None:
