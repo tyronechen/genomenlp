@@ -303,13 +303,17 @@ def main():
 
     api = wandb.Api()
     entity_project_id = "/".join([entity_name, project_name])
-    runs = api.runs(path="/".join([entity_name, project_name]),
-                    filters={"group_name": args.group_name})
 
     print("Entity / Project / Group ID:", entity_project_id, args.group_name)
 
     # download metrics from all runs
     print("Get metrics from all folds")
+    if group_name == None and any([entity_name, project_name]):
+        runs = api.runs(path="/".join([entity_name, project_name]),)
+    else:
+        runs = api.runs(path="/".join([entity_name, project_name]),
+                        filters={"group": group_name})
+
     summary_list, config_list, name_list = [], [], []
     for run in runs:
         # .summary contains the output keys/values for metrics
