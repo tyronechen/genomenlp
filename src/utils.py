@@ -64,7 +64,7 @@ def _compute_metrics(eval_preds):
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
 
-def export_run_metrics(runs):
+def export_run_metrics(runs, output_dir):
     """Export metrics for the specified runs. Writes file to disk.
 
     This does not directly obtain the runs, you will need to call `wandb.Api`
