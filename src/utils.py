@@ -64,6 +64,43 @@ def _compute_metrics(eval_preds):
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
 
+def export_run_metrics(runs):
+    """Export metrics for the specified runs. Writes file to disk.
+
+    This does not directly obtain the runs, you will need to call `wandb.Api`
+    first and specify the runs you want before passing them into here.
+
+    Args:
+        runs (wandb.Api.runs): a `wandb.Api.runs()` object
+        output_dir (str): path to the output directory for the file
+
+    Returns:
+        None:
+
+        Writes the metrics obtained from `wandb.Api.runs` directly to disk.
+    """
+
+    summary_list, config_list, name_list = [], [], []
+    for run in runs:
+        # .summary contains the output keys/values for metrics
+        #  We call ._json_dict to omit large files
+        summary_list.append(run.summary._json_dict)
+        # .config contains the hyperparameters.
+        #  We remove special values that start with _.
+        config_list.append(
+            {k: v for k,v in run.config.items()
+             if not k.startswith('_')})
+        # .name is the human-readable name of the run
+        name_list.append(run.name)
+    runs_df = pd.DataFrame({
+        "summary": summary_list,
+        "config": config_list,
+        "name": name_list
+        })
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+    runs_df.to_csv("/".join([output_dir, "metrics.csv"]))
+
 def load_args_json(args_json: str):
     """Helper function to load a `json` file into TrainingArguments
 
