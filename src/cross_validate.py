@@ -218,7 +218,7 @@ def main():
     # split the dataset based off of the labels.
     # use np.zeros() here since it only works off of indices, we want the labels
     splits = folds.split(
-        np.zeros(dataset["train"].num_rows), dataset["train"]["label"]
+        np.zeros(dataset["train"].num_rows), dataset["train"][args.label_names[0]]
         )
 
     for train_idxs, val_idxs in splits:
