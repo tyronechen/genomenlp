@@ -106,6 +106,7 @@ def main():
     project_name = args.project_name
     metric_opt = args.metric_opt
     main_output_dir = args.output_dir
+    override_output_dir = args.override_output_dir
     config_from_run = args.config_from_run
     if wandb_state is True:
         wandb.login()
