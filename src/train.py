@@ -289,7 +289,7 @@ def main():
         runs = api.runs(path="/".join([entity_name, project_name]),
                         filters={"group": group_name})
 
-    export_run_metrics(runs, output_dir)
+    export_run_metrics(runs, args.output_dir)
 
     print("\nModel file:", runs[0], "\n")
     score = runs[0].summary.get(metric_opt, 0)

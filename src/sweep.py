@@ -402,7 +402,7 @@ def main():
         runs = api.runs(path="/".join([entity_name, project_name]),
                         filters={"group": group_name})
 
-    export_run_metrics(runs, output_dir)
+    export_run_metrics(runs, args.output_dir)
 
     # download best model file from the sweep
     runs = sorted(

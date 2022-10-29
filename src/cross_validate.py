@@ -315,7 +315,7 @@ def main():
         runs = api.runs(path="/".join([entity_name, project_name]),
                         filters={"group": group_name})
 
-    export_run_metrics(runs, output_dir)
+    export_run_metrics(runs, args_train.output_dir)
 
     # identify best model file from the sweep
     runs = sorted(
