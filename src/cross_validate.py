@@ -52,11 +52,10 @@ def main():
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('-v', '--valid', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
-    parser.add_argument('-m', '--model', type=str, default="distilbert",
-                        help='choose model [ distilbert | longformer ] \
-                        distilbert handles shorter sequences up to 512 tokens \
-                        longformer handles longer sequences up to 4096 tokens \
-                        (DEFAULT: distilbert)')
+    parser.add_argument('-m', '--model_path', type=str, default=None,
+                        help='path to pretrained model dir. this should contain\
+                         files such as [ pytorch_model.bin, config.yaml, \
+                         tokeniser.json, etc ]')
     parser.add_argument('-d', '--device', type=str, default=None,
                         help='choose device [ cpu | cuda:0 ] (DEFAULT: detect)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
@@ -91,7 +90,7 @@ def main():
     args = parser.parse_args()
     train = args.train
     format = args.format
-    model = args.model
+    model_path = args.model_path
     device = args.device
     test = args.test
     valid = args.valid
@@ -163,16 +162,12 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
     print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
-    if model == "distilbert":
-        config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
-        model = DistilBertForSequenceClassification(config).to(device)
+    if os.path.exists(model_path):
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
         def _model_init():
-            return DistilBertForSequenceClassification(config).to(device)
-    if model == "longformer":
-        config = LongformerConfig(vocab_size=vocab_size, num_labels=2)
-        model = LongformerForSequenceClassification(config).to(device)
-        def _model_init():
-            return LongformerForSequenceClassification(config).to(device)
+            return AutoModelForSequenceClassification.from_pretrained(model_path)
+    else:
+        raise OSError("Cross validation requires a pretrained model!")
 
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
@@ -221,12 +216,14 @@ def main():
         np.zeros(dataset["train"].num_rows), dataset["train"][args.label_names[0]]
         )
 
+    fold_count = 0
     for train_idxs, val_idxs in splits:
         fold_dataset = DatasetDict({
             "train": dataset["train"].select(train_idxs),
             "valid": dataset["train"].select(val_idxs),
             "test": dataset["valid"]
         })
+        fold_count += 1
         wandb.init(
             group=group_name,
             job_type=group_name,
@@ -234,7 +231,9 @@ def main():
             entity=entity_name,
             project=project_name,
             config=args_train,
+            reinit=True,
             )
+        wandb.config.update({"fold_count": fold_count})
         def _compute_metrics(eval_preds):
             """Compute metrics during the training run using transformers and wandb API.
 
