@@ -11,9 +11,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import screed
+from sklearn import metrics
 import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
-import weightwatcher as ww
+# import weightwatcher as ww
 
 def _compute_metrics(eval_preds):
     """Compute metrics during the training run using transformers and wandb API.
@@ -63,6 +64,39 @@ def _compute_metrics(eval_preds):
     metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
+
+def calculate_auc(run):
+    """Calculate AUC for a wandb run. This assumes you logged a ROC curve.
+
+    Args:
+        eval_preds (wandb.Run): an instance of a `wandb.Run`.
+
+    Returns:
+        pandas.DataFrame:
+
+        A `pandas.DataFrame` containing AUC scores per class.
+    """
+    tables = [i for i in run.logged_artifacts() if i.type=="run_table"]
+    versions = [i.version for i in run.logged_artifacts()]
+    names = [i.name for i in run.logged_artifacts()]
+    data = pd.DataFrame(tuple(zip(versions, tables, names)))
+    data = data[data[2].str.contains("roc_curve_table")]
+    data["version"] = data[0].apply(lambda x: int(x[1:]))
+    print(data)
+    table = data[data["version"] == data["version"].max()][1].tolist()[0]
+    print(table)
+    outfile_path = table.download()
+
+    infile_path = "/".join([outfile_path, "roc_curve_table.table.json"])
+    with open(infile_path, mode="r") as i:
+        j = json.load(i)
+        data = pd.DataFrame(j["data"])
+        auc = data.groupby(0).apply(lambda x: metrics.auc(x[1], x[2]))
+        auc = pd.DataFrame(auc)
+        auc.index.name = None
+        auc.columns = ["auc"]
+        auc["run_id"] = run.id
+    return auc
 
 def export_run_metrics(runs, output_dir):
     """Export metrics for the specified runs. Writes file to disk.
