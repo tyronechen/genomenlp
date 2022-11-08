@@ -14,7 +14,7 @@ import screed
 from sklearn import metrics
 import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
-# import weightwatcher as ww
+import weightwatcher as ww
 
 def _compute_metrics(eval_preds):
     """Compute metrics during the training run using transformers and wandb API.
@@ -82,9 +82,7 @@ def calculate_auc(run):
     data = pd.DataFrame(tuple(zip(versions, tables, names)))
     data = data[data[2].str.contains("roc_curve_table")]
     data["version"] = data[0].apply(lambda x: int(x[1:]))
-    print(data)
     table = data[data["version"] == data["version"].max()][1].tolist()[0]
-    print(table)
     outfile_path = table.download()
 
     infile_path = "/".join([outfile_path, "roc_curve_table.table.json"])
@@ -94,7 +92,8 @@ def calculate_auc(run):
         auc = data.groupby(0).apply(lambda x: metrics.auc(x[1], x[2]))
         auc = pd.DataFrame(auc)
         auc.index.name = None
-        auc.columns = ["auc"]
+        auc.reset_index(inplace=True)
+        auc.columns = ["class", "auc"]
         auc["run_id"] = run.id
     return auc
 
