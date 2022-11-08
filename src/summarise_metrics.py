@@ -9,7 +9,7 @@ import pandas as pd
 import seaborn as sns
 import wandb
 from tqdm import tqdm
-from utils import export_run_metrics, calculate_auc
+from utils import calculate_auc, get_run_metrics
 
 def main():
     parser = argparse.ArgumentParser(
@@ -49,7 +49,7 @@ def main():
         infile_path, wandb_runs, all([entity_name, project_name])
         ]
     if not any(input_args):
-        raise OSError("Provide (infile_path) OR (entity_name project_name [group_name] [wandb_runs]))")
+        raise OSError("Provide (infile_path) OR (auc_scores) OR (entity_name project_name [group_name] [wandb_runs]))")
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     # connect to the finished runs using API
@@ -83,7 +83,8 @@ def main():
         auc = pd.concat(auc).reset_index().drop(["index"], axis=1)
         auc.to_csv("/".join([output_dir,"auc_scores.tsv"]),index=False,sep="\t")
     else:
-        auc = pd.read_csv(auc_scores, sep="\t")
+        auc = [pd.read_csv(x, sep="\t") for x in auc_scores]
+        auc = pd.concat(auc)
 
     fig = sns.violinplot(
         data=auc,
@@ -103,12 +104,16 @@ def main():
         hue="class",
         )
     fig = fig.get_figure().savefig("/".join([output_dir, "auc_boxplot.pdf"]))
-    plt.show()
     plt.clf()
 
     if runs != None:
         # this code was adapted directly from the wandb export API for python
-        export_run_metrics(runs, output_dir)
+        r_metrics = [[get_run_metrics(i, j) for i in runs] for j in group_name]
+        r_metrics = [i for j in r_metrics for i in j]
+        r_metrics = pd.concat(r_metrics).reset_index().drop(["index"], axis=1)
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
+        r_metrics.to_csv("/".join([output_dir, "metrics.csv"]))
 
     # get the metrics from the run if not provided directly as a file
     if infile_path == None:
@@ -117,23 +122,20 @@ def main():
     if type(infile_path) is list:
     # if we give a list of existing files
         data = [pd.read_csv(i, index_col=0) for i in infile_path]
-        # data = [[i["infile_path"] := i[j]] for j in infile_path]
         data = dict(zip(infile_path, data))
         for i in infile_path:
             data[i]["infile_path"] = i
         data = pd.concat(data.values())
         data["summary"] = data["summary"].apply(eval)
-        print(data.columns)
         for i in metrics:
             data[i] = data["summary"].apply(lambda x: x[i])
     else:
-    # if we just one to plot one based on a run or group id
+    # if we use the file generated within this script
         data = pd.read_csv(infile_path, index_col=0)
-        data["infile_path"] = "infile_path"
+        data["infile_path"] = infile_path
         data["summary"] = data["summary"].apply(eval)
         for i in metrics:
             data[i] = data["summary"].apply(lambda x: x[i])
-
 
 if __name__ == "__main__":
     main()
