@@ -65,11 +65,12 @@ def _compute_metrics(eval_preds):
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
 
-def calculate_auc(run):
+def calculate_auc(run, group_name=None):
     """Calculate AUC for a wandb run. This assumes you logged a ROC curve.
 
     Args:
         eval_preds (wandb.Run): an instance of a `wandb.Run`.
+        group_name (str): a label for the specified group name
 
     Returns:
         pandas.DataFrame:
@@ -95,20 +96,22 @@ def calculate_auc(run):
         auc.reset_index(inplace=True)
         auc.columns = ["class", "auc"]
         auc["run_id"] = run.id
+        if group_name != None:
+            auc["group_name"] = group_name
     return auc
 
-def export_run_metrics(runs, output_dir):
-    """Export metrics for the specified runs. Writes file to disk.
+def get_run_metrics(runs, group_name=None):
+    """Get metrics for the specified runs as a `pandas.DataFrame`
 
     This does not directly obtain the runs, you will need to call `wandb.Api`
     first and specify the runs you want before passing them into here.
 
     Args:
         runs (wandb.Api.runs): a `wandb.Api.runs()` object
-        output_dir (str): path to the output directory for the file
+        group_name (str): a label for the specified group name
 
     Returns:
-        None:
+        pandas.DataFrame:
 
         Writes the metrics obtained from `wandb.Api.runs` directly to disk.
     """
@@ -125,14 +128,15 @@ def export_run_metrics(runs, output_dir):
              if not k.startswith('_')})
         # .name is the human-readable name of the run
         name_list.append(run.name)
-    runs_df = pd.DataFrame({
+    data = pd.DataFrame({
         "summary": summary_list,
         "config": config_list,
         "name": name_list
         })
-    if not os.path.isdir(output_dir):
-        os.mkdir(output_dir)
-    runs_df.to_csv("/".join([output_dir, "metrics.csv"]))
+    if group_name != None:
+        data["group_name"] = group_name
+    return data
+
 
 def load_args_json(args_json: str):
     """Helper function to load a `json` file into TrainingArguments
