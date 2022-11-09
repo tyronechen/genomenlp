@@ -131,7 +131,7 @@ def bay_opt(model, param, scoring, x_train, y_train, x_test):
       # Loss must be minimized
       loss = - best_score
       # Dictionary with information for evaluation
-    return {'loss': loss, 'params': params, 'status': STATUS_OK}
+      return {'loss': loss, 'params': params, 'status': STATUS_OK}
     # Trials to track progress
     bayes_trials = Trials()
     # Optimize
