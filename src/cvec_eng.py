@@ -43,6 +43,13 @@ def clean_text(col_name):
         corpus.append(desc)
     return corpus
 
+def countvec(corpus, labels, max_features, n_gram_from=1, n_gram_to=1):
+   cv = CountVectorizer(ngram_range=(n_gram_from, n_gram_to), max_features=max_features)
+   X=cv.fit_transform(corpus).toarray()
+   feature=cv.get_feature_names_out()
+   Y=np.array(labels)
+   return X, Y, feature
+
 def split_dataset(X, Y, train_ratio, test_ratio, validation_ratio):
     x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=1 - train_ratio)
     x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=test_ratio/(test_ratio + validation_ratio))
@@ -179,6 +186,8 @@ def best_sweep(entity, project):
 
 def main():
   max_features=1000
+  n_gram_from=2
+  n_gram_to=2
   train_ratio = 0.70
   validation_ratio = 0.15
   test_ratio = 0.15
@@ -198,25 +207,22 @@ def main():
   # Cleaning the text of punctuation and special characters
   corpus=clean_text(df.title)
   # corpus[1] 
-  cv = CountVectorizer(max_features)
-  X = cv.fit_transform(corpus).toarray()
-  Y = np.array(df['label'])
+  X, Y, feature=countvec(corpus, df.label, max_features, n_gram_from, n_gram_to)
   # X and Y should have same length
-  print(X.shape)
-  print(Y.shape)
-  feature=cv.get_feature_names_out()
+  print("Total data iterms:",X.shape)
+  print("Total data labels", Y.shape)
   token_freq_plot(feature, X)
   # split the dataset into train, test and validation set using sklearn
   # train is now 70% of the entire data set
   # test is now 15% of the initial data set
   # validation is now 15% of the initial data set
   x_train, y_train, x_test, y_test, x_val, y_val=split_dataset(X, Y, train_ratio, test_ratio, validation_ratio) 
-  print(x_train.shape)
-  print(y_train.shape)
-  print(x_test.shape)
-  print(y_test.shape)
-  print(x_val.shape)
-  print(y_val.shape)  
+  print("Training data:",x_train.shape)
+  print("Training data labels:",y_train.shape)
+  print("Test data:",x_test.shape)
+  print("Test data labels:",y_test.shape)
+  print("Validation data:",x_val.shape)
+  print("Validation data labels:",y_val.shape) 
   print('RF BASE MODEL')
   # training the model
   rf_base, y_pred, y_probas=train_model(model, param, x_train, y_train)
