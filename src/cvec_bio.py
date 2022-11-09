@@ -281,16 +281,16 @@ def main():
         # Visualize all classifier plots at once
         wandb.init(project="test RF-eng", name="RF-Bayesian opt. model")
         wandb.sklearn.plot_classifier(rf_bayes, x_train, x_test, y_train, y_test, y_pred3, y_probas3, 
-                                labels=None, model_name='Random Search Model', feature_names=feature)
+                                labels=None, model_name='Bayesian opt. Model', feature_names=feature)
         wandb.finish()
         # wandb sweeps
-        def RFsweep():
+        def RFsweep(x_train, y_train, x_test, feature):
           wandb.init(settings=wandb.Settings(console='off', start_method='fork'))
           clf = RandomForestClassifier(n_estimators=100)
           clf.fit(x_train, y_train)
           preds = clf.predict(x_test)
           pred_prob = clf.predict_proba(x_test)
-          feature=cv.get_feature_names_out()
+          #feature=cv.get_feature_names_out()
           #print(classification_report(y_test, preds))
           # Log any metric with Weights and Biases
           wandb.log({'accuracy_score': accuracy_score(y_test,preds), 
