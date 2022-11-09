@@ -276,10 +276,10 @@ def main():
         # model metrics
         model_metrics(rf_bayes, x_test, y_test, y_pred3)
         print("Feature Importance Plot:\n")
-        feature_imp(rf_bayes, Feature_names, 20)
+        feature_imp(rf_bayes, feature, 20)
         # wandb plot
         # Visualize all classifier plots at once
-        wandb.init(project="test RF-eng", name="RF-Bayesian opt. model")
+        wandb.init(project="test RF", name="RF-Bayesian opt. model")
         wandb.sklearn.plot_classifier(rf_bayes, x_train, x_test, y_train, y_test, y_pred3, y_probas3, 
                                 labels=None, model_name='Bayesian opt. Model', feature_names=feature)
         wandb.finish()
