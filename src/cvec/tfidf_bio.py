@@ -1,9 +1,11 @@
-# n-gram tf-idf
+# cvec/tf-idf bio
 # import the required libraries
 # !pip install fastaparser, version= 1.1.1
+# !pip install wandb, version=  0.13.4
 import pandas as pd
 import numpy as np
 import fastaparser
+import wandb
 import random
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV, cross_val_score, StratifiedKFold, cross_validate
 from sklearn.ensemble import RandomForestClassifier
@@ -43,7 +45,7 @@ def add_labels(sequence_file, k_low, k_high, label):
   file['labels']=label
   return file
 
-def tf_idf(dna_seq, labels, n_gram_from, n_gram_to, max_features):
+def tf_idf(dna_seq, labels, max_features, n_gram_from=1, n_gram_to=1):
   #create count vectorizer and tf vectorizer models
   tf_vec = TfidfTransformer(smooth_idf=False)
   cvec = CountVectorizer(max_features=max_features, ngram_range=(n_gram_from, n_gram_to))
@@ -153,28 +155,34 @@ def token_freq_plot(feature, X):
     visualizer.fit(X)
     visualizer.show()
 
-def ROC_curve(model, x_test, y_test):
-    ax = plt.gca()
-    rfc_disp = RocCurveDisplay.from_estimator(model, x_test, y_test, ax=ax, alpha=0.8)
-    plt.show()
+def best_sweep(entity, project):
+    api = wandb.Api()
+    runs = api.runs(entity + "/" + project)
+    # download metrics from all runs
+    print("Get metrics from all runs")
+    summary_list, config_list, name_list = [], [], []
+    for run in runs: 
+       # .summary contains the output keys/values for metrics like accuracy.
+       summary_list.append(run.summary._json_dict)
+       # .config contains the hyperparameters.
+       #  We remove special values that start with _.
+       config_list.append(
+           {k: v for k,v in run.config.items()
+            if not k.startswith('_')})
+       # .name is the human-readable name of the run.
+       name_list.append(run.name)
+    runs_df = pd.DataFrame({
+       "summary": summary_list,
+       "config": config_list,
+       "name": name_list
+       })
+    runs_df.to_csv('metrics.csv')
+    # identify best model file from the sweep
+    metric_opt='f1'
+    runs = sorted(runs, key=lambda run: run.summary.get(metric_opt, 0), reverse=True)
+    score = runs[0].summary.get(metric_opt, 0)
+    print(f"Best sweep {runs[0].name} with {metric_opt}={score}%")
 
-def learning_curve(list_nb_trees, x_train, y_train, x_test, y_test):
-    train_results = []
-    test_results = []
-    for nb_trees in list_nb_trees:
-        rf = RandomForestClassifier(n_estimators=nb_trees)
-        rf.fit(x_train, y_train)
-
-        train_results.append(mean_squared_error(y_train, rf.predict(x_train)))
-        test_results.append(mean_squared_error(y_test, rf.predict(x_test)))
-
-    line1, = plt.plot(list_nb_trees, train_results, color="r", label="Training Score")
-    line2, = plt.plot(list_nb_trees, test_results, color="g", label="Testing Score")
-
-    plt.legend(handler_map={line1: HandlerLine2D(numpoints=2)})
-    plt.ylabel('MSE')
-    plt.xlabel('n_estimators')
-    plt.show()
 def main():
     sequence_file1='Human_promoter.fa'
     sequence_file2='Human_promoter_synthetic.fa'
@@ -182,22 +190,28 @@ def main():
     k_high=5
     label_1=0
     label_2=1
-    n_gram_from=4
-    n_gram_to=4
+    n_gram_from=2
+    n_gram_to=2
     max_features=1000
     train_ratio = 0.70
     validation_ratio = 0.15
     test_ratio = 0.15
     param=100
     model=RandomForestClassifier
-    list_nb_trees=[100, 200, 300, 400, 500]
+    param = {'n_estimators': [50, 100, 150, 200],
+                      'max_features': ['auto', 'sqrt'],
+                      'max_depth': [10, 20],
+                      'min_samples_split': [2, 5, 10],
+                      'min_samples_leaf': [2, 3],
+                      'bootstrap': [True, False]}
+    
 
     pos=add_labels(sequence_file1, k_low, k_high, label_1)
     neg=add_labels(sequence_file2, k_low, k_high, label_2)
     dna=pd.concat([pos,neg]) 
     dna.reset_index(drop=True, inplace=True)
     #print(dna.head())
-    tfidf, tf_labels, feature=tf_idf(dna.kmer, dna.labels, n_gram_from, n_gram_to, max_features)
+    tfidf, tf_labels, feature=tf_idf(dna.kmer, dna.labels, max_features, n_gram_from, n_gram_to)
     print("Total data items:",tfidf.shape)
     print("Total data labels",tf_labels.shape)
     token_freq_plot(feature, tfidf)
@@ -218,22 +232,18 @@ def main():
     # model metrics
     model_metrics(rf_base, x_test, y_test, y_pred)
     print("Feature Importance Plot:\n")
-    feature_imp(rf_base, Feature_names, 20)
-    print('ROC curve plot:\n')
-    ROC_curve(rf_base, x_test, y_test)
-    print('Learning curve:\n')
-    learning_curve(list_nb_trees, x_train, y_train, x_test, y_test)
+    feature_imp(rf_base, feature, 20)
+    # wandb plot
+    wandb.init(project="test RF", name="RF-base model")
+    # Visualize all classifier plots at once
+    wandb.sklearn.plot_classifier(rf_base, x_train, x_test, y_train, y_test, y_pred,
+                                y_probas, labels=None, model_name='BASE MODEL', feature_names=feature)
+    wandb.finish()
     # parameters currently used
     print('Parameters currently in use:')
     pprint(rf_base.get_params())
     # Setting range of parameters
     scoring = ['recall']
-    param = {'n_estimators': [50, 100, 150, 200],
-                      'max_features': ['auto', 'sqrt'],
-                      'max_depth': [10, 20],
-                      'min_samples_split': [2, 5, 10],
-                      'min_samples_leaf': [2, 3],
-                      'bootstrap': [True, False]}
     print('Range of parameters used for hyperparameter tuning:')
     pprint(param)
     # Hyperparameter tuning using GridsearchCV
@@ -243,27 +253,124 @@ def main():
     # model metrics
     model_metrics(rf_grid, x_test, y_test, y_pred1)
     print("Feature Importance Plot:\n")
-    feature_imp(rf_grid, Feature_names, 20)
-    print('ROC curve plot:\n')
-    ROC_curve(rf_grid, x_test, y_test)
+    feature_imp(rf_grid, feature, 20)
+    # wandb plot
+    wandb.init(project="test RF", name="RF-Grid Search model")
+    # Visualize all classifier plots at once
+    wandb.sklearn.plot_classifier(rf_grid, x_train, x_test, y_train, y_test, y_pred1, y_probas1, 
+                                labels=None, model_name='Grid Search Model', feature_names=feature)
+    wandb.finish()
+
     print("\nRANDOM SEARCH MODEL")
     # Random search model
     rf_ran, y_pred2, y_probas2=random_search(rf_base, param, scoring, x_train, y_train, x_test)
     # model metrics
     model_metrics(rf_ran, x_test, y_test, y_pred2)
     print("Feature Importance Plot:\n")
-    feature_imp(rf_ran, Feature_names, 20)
-    print('ROC curve plot:\n')
-    ROC_curve(rf_ran, x_test, y_test)
+    feature_imp(rf_ran, feature, 20)
+    # wandb plot
+    # Visualize all classifier plots at once
+    wandb.init(project="test RF", name="RF-Random Search model")
+    wandb.sklearn.plot_classifier(rf_ran, x_train, x_test, y_train, y_test, y_pred2, y_probas2,
+                                labels=None, model_name='Random Search Model', feature_names=feature)
+    wandb.finish()
+
     print('BAYESIAN OPTIMISATION MODEL')
     scoring_rf='recall'
     rf_bayes, y_pred3, y_probas3 = bay_opt(RandomForestClassifier, param, scoring_rf, x_train, y_train, x_test)
     # model metrics
     model_metrics(rf_bayes, x_test, y_test, y_pred3)
     print("Feature Importance Plot:\n")
-    feature_imp(rf_bayes, Feature_names, 20)
-    print('ROC curve plot:\n')
-    ROC_curve(rf_bayes, x_test, y_test)
+    feature_imp(rf_bayes, feature, 20)
+    # wandb plot
+    # Visualize all classifier plots at once
+    wandb.init(project="test RF-eng", name="RF-Bayesian opt. model")
+    wandb.sklearn.plot_classifier(rf_bayes, x_train, x_test, y_train, y_test, y_pred3, y_probas3, 
+                                labels=None, model_name='Bayesian Optimization Model', feature_names=feature)
+    
+    # wandb sweeps
+    def RFsweep(x_train, y_train, x_test, feature):
+          wandb.init(settings=wandb.Settings(console='off', start_method='fork'))
+          clf = RandomForestClassifier(n_estimators=100)
+          clf.fit(x_train, y_train)
+          preds = clf.predict(x_test)
+          pred_prob = clf.predict_proba(x_test)
+          #features=cv.get_feature_names_out()
+          #print(classification_report(y_test, preds))
+          # Log any metric with Weights and Biases
+          wandb.log({'accuracy_score': accuracy_score(y_test,preds), 
+                    'f1':f1_score(y_test,preds), 
+                    'precision': precision_score(y_test, preds), 
+                    'recall': recall_score(y_test, preds)})
+          wandb.sklearn.plot_classifier(clf, x_train, x_test, y_train, y_test, 
+                                        preds, pred_prob, labels=None, model_name='Random Forest Model', feature_names=feature)
+    sweep_config = {
+              'name'  : "random",
+              'method': 'random', #grid, random
+              'metric': {
+                'name': 'f1_score',
+                'goal': 'maximize' },
+              'parameters': {
+                "n_estimators" : {
+                "values" : [100, 200]},
+                "max_depth" :{
+                "values": [10, 20, 30]},
+                "min_samples_leaf":{
+                "values":[1, 2, 3, 4, 5]},
+                "min_samples_split":{
+                "values":[1, 2, 3, 4, 5]}, }}
+
+    sweep_id = wandb.sweep(sweep_config, project='test sweep-eng')
+    count=3
+    wandb.agent(sweep_id,function=RFsweep, count=count)
+    wandb.finish()
+
+    sweep_config1 = {
+              'name'  : "grid",
+              'method': 'grid', #grid, random
+              'metric': {
+                'name': 'f1_score',
+                'goal': 'maximize' },
+              'parameters': {
+                "n_estimators" : {
+                "values" : [100, 200]},
+                "max_depth" :{
+                "values": [10, 20, 30]},
+                "min_samples_leaf":{
+                "values":[1, 2, 3, 4, 5]},
+                "min_samples_split":{
+                "values":[1, 2, 3, 4, 5]}, }}
+
+    sweep_id1 = wandb.sweep(sweep_config1, project='test sweep-eng')
+    count=3
+    wandb.agent(sweep_id1,function=RFsweep, count=count)
+    wandb.finish()
+
+    sweep_config2 = {
+              'name'  : "bayesian",
+              'method': 'bayes', #grid, random
+              'metric': {
+                'name': 'f1_score',#f1 score 
+                'goal': 'maximize' },
+              'parameters': {
+                "n_estimators" : {
+                "values" : [100, 200]},
+                "max_depth" :{
+                "values": [10, 20, 30, 40, 50]},
+                "min_samples_leaf":{
+                "values":[1, 2, 3, 4, 5]},
+                "min_samples_split":{
+                "values":[1, 2, 3, 4, 5]}, }}
+
+    sweep_id2 = wandb.sweep(sweep_config2, project='test sweep-eng')
+    count=3
+    wandb.agent(sweep_id2,function=RFsweep, count=count)
+    wandb.finish()
+
+    # Exporting metrics from a project in to a CSV file
+    # set to your entity and project
+    # best sweep
+    best_sweep('tyagilab', 'test sweep-eng')
 
 if __name__ == "__main__":
     main()
