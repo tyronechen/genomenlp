@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 # %matplotlib inline
 from hyperopt import tpe, STATUS_OK, Trials, hp, fmin, STATUS_OK, space_eval
 
-METRICS_OUT = "cvec_bio_metrics.csv"
+METRICS_OUT = "cvec_eng_metrics.csv"
 PROJECT = "RF_EN"
 SEQS_DATA = "fake_or_real_news.csv"
 SEQS_NULL = ""

@@ -180,7 +180,7 @@ def best_sweep(entity, project):
        "name": name_list
        })
 
-   runs_df.to_csv('metrics.csv')
+   runs_df.to_csv(METRICS_OUT)
    # identify best model file from the sweep
    metric_opt='f1'
    runs = sorted(runs, key=lambda run: run.summary.get(metric_opt, 0), reverse=True)
