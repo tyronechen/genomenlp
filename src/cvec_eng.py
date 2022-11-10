@@ -4,13 +4,13 @@
 # !pip install category_encoders
 # category_encoders version 2.5.1.post0
 # import the required libraries
-import numpy as np 
+import numpy as np
 import pandas as pd
 import re
 import wandb
-import nltk
-nltk.download('stopwords')
-from nltk.corpus import stopwords
+# import nltk
+# nltk.download('stopwords')
+# from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 import category_encoders as ce
@@ -20,15 +20,21 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, plot_confusion_matrix, f1_score, precision_score, recall_score
 from pprint import pprint
 import matplotlib.pyplot as plt
-%matplotlib inline
+# %matplotlib inline
 from hyperopt import tpe, STATUS_OK, Trials, hp, fmin, STATUS_OK, space_eval
+
+METRICS_OUT = "cvec_bio_metrics.csv"
+PROJECT = "RF_EN"
+SEQS_DATA = "fake_or_real_news.csv"
+SEQS_NULL = ""
+count = 64
 
 #functions
 def encode_labels(DataFrame, col_name):
     df_ce=DataFrame.copy()
     encoder=ce.OrdinalEncoder(cols=[col_name])
     df = encoder.fit_transform(df_ce)
-    return df  
+    return df
 
 def clean_text(col_name):
     corpus = []
@@ -73,7 +79,7 @@ def model_metrics(model, x_test, y_test, y_pred):
   # confusion matrix
   conf=confusion_matrix(y_test, y_pred)
   print("Confusion matrix:\n", conf)
-   
+
 def grid_search(model, param, scoring, x_train, y_train, x_test):
     clf_grid=GridSearchCV(estimator=model, param_grid=param, scoring = scoring , refit = 'recall' , cv = 3, verbose=2, n_jobs = 4)
     # fit the training data
@@ -112,7 +118,7 @@ def bay_opt(model, param, scoring, x_train, y_train, x_test):
     space = {key : hp.choice(key, param[key]) for key in param}
     return space
 
-  #given below is an example of how space corresponds to param 
+  #given below is an example of how space corresponds to param
   #param = {"learning_rate": [0.0001,0.001, 0.01, 0.1, 1] , "max_depth": range(3,21,3), "gamma": [i/10.0 for i in range(0,5)],"colsample_bytree": [i/10.0 for i in range(3,10)],"reg_alpha": [1e-5, 1e-2, 0.1, 1, 10, 100],"reg_lambda": [1e-5, 1e-2, 0.1, 1, 10, 100]}
   #space = {'learning_rate': hp.choice('learning_rate', [0.0001,0.001, 0.01, 0.1, 1]),'max_depth' : hp.choice('max_depth', range(3,21,3)),'gamma' : hp.choice('gamma', [i/10.0 for i in range(0,5)]),'colsample_bytree' : hp.choice('colsample_bytree', [i/10.0 for i in range(3,10)]),'reg_alpha' : hp.choice('reg_alpha', [1e-5, 1e-2, 0.1, 1, 10, 100]),'reg_lambda' : hp.choice('reg_lambda', [1e-5, 1e-2, 0.1, 1, 10, 100])}
 
@@ -153,14 +159,13 @@ def feature_imp(model,feature_names, n_top_features):
 
 def best_sweep(entity, project):
   api = wandb.Api()
-    
   runs = api.runs(entity + "/" + project)
 
   # download metrics from all runs
   print("Get metrics from all runs")
 
   summary_list, config_list, name_list = [], [], []
-  for run in runs: 
+  for run in runs:
       # .summary contains the output keys/values for metrics like accuracy.
       summary_list.append(run.summary._json_dict)
       # .config contains the hyperparameters.
@@ -177,7 +182,7 @@ def best_sweep(entity, project):
       "name": name_list
       })
 
-  runs_df.to_csv('metrics.csv')
+  runs_df.to_csv(METRICS_OUT)
   # identify best model file from the sweep
   metric_opt='f1'
   runs = sorted(runs, key=lambda run: run.summary.get(metric_opt, 0), reverse=True)
@@ -193,20 +198,20 @@ def main():
   test_ratio = 0.15
   model=RandomForestClassifier
   param=100
-  param = {'n_estimators': [50, 100, 150, 200],
-                      'max_features': ['auto', 'sqrt'],
-                      'max_depth': [10, 20],
-                      'min_samples_split': [2, 5, 10],
-                      'min_samples_leaf': [2, 3],
-                      'bootstrap': [True, False]}
+  param = {'n_estimators': [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+          'max_features': ['auto', 'sqrt'],
+          'max_depth': [10, 20],
+          'min_samples_split': [2, 5, 10],
+          'min_samples_leaf': [2, 3],
+          'bootstrap': [True, False]}
 
-  df_en = pd.read_csv('fake_or_real_news.csv')
-  df = encode_labels(df_en, 'label')   
-  # df.head() 
+  df_en = pd.read_csv(SEQS_DATA)
+  df = encode_labels(df_en, 'label')
+  # df.head()
   # df.title[1]
   # Cleaning the text of punctuation and special characters
   corpus=clean_text(df.title)
-  # corpus[1] 
+  # corpus[1]
   X, Y, feature=countvec(corpus, df.label, max_features, n_gram_from, n_gram_to)
   # X and Y should have same length
   print("Total data iterms:",X.shape)
@@ -216,13 +221,13 @@ def main():
   # train is now 70% of the entire data set
   # test is now 15% of the initial data set
   # validation is now 15% of the initial data set
-  x_train, y_train, x_test, y_test, x_val, y_val=split_dataset(X, Y, train_ratio, test_ratio, validation_ratio) 
+  x_train, y_train, x_test, y_test, x_val, y_val=split_dataset(X, Y, train_ratio, test_ratio, validation_ratio)
   print("Training data:",x_train.shape)
   print("Training data labels:",y_train.shape)
   print("Test data:",x_test.shape)
   print("Test data labels:",y_test.shape)
   print("Validation data:",x_val.shape)
-  print("Validation data labels:",y_val.shape) 
+  print("Validation data labels:",y_val.shape)
   print('RF BASE MODEL')
   # training the model
   rf_base, y_pred, y_probas=train_model(model, param, x_train, y_train)
@@ -231,10 +236,10 @@ def main():
   # feature importance plot
   feature_imp(rf_base,feature, 20)
   # wandb plot
-  wandb.init(project="test RF-eng", name="RF-base model")
+  wandb.init(project=PROJECT, name="RF_BASE")
   # Visualize all classifier plots at once
   wandb.sklearn.plot_classifier(rf_base, x_train, x_test, y_train, y_test, y_pred,
-                                y_probas, labels=None, model_name='BASE MODEL', feature_names=feature)
+                                y_probas, labels=None, model_name='BASE_MODEL', feature_names=feature)
   wandb.finish()
   # parameters currently used
   print('Parameters currently in use:')
@@ -252,10 +257,10 @@ def main():
   print("Feature Importance Plot:\n")
   feature_imp(rf_grid, feature, 20)
   # wandb plot
-  wandb.init(project="test RF-eng", name="RF-Grid Search model")
+  wandb.init(project=PROJECT, name="RF_GRID")
   # Visualize all classifier plots at once
-  wandb.sklearn.plot_classifier(rf_grid, x_train, x_test, y_train, y_test, y_pred1, y_probas1, 
-                                labels=None, model_name='Grid Search Model', feature_names=feature)
+  wandb.sklearn.plot_classifier(rf_grid, x_train, x_test, y_train, y_test, y_pred1, y_probas1,
+                                labels=None, model_name='GRID_MODEL', feature_names=feature)
   wandb.finish()
   print("\nRANDOM SEARCH MODEL")
   # Random search model
@@ -266,9 +271,9 @@ def main():
   feature_imp(rf_ran, feature, 20)
   # wandb plot
   # Visualize all classifier plots at once
-  wandb.init(project="test RF-eng", name="RF-Random Search model")
+  wandb.init(project=PROJECT, name="RF_RANDOM")
   wandb.sklearn.plot_classifier(rf_ran, x_train, x_test, y_train, y_test, y_pred2, y_probas2,
-                                labels=None, model_name='Random Search Model', feature_names=feature)
+                                labels=None, model_name='RANDOM_MODEL', feature_names=feature)
   wandb.finish()
   print('BAYESIAN OPTIMISATION MODEL')
   scoring_rf='recall'
@@ -279,9 +284,9 @@ def main():
   feature_imp(rf_bayes, feature, 20)
   # wandb plot
   # Visualize all classifier plots at once
-  wandb.init(project="test RF-eng", name="RF-Bayesian opt. model")
-  wandb.sklearn.plot_classifier(rf_bayes, x_train, x_test, y_train, y_test, y_pred3, y_probas3, 
-                                labels=None, model_name='Bayesian opt. Model', feature_names=feature)
+  wandb.init(project=PROJECT, name="RF_BAYES")
+  wandb.sklearn.plot_classifier(rf_bayes, x_train, x_test, y_train, y_test, y_pred3, y_probas3,
+                                labels=None, model_name='BAYES_MODEL', feature_names=feature)
   wandb.finish()
 
 
@@ -295,11 +300,11 @@ def main():
     #feature=cv.get_feature_names_out()
     #print(classification_report(y_test, preds))
     # Log any metric with Weights and Biases
-    wandb.log({'accuracy_score': accuracy_score(y_test,preds), 
-               'f1':f1_score(y_test,preds), 
-               'precision': precision_score(y_test, preds), 
+    wandb.log({'accuracy_score': accuracy_score(y_test,preds),
+               'f1':f1_score(y_test,preds),
+               'precision': precision_score(y_test, preds),
                'recall': recall_score(y_test, preds)})
-    wandb.sklearn.plot_classifier(clf, x_train, x_test, y_train, y_test, 
+    wandb.sklearn.plot_classifier(clf, x_train, x_test, y_train, y_test,
                                   preds, pred_prob, labels=None, model_name='Random Forest Model', feature_names=feature)
   sweep_config = {
         'name'  : "random",
@@ -309,7 +314,7 @@ def main():
           'goal': 'maximize' },
         'parameters': {
           "n_estimators" : {
-          "values" : [100, 200]},
+          "values" : [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]},
           "max_depth" :{
           "values": [10, 20, 30]},
           "min_samples_leaf":{
@@ -317,8 +322,8 @@ def main():
           "min_samples_split":{
           "values":[1, 2, 3, 4, 5]}, }}
 
-  sweep_id = wandb.sweep(sweep_config, project='test sweep-eng')
-  count=3
+  sweep_id = wandb.sweep(sweep_config, project='RF_EN')
+
   wandb.agent(sweep_id,function=RFsweep, count=count)
   wandb.finish()
 
@@ -330,7 +335,7 @@ def main():
           'goal': 'maximize' },
         'parameters': {
           "n_estimators" : {
-          "values" : [100, 200]},
+          "values" : [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]},
           "max_depth" :{
           "values": [10, 20, 30]},
           "min_samples_leaf":{
@@ -338,8 +343,8 @@ def main():
           "min_samples_split":{
           "values":[1, 2, 3, 4, 5]}, }}
 
-  sweep_id1 = wandb.sweep(sweep_config1, project='test sweep-eng')
-  count=3
+  sweep_id1 = wandb.sweep(sweep_config1, project='RF_EN')
+
   wandb.agent(sweep_id1,function=RFsweep, count=count)
   wandb.finish()
 
@@ -347,11 +352,11 @@ def main():
         'name'  : "bayesian",
         'method': 'bayes', #grid, random
         'metric': {
-          'name': 'f1_score',#f1 score 
+          'name': 'f1_score',#f1 score
           'goal': 'maximize' },
         'parameters': {
           "n_estimators" : {
-          "values" : [100, 200]},
+          "values" : [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]},
           "max_depth" :{
           "values": [10, 20, 30, 40, 50]},
           "min_samples_leaf":{
@@ -359,15 +364,15 @@ def main():
           "min_samples_split":{
           "values":[1, 2, 3, 4, 5]}, }}
 
-  sweep_id2 = wandb.sweep(sweep_config2, project='test sweep-eng')
-  count=3
+  sweep_id2 = wandb.sweep(sweep_config2, project='RF_EN')
+
   wandb.agent(sweep_id2,function=RFsweep, count=count)
   wandb.finish()
 
   # Exporting metrics from a project in to a CSV file
   # set to your entity and project
   # best sweep
-  best_sweep('tyagilab', 'test sweep-eng')
+  best_sweep('tyagilab', project='RF_EN')
 
 if __name__ == "__main__":
     main()
