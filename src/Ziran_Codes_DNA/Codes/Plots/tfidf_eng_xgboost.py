@@ -1,4 +1,5 @@
 # import the required libraries
+from sklearn.preprocessing import LabelEncoder
 import numpy as np 
 import pandas as pd
 import re
@@ -208,6 +209,10 @@ def main():
   token_freq_plot(feature, X)
   # split the dataset into train, test and validation set using sklearn
   x_train, y_train, x_test, y_test, x_val, y_val=split_dataset(X, Y, train_ratio, test_ratio, validation_ratio) 
+  le = LabelEncoder()
+  y_train = le.fit_transform(y_train)
+  y_test  = le.fit_transform(y_test)
+  y_val   = le.fit_transform(y_val)
   print("Training data:",x_train.shape)
   print("Training data labels:",y_train.shape)
   print("Test data:",x_test.shape)
@@ -224,12 +229,12 @@ def main():
   # wandb plot
   wandb.init(project="test XG", name="XG-base model")
   # Visualize all classifier plots at once
-  wandb.sklearn.plot_classifier(rf_base, x_train, x_test, y_train, y_test, y_pred,
+  wandb.sklearn.plot_classifier(xg_base, x_train, x_test, y_train, y_test, y_pred,
                                 y_probas, labels=None, model_name='BASE MODEL', feature_names=feature)
   wandb.finish()
   # parameters currently used
   print('Parameters currently in use:')
-  pprint(rf_base.get_params())
+  pprint(xg_base.get_params())
   # Setting range of parameters
   scoring = ['recall']
   print('Range of parameters used for hyperparameter tuning:')
