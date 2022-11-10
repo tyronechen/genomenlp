@@ -268,7 +268,7 @@ def main():
   wandb.finish()
   print('BAYESIAN OPTIMISATION MODEL')
   scoring_xg='recall'
-  rf_bayes, y_pred3, y_probas3 = bay_opt(XGBClassifier, param, scoring_xg, x_train, y_train, x_test)
+  xg_bayes, y_pred3, y_probas3 = bay_opt(XGBClassifier, param, scoring_xg, x_train, y_train, x_test)
   # model metrics
   model_metrics(xg_bayes, x_test, y_test, y_pred3)
   print("Feature Importance Plot:\n")
