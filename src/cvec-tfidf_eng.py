@@ -52,7 +52,7 @@ def tf_idf(corpus, labels, max_features, n_gram_from=1, n_gram_to=1):
   #get IDF too. 
   tfidf = tf_vec.fit_transform(tf)
   tfidf=tfidf.toarray()
-  np.nan_to_num(tfidf)
+  tfidf=np.nan_to_num(tfidf)
   tf_labels=np.array(labels)
   feature=cvec.get_feature_names_out()
   return tfidf, tf_labels, feature
