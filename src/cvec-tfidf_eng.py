@@ -62,8 +62,8 @@ def split_dataset(X, Y, train_ratio, test_ratio, validation_ratio):
     x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=test_ratio/(test_ratio + validation_ratio))
     return x_train, y_train, x_test, y_test, x_val, y_val
 
-def train_model(model, param, x_train, y_train, x_test):
-   clf=model(param)
+def train_model(model, estimators, x_train, y_train, x_test):
+   clf=model(estimators)
    # fit the training data into the model
    clf.fit(x_train, y_train)
    y_pred=clf.predict(x_test)
@@ -199,7 +199,7 @@ def main():
   validation_ratio = 0.15
   test_ratio = 0.15
   model=RandomForestClassifier
-  param=100
+  estimators=100
   param = {'n_estimators': [50, 100, 150, 200],
                       'max_features': ['auto', 'sqrt'],
                       'max_depth': [10, 20],
@@ -227,7 +227,7 @@ def main():
   print("Validation data labels:",y_val.shape) 
   print('RF BASE MODEL')
   # training the model
-  rf_base, y_pred, y_probas=train_model(model, param, x_train, y_train)
+  rf_base, y_pred, y_probas=train_model(model, estimators, x_train, y_train)
   # model metrics
   model_metrics(rf_base, x_test, y_test, y_pred)
   # feature importance plot
