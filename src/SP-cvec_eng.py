@@ -1,4 +1,4 @@
-# SP cvec bio
+# SP cvec eng
 # !pip install transformers
 # !pip install wandb
 # import the required libraries
@@ -11,8 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, plot_confusion_matrix
 from pprint import pprint
 import matplotlib.pyplot as plt
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer
 from yellowbrick.text import FreqDistVisualizer
 from hyperopt import tpe, STATUS_OK, Trials, hp, fmin, STATUS_OK, space_eval
 
@@ -72,12 +71,12 @@ def parse_sp_tokenised(infile_path: str, tokeniser_path: str=None, special_token
         )
     return data
 
-def create_corpus(column):
-  corpus= []
-  for w in range(len(column)):
-    desc=str(column[w])
-    desc=desc.replace('[', '',).replace(']', '').replace('\n', '').replace("\'", '').replace('<', '')
-    corpus.append(desc)
+def clean_corpus(column):
+  corpus=[]
+  for i in range(len(column)):
+      x=str(column[i]).lower()
+      x=x.replace(',', '',).replace('.', '').replace('\'', '').replace('\"', '').replace('\"', '').replace('[', '',).replace(']', '').replace('\n', '').replace('”','') 
+      corpus.append(x)
   return corpus
 
 def countvec(corpus, labels, max_features, n_gram_from=1, n_gram_to=1):
@@ -233,17 +232,16 @@ def main():
                         'min_samples_split': [2, 5, 10],
                         'min_samples_leaf': [2, 3],
                         'bootstrap': [True, False]}
-
-    b_tokens1=parse_sp_tokenised('train.csv', 'yeast.json')
-    b_tokens2=parse_sp_tokenised('test (1).csv', 'yeast.json')
-    b_tokens3=parse_sp_tokenised('valid.csv', 'yeast.json')
+    b_tokens1=parse_sp_tokenised('train_news.csv', 'news_clean.json')
+    b_tokens2=parse_sp_tokenised('test_news.csv', 'news_clean.json')
+    b_tokens3=parse_sp_tokenised('valid_news.csv', 'news_clean.json')
     b_tokens=pd.concat([b_tokens1, b_tokens2, b_tokens3]) 
     b_tokens.reset_index(drop=True, inplace=True)
     #b_tokens.head()
-    dna=b_tokens[['input_str', 'labels']]
-    #dna.head()
-    corpus= create_corpus(dna.input_str)
-    X, Y, feature=countvec(corpus, dna.labels, max_features, n_gram_from, n_gram_to)
+    df=b_tokens[['input_str', 'label']]
+    #df.head()
+    corpus=clean_corpus(df.input_str)
+    X, Y, feature=countvec(corpus, df.label, max_features, n_gram_from, n_gram_to)
     print("Total data items:", X.shape)
     print("Total data labels", Y.shape)
     # split the dataset into train, test and validation set using sklearn
@@ -262,7 +260,7 @@ def main():
     print("Feature Importance Plot:\n")
     feature_imp(rf_base, feature, 20)
     # wandb plot
-    wandb.init(project="SP cvec", name="RF-base model")
+    wandb.init(project="SP cvec eng", name="RF-base model")
     # Visualize all classifier plots at once
     wandb.sklearn.plot_classifier(rf_base, x_train, x_test, y_train, y_test, y_pred,
                                   y_probas, labels=None, model_name='BASE MODEL', feature_names=feature)
@@ -282,7 +280,7 @@ def main():
     print("Feature Importance Plot:\n")
     feature_imp(rf_grid, feature, 20)
     # wandb plot
-    wandb.init(project="SP cvec", name="RF-Grid Search model")
+    wandb.init(project="SP cvec eng", name="RF-Grid Search model")
     # Visualize all classifier plots at once
     wandb.sklearn.plot_classifier(rf_grid, x_train, x_test, y_train, y_test, y_pred1, y_probas1, 
                                   labels=None, model_name='Grid Search Model', feature_names=feature)
@@ -296,7 +294,7 @@ def main():
     feature_imp(rf_ran, feature, 20)
     # wandb plot
     # Visualize all classifier plots at once
-    wandb.init(project="SP cvec", name="RF-Random Search model")
+    wandb.init(project="SP cvec eng", name="RF-Random Search model")
     wandb.sklearn.plot_classifier(rf_ran, x_train, x_test, y_train, y_test, y_pred2, y_probas2,
                                   labels=None, model_name='Random Search Model', feature_names=feature)
     wandb.finish()
@@ -309,7 +307,7 @@ def main():
     feature_imp(rf_bayes, feature, 20)
     # wandb plot
     # Visualize all classifier plots at once
-    wandb.init(project="SP cvec", name="RF-Bayesian opt. model")
+    wandb.init(project="SP cvec eng", name="RF-Bayesian opt. model")
     wandb.sklearn.plot_classifier(rf_bayes, x_train, x_test, y_train, y_test, y_pred3, y_probas3, 
                                   labels=None, model_name='Bayesian opt. Model', feature_names=feature)
     wandb.finish()
@@ -342,7 +340,7 @@ def main():
                   "min_samples_split":{
                   "values":[1, 2, 3, 4, 5]}, }}
 
-    sweep_id = wandb.sweep(sweep_config, project='SP cvec sweep')
+    sweep_id = wandb.sweep(sweep_config, project='SP cvec eng sweep')
     count=3
     wandb.agent(sweep_id,function=RFsweep, count=count)
     wandb.finish()
@@ -363,7 +361,7 @@ def main():
                   "min_samples_split":{
                   "values":[1, 2, 3, 4, 5]}, }}
 
-    sweep_id1 = wandb.sweep(sweep_config1, project='SP cvec sweep')
+    sweep_id1 = wandb.sweep(sweep_config1, project='SP cvec eng sweep')
     count=3
     wandb.agent(sweep_id1,function=RFsweep, count=count)
     wandb.finish()
@@ -384,7 +382,7 @@ def main():
                   "min_samples_split":{
                   "values":[1, 2, 3, 4, 5]}, }}
 
-    sweep_id2 = wandb.sweep(sweep_config2, project='SP cvec sweep')
+    sweep_id2 = wandb.sweep(sweep_config2, project='SP cvec eng sweep')
     count=3
     wandb.agent(sweep_id2,function=RFsweep, count=count)
     wandb.finish()
@@ -392,7 +390,7 @@ def main():
     # Exporting metrics from a project in to a CSV file
     # set to your entity and project
     # best sweep
-    best_sweep('tyagilab', 'SP cvec sweep')
+    best_sweep('tyagilab', 'SP cvec eng sweep')
 
 if __name__ == "__main__":
     main()

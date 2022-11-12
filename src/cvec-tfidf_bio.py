@@ -54,7 +54,7 @@ def tf_idf(dna_seq, labels, max_features, n_gram_from=1, n_gram_to=1):
   #get IDF too. 
   tfidf = tf_vec.fit_transform(tf)
   tfidf=tfidf.toarray()
-  np.nan_to_num(tfidf)
+  tfidf=np.nan_to_num(tfidf)
   tf_labels=np.array(labels)
   feature=cvec.get_feature_names_out()
   return tfidf, tf_labels, feature
@@ -64,8 +64,8 @@ def split_dataset(X, Y, train_ratio, test_ratio, validation_ratio):
     x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=test_ratio/(test_ratio + validation_ratio))
     return x_train, y_train, x_test, y_test, x_val, y_val
 
-def train_model(model, param, x_train, y_train, x_test):
-   clf=model(param)
+def train_model(model, estimators, x_train, y_train, x_test):
+   clf=model(estimators)
    # fit the training data into the model
    clf.fit(x_train, y_train)
    y_pred=clf.predict(x_test)
@@ -196,7 +196,7 @@ def main():
     train_ratio = 0.70
     validation_ratio = 0.15
     test_ratio = 0.15
-    param=100
+    estimators=100
     model=RandomForestClassifier
     param = {'n_estimators': [50, 100, 150, 200],
                       'max_features': ['auto', 'sqrt'],
@@ -228,7 +228,7 @@ def main():
     print("Validation data labels:",y_val.shape)
     print('RF BASE MODEL')
     #training the model
-    rf_base, y_pred, y_probas=train_model(model, param, x_train, y_train, x_test)
+    rf_base, y_pred, y_probas=train_model(model, estimators, x_train, y_train, x_test)
     # model metrics
     model_metrics(rf_base, x_test, y_test, y_pred)
     print("Feature Importance Plot:\n")
@@ -320,7 +320,7 @@ def main():
                 "min_samples_split":{
                 "values":[1, 2, 3, 4, 5]}, }}
 
-    sweep_id = wandb.sweep(sweep_config, project='test sweep-eng')
+    sweep_id = wandb.sweep(sweep_config, project='test sweep')
     count=3
     wandb.agent(sweep_id,function=RFsweep, count=count)
     wandb.finish()
@@ -341,7 +341,7 @@ def main():
                 "min_samples_split":{
                 "values":[1, 2, 3, 4, 5]}, }}
 
-    sweep_id1 = wandb.sweep(sweep_config1, project='test sweep-eng')
+    sweep_id1 = wandb.sweep(sweep_config1, project='test sweep')
     count=3
     wandb.agent(sweep_id1,function=RFsweep, count=count)
     wandb.finish()
@@ -362,7 +362,7 @@ def main():
                 "min_samples_split":{
                 "values":[1, 2, 3, 4, 5]}, }}
 
-    sweep_id2 = wandb.sweep(sweep_config2, project='test sweep-eng')
+    sweep_id2 = wandb.sweep(sweep_config2, project='test sweep')
     count=3
     wandb.agent(sweep_id2,function=RFsweep, count=count)
     wandb.finish()
