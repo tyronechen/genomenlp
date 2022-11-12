@@ -1,4 +1,8 @@
+#!/usr/bin/python
+import argparse
+import json
 import os
+import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,8 +13,9 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 from sklearn.model_selection import train_test_split, ParameterGrid, ParameterSampler, cross_val_score, StratifiedKFold, cross_validate
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast, AutoModel
-from yellowbrick.text import FreqDistVisualizer
 from utils import parse_sp_tokenised
+from xgboost import XGBClassifier
+from yellowbrick.text import FreqDistVisualizer
 
 def _compute_metrics(y_test, y_pred):
     accuracy = accuracy_score(y_test, y_pred)
@@ -34,8 +39,8 @@ def _compute_metrics(y_test, y_pred):
         "conf_mat": conf_mat,
     }
 
-def _run_search(model, param, x_train, y_train, x_test, y_pred, feature,
-                n_top_features, n_jobs):
+def _run_search(model, param, x_train, y_train, x_test, y_test, feature,
+                n_top_features=100, n_jobs=-1):
     "Helper function to run search, not to be used directly"
     clf = model(
         n_estimators=param["n_estimators"],
@@ -71,43 +76,94 @@ def token_freq_plot(feature, X):
     visualizer.fit(X)
     visualizer.show()
 
-def train_model(model, param, x_train, y_train, x_test):
-   clf=model(param)
-   # fit the training data into the model
-   clf.fit(x_train, y_train)
-   y_pred=clf.predict(x_test)
-   y_probas=clf.predict_proba(x_test)
-   return clf, y_pred, y_probas
-
 def main():
-    n_gram_from= 1
-    n_gram_to= 1
-    split_train = 0.90
-    split_test = 0.05
-    split_val = 0.05
-    kfolds = 8
-    sweep_count = 128
-    model = RandomForestClassifier
-    freq_method = "tfidf"
-    scoring = "f1"
-    n_jobs = 6
-    # ["accuracy", "f1", "precision", "recall"]
-    metric_opt = "f1"
-    param = {
-        'n_estimators': [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
-        'max_features': ['auto', 'sqrt'],
-        'max_depth': [10, 20, 30, 40, 50],
-        'min_samples_split': [2, 3, 5, 7, 11],
-        'min_samples_leaf': [2, 3, 5, 7, 11],
-        'bootstrap': [True, False],
-        }
-    infile_path = [
-        '../results/tmp/train.csv',
-        '../results/tmp/test.csv',
-        '../results/tmp/valid.csv'
-        ]
-    tokeniser_path = "../results/tmp/yeast.json"
-    output_dir = "./"
+    parser = argparse.ArgumentParser(
+         description='Take HuggingFace dataset and perform parameter sweeping.'
+        )
+    parser.add_argument('--infile_path', type=str, nargs="+", default=None,
+                        help='path to [ csv | csv.gz | json | parquet ] file')
+    parser.add_argument('--format', type=str, default="csv",
+                        help='specify input file type [ csv | json | parquet ]')
+    parser.add_argument('-t', '--tokeniser_path', type=str, default=None,
+                        help='path to tokeniser.json file to load data from')
+    parser.add_argument('-f', '--freq_method', type=str, default="tfidf",
+                        help='choose dist [ cvec | tfidf ] (DEFAULT: tfidf)')
+    parser.add_argument('-m', '--model', type=str, default="rf",
+                        help='choose model [ rf | xg ] (DEFAULT: rf)')
+    parser.add_argument('-e', '--model_features', type=int, default=None,
+                        help='number of features in data to use (DEFAULT: ALL)')
+    parser.add_argument('-k', '--kfolds', type=int, default=8,
+                        help='number of cross validation folds (DEFAULT: 8)')
+    parser.add_argument('--ngram_from', type=int, default=1,
+                        help='ngram slice starting index (DEFAULT: 1)')
+    parser.add_argument('--ngram_to', type=int, default=1,
+                        help='ngram slice ending index (DEFAULT: 1)')
+    parser.add_argument('--split_train', type=float, default=0.90,
+                        help='proportion of training data (DEFAULT: 0.90)')
+    parser.add_argument('--split_test', type=float, default=0.05,
+                        help='proportion of testing data (DEFAULT: 0.05)')
+    parser.add_argument('--split_val', type=float, default=0.05,
+                        help='proportion of validation data (DEFAULT: 0.05)')
+    parser.add_argument('-o', '--output_dir', type=str, default="./results_out",
+                        help='specify path for output (DEFAULT: ./results_out)')
+    parser.add_argument('-s', '--vocab_size', type=int, default=32000,
+                        help='vocabulary size for model configuration')
+    parser.add_argument('-w', '--hyperparameter_sweep', type=str, default=None,
+                        help='run a hyperparameter sweep with config from file')
+    parser.add_argument('--sweep_method', type=str, default="random",
+                        help='specify sweep search strategy \
+                        [ bayes | grid | random ] (DEFAULT: random)')
+    parser.add_argument('-n', '--sweep_count', type=int, default=8,
+                        help='run n hyperparameter sweeps (DEFAULT: 8)')
+    parser.add_argument('-c', '--metric_opt', type=str, default="f1",
+                        help='score to maximise [ accuracy | f1 | precision | \
+                        recall ] (DEFAULT: f1)')
+    parser.add_argument('-j', '--njobs', type=int, default=-1,
+                        help='run on n threads (DEFAULT: -1)')
+    args = parser.parse_args()
+
+    infile_path = args.infile_path
+    format = args.format
+    n_gram_from = args.ngram_from
+    n_gram_to = args.ngram_to
+    split_train = args.split_train
+    split_test = args.split_test
+    split_val = args.split_val
+    kfolds = args.kfolds
+    model_features = args.model_features
+    output_dir = args.output_dir
+    vocab_size = args.vocab_size
+    param = args.hyperparameter_sweep
+    sweep_method = args.sweep_method
+    sweep_count = args.sweep_count
+    metric_opt = args.metric_opt
+    model = args.model
+    freq_method = args.freq_method
+    n_jobs = args.njobs
+    tokeniser_path = args.tokeniser_path
+
+    print("\n\nARGUMENTS:\n", args, "\n\n")
+
+    if infile_path == None:
+        raise OSError("Require at least one input file path")
+
+    if model == "rf":
+        model = RandomForestClassifier
+    if model == "xg":
+        model = XGBClassifier
+
+    if param != None:
+        with open(param, mode="r") as infile:
+            param = json.load(infile)
+    else:
+        param = {
+            'n_estimators': [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+            'max_features': ["sqrt", "log2", None],
+            'max_depth': [10, 20, 30, 40, 50],
+            'min_samples_split': [2, 3, 5, 7, 11],
+            'min_samples_leaf': [2, 3, 5, 7, 11],
+            'bootstrap': [True, False],
+            }
 
     # load data and parse tokens using intended strategy (SP or k-merisation)
     if tokeniser_path != None:
@@ -117,20 +173,22 @@ def main():
         tokens.reset_index(drop=True, inplace=True)
         dna = tokens[['input_str', 'labels']]
         corpus = dna['input_str'].apply(lambda x: " ".join(x)).tolist()
+    else:
+        pass
 
     # choose frequency vectoriser method, weighted (tfidf) or nonweighted (cvec)
     if freq_method == "tfidf":
         vectoriser = TfidfVectorizer(
-            max_features=max_features,
+            max_features=model_features,
             ngram_range=(n_gram_from, n_gram_to),
-            smooth_idf=False,
+            smooth_idf=True,
             lowercase=False,
             )
         vectorised = vectoriser.fit_transform(corpus)
     if freq_method == "cvec":
         vectoriser = CountVectorizer(
-            max_features=max_features,
-            ngram_range=(n_gram_from, n_gram_to)
+            max_features=model_features,
+            ngram_range=(n_gram_from, n_gram_to),
             lowercase=False,
             )
         vectorised = vectoriser.fit_transform(corpus)
@@ -158,6 +216,7 @@ def main():
             x_test, y_test, test_size=val_size, shuffle=True
         )
 
+    # print out stats for debugging
     print("Total data items:", vectorised.shape)
     print("Total data labels", labels.shape)
     print("Training data:",x_train.shape)
@@ -170,21 +229,21 @@ def main():
     # perform the hyperparameter sweeps using the specified algorithm
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        if sweep == "grid":
+        if sweep_method == "grid":
             param_instances = [i for i in ParameterGrid(param)][:sweep_count]
             metrics_sweep = [
-                _run_search(model, i, x_train, y_train, x_test, y_pred, feature,
-                n_top_features, n_jobs) for i in tqdm(param_instances,
+                _run_search(model, i, x_train, y_train, x_test, y_test, features,
+                n_top_features=100, n_jobs=n_jobs) for i in tqdm(param_instances,
                                                       desc="Grid Search:")
                 ]
-        if sweep == "random":
+        if sweep_method == "random":
             metrics_sweep = [
-                _run_search(model, i, x_train, y_train, x_test, y_pred, feature,
-                n_top_features, n_jobs)
+                _run_search(model, i, x_train, y_train, x_test, y_test, features,
+                n_top_features=100, n_jobs=n_jobs)
                 for i in tqdm(ParameterSampler(param, n_iter=sweep_count),
                                                       desc="Random Search:")
                 ]
-        if sweep == "bayes":
+        if sweep_method == "bayes":
             pass
 
     # compile metrics from the corresponding sweeps for selecting best params
