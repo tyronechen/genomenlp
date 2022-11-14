@@ -726,24 +726,29 @@ def get_tokens_from_sp(tokeniser_path: str,
         )
     return [x.replace("▁", "") for x in list(tokeniser.vocab.keys())]
 
-def parse_sp_tokenised(infile_path: str, tokeniser_path: str=None, special_tokens:
-                       list=["<s>", "</s>", "<unk>", "<pad>", "<mask>"]):
+def parse_sp_tokenised(infile_path: str, outfile_path: str,
+                       tokeniser_path: str=None, special_tokens:
+                       list=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
+                       chunksize: int=100, columns: list=["idx", "feature",
+                       "labels", "input_ids", "token_type_ids",
+                       "attention_mask", "input_str"]):
     """Extract entries tokenised by SentencePiece into a pandas.DataFrame object
 
     The input ``infile_path`` is a ``csv`` file containing tokenised data as
     positional ordinal encodings. The data should have been tokenised using the
-    ``HuggingFace`` implementation of ``SentencePiece``. Specify ``remap_file``
-    (and corresponding special tokens) if you want to reconstitute the original
-    list of k-mers, which will be added on as an extra column in the dataframe.
+    ``HuggingFace`` implementation of ``SentencePiece``. Writes file to disk
     Compare :py:func:`get_tokens_from_sp`.
 
     Args:
         infile_path (str): Path to ``csv`` file containing tokenised data.
+        outfile_path (str): Path to ``csv`` file containing tokenised data.
         tokeniser_path (str): Path to sequence tokens file
             (from ``SentencePiece``)
         special_tokens (list[str]): Special tokens to substitute for.
             This should match the list of special tokens used in the original
             tokeniser (which defaults to the five special tokens shown here).
+        chunksize (int): How many rows of the dataframe to iterate at a time.
+        columns (list): List of column headings
 
     Returns:
         pandas.DataFrame
@@ -753,14 +758,6 @@ def parse_sp_tokenised(infile_path: str, tokeniser_path: str=None, special_token
         ``remap_file`` argument is useful if you want to extract the k-mers
         directly for use in different workflows.
     """
-    data = pd.read_csv(infile_path, index_col=0)
-    data["input_ids"] = data["input_ids"].apply(
-        lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
-        )
-    if "token_type_ids" in data:
-        data["token_type_ids"] = data["token_type_ids"].apply(
-            lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
-            )
     # you can only remap if you know the original id: str mappings!
     if tokeniser_path != None:
         # if we dont specify the special tokens below it will break
@@ -776,10 +773,23 @@ def parse_sp_tokenised(infile_path: str, tokeniser_path: str=None, special_token
             mask_token="<mask>",
             )
         token_map = {v: k.replace("▁", "")  for k, v in tokeniser.vocab.items()}
+    # load the files in chunks to avoid memory issues
+    if os.path.exists(outfile_path):
+        os.remove(outfile_path)
+    with open(outfile_path, mode="a+") as outfile:
+        outfile.write("," + ",".join(columns) + "\n")
+    for data in tqdm(pd.read_csv(infile_path, index_col=0, chunksize=chunksize)):
+        data["input_ids"] = data["input_ids"].apply(
+            lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
+            )
+        if "token_type_ids" in data:
+            data["token_type_ids"] = data["token_type_ids"].apply(
+                lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
+                )
         data["input_str"] = data["input_ids"].apply(
             lambda x: np.vectorize(token_map.get)(x)
         )
-    return data
+        data.to_csv(outfile_path, header=False, mode="a+")
 
 def plot_token_dist(tokeniser_path: str, special_tokens: list=["<s>", "</s>",
                     "<unk>", "<pad>", "<mask>"], outfile_dir: str="./"):
