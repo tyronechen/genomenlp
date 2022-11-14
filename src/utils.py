@@ -636,6 +636,51 @@ def embed_seqs_kmers(infile_path: str, ksize: int=5, slide: int=1,
                             tmp.write(" ".join(seq) + "\n")
                     yield [j for j in build_kmers(i, ksize)][::slide]
 
+def embed_seqs_sp(infile_path: str, outfile_path: str, chunksize: int=1,
+                  tokeniser_path: str=None, special_tokens:
+                  list=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
+                  columns: list=["idx", "feature", "labels", "input_ids",
+                  "token_type_ids", "attention_mask", "input_str"],
+                  column: str="input_str"):
+    """Take a file of SP tokenised sequences, process and stream to generator.
+    Used to generate `word2vec` embeddings. See also :py:func:`parse_sp_tokenised`.
+
+    Args:
+        infile_path (str): Path to ``csv`` file containing tokenised data.
+        outfile_path (str): Path to ``csv`` file containing tokenised data.
+        chunksize (int): How many rows of the dataframe to iterate at a time.
+        tokeniser_path (str): Path to sequence tokens file
+            (from ``SentencePiece``)
+        special_tokens (list[str]): Special tokens to substitute for.
+            This should match the list of special tokens used in the original
+            tokeniser (which defaults to the five special tokens shown here).
+        columns (list): List of column headings (in infile_path)
+        column (str): The column header with the input_str (to extract tokens)
+
+    Returns:
+        list:
+
+        Sequences are returned as a generator object for input into `word2vec`
+
+        Input: ``/path/to/infile``
+
+        Output: ``list``
+    """
+    parse_sp_tokenised(
+        infile_path=infile_path,
+        outfile_path=outfile_path,
+        tokeniser_path=tokeniser_path,
+        special_tokens=special_tokens,
+        chunksize=chunksize,
+        columns=columns
+    )
+    for data in tqdm(
+        pd.read_csv(outfile_path, index_col=0, chunksize=1),
+        desc="Extract SP tokens"
+        ):
+        sp = data[column].apply(lambda x: x[1:-1].replace("\'", "").split())
+        yield sp.iloc[0]
+
 def csv_to_hf(infile_neg: str, infile_pos: str, outfile_path: str):
     """Add hf formatting to an existing csv-like file and stream to csv-like file.
     Used downstream of :py:func:`process_seqs`.
@@ -737,7 +782,7 @@ def parse_sp_tokenised(infile_path: str, outfile_path: str,
     The input ``infile_path`` is a ``csv`` file containing tokenised data as
     positional ordinal encodings. The data should have been tokenised using the
     ``HuggingFace`` implementation of ``SentencePiece``. Writes file to disk
-    Compare :py:func:`get_tokens_from_sp`.
+    Compare :py:func:`get_tokens_from_sp`. See also :py:func:`embed_seqs_sp`.
 
     Args:
         infile_path (str): Path to ``csv`` file containing tokenised data.
@@ -778,7 +823,9 @@ def parse_sp_tokenised(infile_path: str, outfile_path: str,
         os.remove(outfile_path)
     with open(outfile_path, mode="a+") as outfile:
         outfile.write("," + ",".join(columns) + "\n")
-    for data in tqdm(pd.read_csv(infile_path, index_col=0, chunksize=chunksize)):
+    for data in tqdm(
+        pd.read_csv(infile_path, index_col=0, chunksize=chunksize)
+        desc="Parse SP tokens"):
         data["input_ids"] = data["input_ids"].apply(
             lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)
             )
