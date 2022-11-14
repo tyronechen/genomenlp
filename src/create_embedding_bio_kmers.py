@@ -35,6 +35,8 @@ def main():
                         help='split seqs into n-length blocks (DEFAULT: None)')
     parser.add_argument('-n' ,'--njobs', type=int, default=1,
                         help='set number of threads to use')
+    parser.add_argument('-s' ,'--sample_seq', type=str, default=None,
+                        help='set sample sequence to test model (DEFAULT: None)')
     parser.add_argument('--w2v_min_count' ,type=int, default=1,
                         help='set minimum count for w2v (DEFAULT: 1)')
     parser.add_argument('--w2v_sg' ,type=int, default=1,
