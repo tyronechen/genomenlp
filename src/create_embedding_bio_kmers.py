@@ -47,6 +47,8 @@ def main():
                         help='set context window size for w2v (DEFAULT: -/+10)')
     parser.add_argument('--no_reverse_complement', action="store_false",
                         help='turn off reverse complement (DEFAULT: ON)')
+    parser.add_argument('--sample_seq' ,type=str, default=None,
+                        help='project sample sequence on embedding (DEFAULT: None)')
 
     args = parser.parse_args()
     infile_path = args.infile_path
@@ -61,6 +63,7 @@ def main():
     w2v_window = args.w2v_window
     w2v_vector_size = args.w2v_vector_size
     do_reverse_complement = args.no_reverse_complement
+    sample_seq = args.sample_seq
 
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
@@ -94,9 +97,9 @@ def main():
             workers=njobs
             )
         model.save(model_path)
-        model.wv.save(w2v_path)
+        model.wv.save(vector_path)
     else:
-        model.load(model)
+        Word2Vec.load(model)
 
     if sample_seq != None:
         print(model.wv[sample_seq])
