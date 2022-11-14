@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import screed
 from sklearn import metrics
+from tqdm import tqdm
 import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
 import weightwatcher as ww
@@ -64,6 +65,27 @@ def _compute_metrics(eval_preds):
     metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
+
+def build_kmers(sequence: str, ksize: int) -> str:
+    """Generator that takes a fasta sequence and kmer size to return kmers
+
+    Args:
+        sequence (str): an instance of a dna sequence.
+        ksize (int): size of the k-mer
+
+    Returns:
+        str:
+
+        Individual k-mers from the input sequence. If you want to control the
+        sliding window size, you can slice the resulting output of this, e.g.
+
+            i for i in build_kmers('ACTGACTGA', 3)]
+            ['ACG', 'CGT', 'GTA', 'TAC', 'ACG', 'CGT', 'GTA']
+            i for i in build_kmers('ACTGACTGA', 3)][::3]
+            ['ACG', 'GAC', 'GTA']
+    """
+    for i in range(len(sequence) - ksize + 1):
+        yield sequence[i:i + ksize]
 
 def calculate_auc(run, group_name=None):
     """Calculate AUC for a wandb run. This assumes you logged a ROC curve.
@@ -530,6 +552,89 @@ def process_seqs(infile_path: str, outfile_path: str, rc: bool=True, chunk: int=
                         if rc is True:
                             tmp.write("".join([subhead, "__RC", ","]))
                             tmp.write("".join([reverse_complement(seq[i]), "\n"]))
+
+class EmbedSeqsKmers(object):
+    """this doesnt work correctly, keeps getting the same instance back."""
+
+    def __init__(self, infile_paths: str, ksize: int, slide=1, rc: bool=True, chunk: int=None):
+        super(EmbedSeqsKmers, self).__init__()
+        self.infile_paths = infile_paths
+        self.ksize = ksize
+        self.slide = slide
+        self.rc = rc
+        self.chunk = chunk
+
+    def __iter__(self):
+        # return self.embed_seqs_kmers()
+        for infile_path in self.infile_paths:
+            with screed.open(infile_path) as infile:
+                total = len([i for i in infile])
+            with screed.open(infile_path) as infile:
+                if self.chunk == None:
+                    for read in tqdm(infile, total=total):
+                        seq = read.sequence.upper()
+                        if self.rc is True:
+                            seq = "".join([seq, reverse_complement(seq)])
+                        yield [i for i in build_kmers(seq, self.ksize)][::self.slide]
+                else:
+                    for read in tqdm(infile, total=total):
+                        seq = read.sequence.upper()
+                        seq = [seq[i:i + self.chunk] for i in range(0, len(seq), chunk)]
+                        for i in range(len(seq)):
+                            if self.rc is True:
+                                i = "".join([i, reverse_complement(i)])
+                            yield [j for j in build_kmers(i, self.ksize)][::self.slide]
+
+def embed_seqs_kmers(infile_path: str, ksize: int=5, slide: int=1,
+                     rc: bool=True, chunk: int=None, outfile_path: str=None):
+    """Take a file of biological sequences, process and stream to generator.
+    Calls :py:func:`build_kmers` and :py:func:`reverse_complement`.
+    Used to generate `word2vec` embeddings.
+
+    Args:
+        infile_path (str): A path to a file containing biological sequence data
+        ksize (int): size of the k-mer (DEFAULT: 5)
+        slide (int): size of the sliding window (DEFAULT: 1)
+            If you want no sliding to be performed, set `slide` equal to `ksize`
+        rc (bool): reverse complement the data (DEFAULT: TRUE)
+        chunk (int): chunk the data into seqs of n length (DEFAULT: None)
+        outfile_path (str): A path to outfile (DEFAULT: None)
+
+    Returns:
+        list:
+
+        Sequences are returned as a generator object for input into `word2vec`
+
+        Input: ``/path/to/infile``
+
+        Output: ``list``
+
+        Note that no sequence cleaning is performed, 'N' gets mapped to itself.
+        Uppercase is assumed. Does not work on RNA!
+    """
+    with screed.open(infile_path) as infile:
+        total = len([i for i in infile])
+    with screed.open(infile_path) as infile:
+        if chunk == None:
+            for read in tqdm(infile, total=total):
+                seq = read.sequence.upper()
+                if rc is True:
+                    seq = "".join([seq, reverse_complement(seq)])
+                if outfile_path != None:
+                    with open(outfile_path, mode="a+") as tmp:
+                        tmp.write(" ".join(seq) + "\n")
+                yield [i for i in build_kmers(seq, ksize)][::slide]
+        else:
+            for read in tqdm(infile, total=total):
+                seq = read.sequence.upper()
+                seq = [seq[i:i + chunk] for i in range(0, len(seq), chunk)]
+                for i in range(len(seq)):
+                    if rc is True:
+                        i = "".join([i, reverse_complement(i)])
+                    if outfile_path != None:
+                        with open(outfile_path, mode="a+") as tmp:
+                            tmp.write(" ".join(seq) + "\n")
+                    yield [j for j in build_kmers(i, ksize)][::slide]
 
 def csv_to_hf(infile_neg: str, infile_pos: str, outfile_path: str):
     """Add hf formatting to an existing csv-like file and stream to csv-like file.
