@@ -30,6 +30,8 @@ def main():
                         "attention_mask", "input_str"],
                         help='column name for sp tokenised data \
                         (DEFAULT: input_str)')
+    parser.add_argument('-l', '--labels', type=str, default="labels",
+                        help='column name for data labels (DEFAULT: labels)')
     parser.add_argument('-x', '--column_name', type=str, default="input_str",
                         help='column name for extracting embeddings \
                         (DEFAULT: input_str)')
@@ -59,6 +61,7 @@ def main():
     args = parser.parse_args()
     infile_path = args.infile_path
     output_dir = args.output_dir
+    labels = args.labels
     column_name = args.column_name
     column_names = args.column_names
     model = args.model
@@ -80,6 +83,7 @@ def main():
     model_path = "/".join([output_dir, "kmers.model"])
     vector_path = "/".join([output_dir, "kmers.w2v"])
     tokens_path = "/".join([output_dir, "kmers.csv"])
+    projected_path = "/".join([output_dir, "kmers_embeddings.csv"])
     if os.path.isfile(tmp):
         os.remove(tmp)
 
@@ -109,11 +113,27 @@ def main():
         model.save(model_path)
         model.wv.save(vector_path)
     else:
-        Word2Vec.load(model)
+        model = Word2Vec.load(model)
 
     if sample_seq != None:
         print(model.wv[sample_seq])
         print(model.wv.most_similar(sample_seq, topn=10))
+
+    kmers = [embed_seqs_sp(
+        infile_path=i,
+        outfile_path=tokens_path,
+        chunksize=1,
+        tokeniser_path=tokeniser_path,
+        special_tokens=special_tokens,
+        columns=column_names,
+        column=column_name,
+        labels=labels
+        ) for i in infile_path]
+    all_kmers = itertools.chain()
+    for i in kmers:
+        all_kmers = itertools.chain(all_kmers, i)
+    for i, j in all_kmers:
+        i = model.wv[i]
 
 if __name__ == "__main__":
     main()
