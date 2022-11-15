@@ -781,7 +781,7 @@ def parse_sp_tokenised(infile_path: str, outfile_path: str,
 
     The input ``infile_path`` is a ``csv`` file containing tokenised data as
     positional ordinal encodings. The data should have been tokenised using the
-    ``HuggingFace`` implementation of ``SentencePiece``. Writes file to disk
+    ``HuggingFace`` implementation of ``SentencePiece``. Writes file to disk.
     Compare :py:func:`get_tokens_from_sp`. See also :py:func:`embed_seqs_sp`.
 
     Args:
@@ -796,7 +796,7 @@ def parse_sp_tokenised(infile_path: str, outfile_path: str,
         columns (list): List of column headings
 
     Returns:
-        pandas.DataFrame
+        None:
 
         The ``pandas.DataFrame`` contains the contents of the ``csv`` file, but
         numeric columns are correctly formatted as ``numpy.array``. The
@@ -824,7 +824,7 @@ def parse_sp_tokenised(infile_path: str, outfile_path: str,
     with open(outfile_path, mode="a+") as outfile:
         outfile.write("," + ",".join(columns) + "\n")
     for data in tqdm(
-        pd.read_csv(infile_path, index_col=0, chunksize=chunksize)
+        pd.read_csv(infile_path, index_col=0, chunksize=chunksize),
         desc="Parse SP tokens"):
         data["input_ids"] = data["input_ids"].apply(
             lambda x: np.fromstring(x[1:-1], sep=" ", dtype=int)

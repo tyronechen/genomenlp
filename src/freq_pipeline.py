@@ -84,10 +84,22 @@ def main():
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('--format', type=str, default="csv",
                         help='specify input file type [ csv | json | parquet ]')
+    parser.add_argument('--embeddings', type=str, default=None,
+                        help='path to embeddings model file')
+    parser.add_argument('--chunk_size', type=int, default=9999999999999999,
+                        help='iterate over input file for these many rows')
     parser.add_argument('-t', '--tokeniser_path', type=str, default=None,
                         help='path to tokeniser.json file to load data from')
     parser.add_argument('-f', '--freq_method', type=str, default="tfidf",
                         help='choose dist [ cvec | tfidf ] (DEFAULT: tfidf)')
+    parser.add_argument('--column_names', type=str, default=["idx",
+                        "feature", "labels", "input_ids", "token_type_ids",
+                        "attention_mask", "input_str"],
+                        help='column name for sp tokenised data \
+                        (DEFAULT: input_str)')
+    parser.add_argument('--column_name', type=str, default="input_str",
+                        help='column name for extracting embeddings \
+                        (DEFAULT: input_str)')
     parser.add_argument('-m', '--model', type=str, default="rf",
                         help='choose model [ rf | xg ] (DEFAULT: rf)')
     parser.add_argument('-e', '--model_features', type=int, default=None,
@@ -108,6 +120,10 @@ def main():
                         help='specify path for output (DEFAULT: ./results_out)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
                         help='vocabulary size for model configuration')
+    parser.add_argument('--special_tokens', type=str, nargs="+",
+                        default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
+                        help='assign special tokens, eg space and pad tokens \
+                        (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
     parser.add_argument('-w', '--hyperparameter_sweep', type=str, default=None,
                         help='run a hyperparameter sweep with config from file')
     parser.add_argument('--sweep_method', type=str, default="random",
@@ -123,6 +139,9 @@ def main():
     args = parser.parse_args()
 
     infile_path = args.infile_path
+    chunk_size = args.chunk_size
+    column_name = args.column_name
+    column_names = args.column_names
     format = args.format
     n_gram_from = args.ngram_from
     n_gram_to = args.ngram_to
@@ -133,6 +152,7 @@ def main():
     model_features = args.model_features
     output_dir = args.output_dir
     vocab_size = args.vocab_size
+    special_tokens = args.special_tokens
     param = args.hyperparameter_sweep
     sweep_method = args.sweep_method
     sweep_count = args.sweep_count
@@ -146,6 +166,8 @@ def main():
 
     if infile_path == None:
         raise OSError("Require at least one input file path")
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
 
     if model == "rf":
         model = RandomForestClassifier
@@ -167,12 +189,25 @@ def main():
 
     # load data and parse tokens using intended strategy (SP or k-merisation)
     if tokeniser_path != None:
-        tokens = pd.concat(
-            [parse_sp_tokenised(x, tokeniser_path) for x in infile_path]
-            )
+        output_files = list()
+        output_data = list()
+        for i in infile_path:
+            output_files.append("/".join([output_dir, os.path.basename(i)]))
+            output_data.append(parse_sp_tokenised(
+                infile_path=i,
+                outfile_path="/".join([output_dir, os.path.basename(i)]),
+                tokeniser_path=tokeniser_path,
+                special_tokens=special_tokens,
+                chunksize=chunk_size,
+                columns=column_names,
+            ))
+        tokens = pd.concat([pd.read_csv(i, index_col=0) for i in output_files])
+        print(tokens)
         tokens.reset_index(drop=True, inplace=True)
         dna = tokens[['input_str', 'labels']]
-        corpus = dna['input_str'].apply(lambda x: " ".join(x)).tolist()
+        corpus = tokens['input_str'].apply(
+            lambda x: x[1:-1].replace("\'", "").split()
+            )
     else:
         pass
 
