@@ -641,7 +641,7 @@ def embed_seqs_sp(infile_path: str, outfile_path: str, chunksize: int=1,
                   list=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
                   columns: list=["idx", "feature", "labels", "input_ids",
                   "token_type_ids", "attention_mask", "input_str"],
-                  column: str="input_str"):
+                  column: str="input_str", labels: str=None):
     """Take a file of SP tokenised sequences, process and stream to generator.
     Used to generate `word2vec` embeddings. See also :py:func:`parse_sp_tokenised`.
 
@@ -656,6 +656,7 @@ def embed_seqs_sp(infile_path: str, outfile_path: str, chunksize: int=1,
             tokeniser (which defaults to the five special tokens shown here).
         columns (list): List of column headings (in infile_path)
         column (str): The column header with the input_str (to extract tokens)
+        labels (str): If specified, return label column (to extract tokens)
 
     Returns:
         list:
@@ -674,12 +675,22 @@ def embed_seqs_sp(infile_path: str, outfile_path: str, chunksize: int=1,
         chunksize=chunksize,
         columns=columns
     )
-    for data in tqdm(
-        pd.read_csv(outfile_path, index_col=0, chunksize=1),
-        desc="Extract SP tokens"
-        ):
-        sp = data[column].apply(lambda x: x[1:-1].replace("\'", "").split())
-        yield sp.iloc[0]
+    if labels == None:
+        for data in tqdm(
+            pd.read_csv(outfile_path, index_col=0, chunksize=1),
+            desc="Extract SP tokens"
+            ):
+            sp = data[column].apply(lambda x: x[1:-1].replace("\'", "").split())
+            yield sp.iloc[0]
+    else:
+        for data in tqdm(
+            pd.read_csv(outfile_path, index_col=0, chunksize=1),
+            desc="Extract SP tokens"
+            ):
+            data[column] = data[column].apply(
+                lambda x: x[1:-1].replace("\'", "").split()
+                )
+            yield data[[column, labels]].iloc[0].tolist()
 
 def csv_to_hf(infile_neg: str, infile_pos: str, outfile_path: str):
     """Add hf formatting to an existing csv-like file and stream to csv-like file.
