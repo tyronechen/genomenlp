@@ -7,6 +7,7 @@ import os
 import sys
 from warnings import warn
 from datasets import Dataset, DatasetDict
+import numpy as np
 import pandas as pd
 import screed
 import torch
@@ -86,6 +87,8 @@ def main():
     projected_path = "/".join([output_dir, "kmers_embeddings.csv"])
     if os.path.isfile(tmp):
         os.remove(tmp)
+    if os.path.isfile(projected_path):
+        os.remove(projected_path)
 
     if model == None:
         # [parse_sp_tokenised(i, tokens_path, tokeniser_path, special_tokens)
@@ -133,7 +136,10 @@ def main():
     for i in kmers:
         all_kmers = itertools.chain(all_kmers, i)
     for i, j in all_kmers:
-        i = model.wv[i]
+        i = pd.DataFrame(np.concatenate(model.wv[i])).transpose()
+        i[labels] = j
+        i.index = [j]
+        i.to_csv(projected_path, mode="a+", header=False)
 
 if __name__ == "__main__":
     main()
