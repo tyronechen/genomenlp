@@ -87,8 +87,6 @@ def main():
     projected_path = "/".join([output_dir, "kmers_embeddings.csv"])
     if os.path.isfile(tmp):
         os.remove(tmp)
-    if os.path.isfile(projected_path):
-        os.remove(projected_path)
 
     if model == None:
         # [parse_sp_tokenised(i, tokens_path, tokeniser_path, special_tokens)
@@ -135,11 +133,13 @@ def main():
     all_kmers = itertools.chain()
     for i in kmers:
         all_kmers = itertools.chain(all_kmers, i)
+    if os.path.isfile(projected_path):
+        os.remove(projected_path)
     for i, j in all_kmers:
-        i = pd.DataFrame(np.concatenate(model.wv[i])).transpose()
-        i[labels] = j
-        i.index = [j]
-        i.to_csv(projected_path, mode="a+", header=False)
+        meta = pd.DataFrame({"labels": [j], "seq": "".join(i)})
+        data = pd.DataFrame(np.concatenate(model.wv[i])).transpose()
+        data = pd.concat([meta, data], axis=1)
+        data.to_csv(projected_path, mode="a+", header=False, index=False)
 
 if __name__ == "__main__":
     main()
