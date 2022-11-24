@@ -47,8 +47,6 @@ def main():
                         help='set context window size for w2v (DEFAULT: -/+10)')
     parser.add_argument('--no_reverse_complement', action="store_false",
                         help='turn off reverse complement (DEFAULT: ON)')
-    parser.add_argument('--sample_seq' ,type=str, default=None,
-                        help='project sample sequence on embedding (DEFAULT: None)')
 
     args = parser.parse_args()
     infile_path = args.infile_path
@@ -76,7 +74,7 @@ def main():
     if os.path.isfile(tmp):
         os.remove(tmp)
 
-    if model != None:
+    if model == None:
         kmers = [embed_seqs_kmers(
             infile_path=i,
             ksize=ksize,
