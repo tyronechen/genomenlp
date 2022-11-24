@@ -202,11 +202,10 @@ def main():
                 columns=column_names,
             ))
         tokens = pd.concat([pd.read_csv(i, index_col=0) for i in output_files])
-        print(tokens)
         tokens.reset_index(drop=True, inplace=True)
         dna = tokens[['input_str', 'labels']]
         corpus = tokens['input_str'].apply(
-            lambda x: x[1:-1].replace("\'", "").split()
+            lambda x: x[1:-1].replace("\'", "")#.split()
             )
     else:
         pass
