@@ -18,7 +18,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import load_args_json, load_args_cmd, export_run_metrics
+from utils import load_args_json, load_args_cmd, get_run_metrics
 import ray
 from ray import tune
 from ray.tune import CLIReporter
@@ -150,65 +150,26 @@ def main():
     # dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
     # print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
-    def _compute_metrics(eval_preds):
-        """Compute metrics during the training run using transformers and wandb API.
-
-        This is configured to capture metrics using the transformers `dataset` API,
-        and upload the metrics to `wandb` for interactive logging and visualisation.
-        Not intended for direct use, this is called by `transformers.Trainer()`.
-
-        More information regarding evaluation metrics.
-        - https://huggingface.co/course/chapter3/3?fw=pt
-        - https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
-        - https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
-
-        Args:
-            eval_preds (torch): a tensor passed in as part of the training process.
-
-        Returns:
-            dict:
-
-            A dictionary of metrics from the transformers `dataset` API.
-            This is specifically configured for plotting `wandb` interactive plots.
-        """
-        metrics = dict()
-        accuracy_metric = load_metric('accuracy')
-        precision_metric = load_metric('precision')
-        recall_metric = load_metric('recall')
-        f1_metric = load_metric('f1')
-        logits = eval_preds.predictions
-        labels = eval_preds.label_ids
-        print(labels)
-        preds = np.argmax(logits, axis=-1)
-        y_probas = np.concatenate(
-            (1 - preds.reshape(-1,1), preds.reshape(-1,1)), axis=1
-            )
-        class_names = dataset["train"].features[args.label_names[0]].names
-        wandb.log({"roc_curve" : wandb.plot.roc_curve(
-            labels, y_probas, labels=class_names
-            )})
-        wandb.log({"pr" : wandb.plot.pr_curve(
-            labels, y_probas, labels=class_names, #classes_to_plot=None
-            )})
-        wandb.log({"conf_mat" : wandb.plot.confusion_matrix(
-            probs=y_probas, y_true=labels, class_names=class_names
-            )})
-        metrics.update(accuracy_metric.compute(predictions=preds, references=labels))
-        metrics.update(precision_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
-        metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
-        return metrics
-
     if model == "distilbert":
         config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
-        model = DistilBertForSequenceClassification(config).to(device)
+        model = DistilBertForSequenceClassification(config)
+        model.resize_token_embeddings(len(tokeniser))
+        model = model.to(device)
         def _model_init():
-            return DistilBertForSequenceClassification(config).to(device)
+            model = DistilBertForSequenceClassification(config)
+            model.resize_token_embeddings(len(tokeniser))
+            model = model.to(device)
+            return model
     if model == "longformer":
         config = LongformerConfig(vocab_size=vocab_size, num_labels=2)
-        model = LongformerForSequenceClassification(config).to(device)
+        model = LongformerForSequenceClassification(config)
+        model.resize_token_embeddings(len(tokeniser))
+        model = model.to(device)
         def _model_init():
-            return LongformerForSequenceClassification(config).to(device)
+            model = LongformerForSequenceClassification(config)
+            model.resize_token_embeddings(len(tokeniser))
+            model = model.to(device)
+            return model
 
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
@@ -348,7 +309,7 @@ def main():
                 logging_strategy='epoch',
                 load_best_model_at_end=True,
                 remove_unused_columns=False,
-                fp16=True,
+                fp16=fp16,
                 bf16=False,
             )
             # define training loop
@@ -402,7 +363,7 @@ def main():
         runs = api.runs(path="/".join([entity_name, project_name]),
                         filters={"group": group_name})
 
-    export_run_metrics(runs, args.output_dir)
+    get_run_metrics(runs, args.output_dir)
 
     # download best model file from the sweep
     runs = sorted(
