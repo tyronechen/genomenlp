@@ -102,7 +102,7 @@ def main():
             device = "cuda:0"
         else:
             device = "cpu"
-
+    api = wandb.Api(timeout=10000)
     if device == "gpu" and fp16 == False:
         warn("Training on gpu but fp16 is off. Can enable to increase speed.")
     if device == "cpu" and fp16 == True:
