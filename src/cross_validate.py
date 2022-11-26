@@ -140,6 +140,7 @@ def main():
             )
         data_collator = DataCollatorWithPadding(tokenizer=tokeniser,
                                                 padding="longest")
+        tokeniser.pad_token = tokeniser.eos_token
 
     infile_paths = dict()
     infile_paths["train"] = train
@@ -162,17 +163,6 @@ def main():
     dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
     print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
-    if os.path.exists(model_path):
-        model = AutoModelForSequenceClassification.from_pretrained(model_path)
-        def _model_init():
-            return AutoModelForSequenceClassification.from_pretrained(model_path)
-    else:
-        raise OSError("Cross validation requires a pretrained model!")
-
-    model_size = sum(t.numel() for t in model.parameters())
-    print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
-    tokeniser.pad_token = tokeniser.eos_token
-
     # regarding evaluation metrics:
     # https://huggingface.co/course/chapter3/3?fw=pt
     # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
@@ -182,12 +172,42 @@ def main():
         run_id = "/".join([entity_name, project_name, config_from_run])
         api = wandb.Api()
         run = api.run(run_id)
-        run.file("training_args.bin").download(root=config_from_run, replace=True)
+        [i.download(root=config_from_run, replace=True) for i in run.files()]
         hyperparameter_file = "/".join([config_from_run, "training_args.bin"])
         warn("".join([
             "Loading existing hyperparameters from: ", run_id, "!",
-            "This overrides all HfTrainingArguments AND --hyperparameter_file!"
+            "This overrides all HfTrainingArguments, including",
+            " --hyperparameter_file and --tokeniser_path!"
             ]))
+        model_path = config_from_run
+
+        tokeniser_path = "/".join([config_from_run, "tokenizer.json"])
+        special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
+        print("USING EXISTING TOKENISER:", tokeniser_path)
+        tokeniser = PreTrainedTokenizerFast(
+            tokenizer_file=tokeniser_path,
+            special_tokens=special_tokens,
+            bos_token="<s>",
+            eos_token="</s>",
+            unk_token="<unk>",
+            sep_token="<sep>",
+            pad_token="<pad>",
+            cls_token="<cls>",
+            mask_token="<mask>",
+            )
+        data_collator = DataCollatorWithPadding(tokenizer=tokeniser,
+                                                padding="longest")
+        tokeniser.pad_token = tokeniser.eos_token
+
+    if os.path.exists(model_path):
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        def _model_init():
+            return AutoModelForSequenceClassification.from_pretrained(model_path)
+    else:
+        raise OSError("Cross validation requires a pretrained model!")
+
+    model_size = sum(t.numel() for t in model.parameters())
+    print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
 
     if os.path.exists(hyperparameter_file):
         warn("".join([
