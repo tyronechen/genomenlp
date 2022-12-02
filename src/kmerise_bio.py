@@ -96,22 +96,13 @@ def main():
     with open(outfile_path, mode="a+") as outfile:
         tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
         for data in tqdm(tempfile, desc="Mapping vocabulary"):
-            # data["input_str"] = data["input_str"].apply(
-            #     lambda x: np.fromstring(x, sep=" ", dtype=str)
-            #     )#[1:-1]
             input_str = pd.Series(np.array(
                 data["input_str"].iloc[0][1:-1].replace("\'", "").split()
                 ))
             data["input_ids"] = str(input_str.apply(
                 lambda x: np.vectorize(vocab_key.get)(x)
                 ).to_list())
-            # data["input_ids"] = data["input_str"].apply(
-            #     lambda x: np.vectorize(vocab_key.get)(x)
-            # )
-            # print(data["input_ids"])
             data.to_csv(outfile_path, header=False, mode="a+")
-
-    # pd.read_csv("../results/tmp/bcwp_kmer/48726_hs.csv", index_col=0, sep=",")
 
 if __name__ == "__main__":
     main()
