@@ -10,10 +10,9 @@ from transformers import PreTrainedTokenizerFast
 
 def _gzip_iterator(infile_paths):
     for path in infile_paths:
-        with gzip.open(path, "rt") as f:
-            for line in f:
-                if not line.startswith(">"):
-                    yield line.strip().upper()
+        with screed.open(path) as infile:
+            for read in infile:
+                yield read.sequence
 
 def main():
     parser = argparse.ArgumentParser(
