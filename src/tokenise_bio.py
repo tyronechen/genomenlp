@@ -5,6 +5,7 @@ import gzip
 import os
 import sys
 from warnings import warn
+import screed
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
 
