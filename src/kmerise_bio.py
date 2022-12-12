@@ -15,16 +15,17 @@ from utils import build_kmers
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Take gzip fasta file(s), run SentencePiece and export json.'
+        description='Take gzip fasta file(s), kmerise reads and export csv.'
     )
-    parser.add_argument('-i', '--infile_path', type=str, default=None,
-                        help='path to file with biological seqs split by line')
+    parser.add_argument('-i', '--infile_path', type=str, default=None, nargs="+",
+                        help='path to files with biological seqs split by line')
     parser.add_argument('-o', '--outfile_path', type=str, default="out.csv",
                         help='path to output huggingface-like dataset.csv file')
     parser.add_argument('-k', '--kmer_size', type=int, default=0,
                         help='split seqs into n-length blocks (DEFAULT: None)')
-    parser.add_argument('-l', '--label', type=int, default=None,
-                        help='provide integer label for seqs')
+    parser.add_argument('-l', '--label', type=int, default=None, nargs="+",
+                        help='provide integer label for seqs \
+                        (order must match infile_path!)')
     parser.add_argument('--no_reverse_complement', action="store_false",
                         help='turn off reverse complement (DEFAULT: ON)')
 
@@ -42,6 +43,9 @@ def main():
 
     if infile_path == None:
         raise OSError("Provide either input fasta file or existing tokeniser!")
+    if len(infile_path) != len(label):
+        raise OSError("infile_path:label combinations must match")
+    infile_label = list(zip(infile_path, label))
 
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
@@ -52,34 +56,36 @@ def main():
     if os.path.exists(tempfile_path):
         os.remove(tempfile_path)
 
-    with screed.open(infile_path) as infile:
-        header = ",idx,feature,labels,input_ids,input_str,token_type_ids,attention_mask\n"
-        with open(tempfile_path, mode="a+") as tempfile:
-            tempfile.write(header)
-            count = 0
-            for read in tqdm(infile, desc="Parsing reads"):
-                idx = read.name
-                feature = read.sequence
-                labels = str(label)
-                input_ids = str(np.nan)
-                input_arr = np.array(
-                    [i for i in build_kmers(read.sequence, kmer_size)]
-                    )
-                input_str = str(input_arr)
-                token_type_ids = str(np.zeros(len(input_arr), dtype=int))
-                attention_mask = str(np.ones(len(input_arr), dtype=int))
-                data = "".join([
-                    str(count), ",",
-                    "\"", idx, "\",",
-                    "\"", feature, "\",",
-                    labels, ",",
-                    "\"", input_ids, "\",",
-                    "\"", input_str, "\",",
-                    "\"", token_type_ids, "\",",
-                    "\"", attention_mask, "\"",
-                ])
-                tempfile.write(data + "\n")
-                count += 1
+    header = \
+      ",idx,feature,labels,input_ids,input_str,token_type_ids,attention_mask\n"
+    with open(tempfile_path, mode="a+") as tempfile:
+        tempfile.write(header)
+        for i, j in infile_label:
+            with screed.open(i) as infile:
+                count = 0
+                for read in tqdm(infile, desc="Parsing reads"):
+                    idx = read.name
+                    feature = read.sequence
+                    labels = str(j)
+                    input_ids = str(np.nan)
+                    input_arr = np.array(
+                        [i for i in build_kmers(read.sequence, kmer_size)]
+                        )
+                    input_str = str(input_arr)
+                    token_type_ids = str(np.zeros(len(input_arr), dtype=int))
+                    attention_mask = str(np.ones(len(input_arr), dtype=int))
+                    data = "".join([
+                        str(count), ",",
+                        "\"", idx, "\",",
+                        "\"", feature, "\",",
+                        labels, ",",
+                        "\"", input_ids, "\",",
+                        "\"", input_str, "\",",
+                        "\"", token_type_ids, "\",",
+                        "\"", attention_mask, "\"",
+                    ])
+                    tempfile.write(data + "\n")
+                    count += 1
 
     tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
     unique = set()
