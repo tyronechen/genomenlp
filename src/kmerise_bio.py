@@ -62,6 +62,9 @@ def main():
         os.remove(outfile_path)
     if os.path.exists(tempfile_path):
         os.remove(tempfile_path)
+    os.makedirs(os.path.basename(tempfile_path), exist_ok=True)
+    os.makedirs(os.path.basename(tokeniser_path), exist_ok=True)
+    os.makedirs(os.path.basename(mappings), exist_ok=True)
 
     header = \
       ",idx,feature,labels,input_ids,input_str,token_type_ids,attention_mask\n"
