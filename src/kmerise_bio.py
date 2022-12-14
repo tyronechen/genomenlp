@@ -110,7 +110,7 @@ def main():
 
     tokeniser = _init_sp_tokeniser(unique)
     with open(tokeniser_path, mode="w") as token_out:
-        json.dump(tokeniser_path, token_out, ensure_ascii=False, indent=4)
+        json.dump(tokeniser, token_out, ensure_ascii=False, indent=4)
 
     with open(outfile_path, mode="a+") as outfile:
         tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
