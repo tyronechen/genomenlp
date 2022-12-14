@@ -2,6 +2,7 @@
 # tokenise fasta sequences with sentencepiece and export as json file
 import argparse
 import gzip
+import json
 import os
 import sys
 from warnings import warn
@@ -104,11 +105,11 @@ def main():
     vocab_key = dict()
     for i, j in enumerate(unique):
         vocab_key[j] = i
-    with open(mappings) as args_json:
+    with open(mappings, mode="w") as args_json:
         json.dump(vocab_key, args_json, ensure_ascii=False, indent=4)
 
     tokeniser = _init_sp_tokeniser(unique)
-    with open(tokeniser_path) as token_out:
+    with open(tokeniser_path, mode="w") as token_out:
         json.dump(tokeniser_path, token_out, ensure_ascii=False, indent=4)
 
     with open(outfile_path, mode="a+") as outfile:
