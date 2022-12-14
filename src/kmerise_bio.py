@@ -11,7 +11,7 @@ import screed
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from utils import build_kmers
+from utils import build_kmers, _init_sp_tokeniser
 
 def main():
     parser = argparse.ArgumentParser(
@@ -21,6 +21,10 @@ def main():
                         help='path to files with biological seqs split by line')
     parser.add_argument('-o', '--outfile_path', type=str, default="out.csv",
                         help='path to output huggingface-like dataset.csv file')
+    parser.add_argument('-m', '--mappings', type=str, default="mappings.json",
+                        help='path to output mappings file')
+    parser.add_argument('-t', '--tokeniser_path', type=str, default="tokeniser.json",
+                        help='path to tokeniser.json file to save data')
     parser.add_argument('-k', '--kmer_size', type=int, default=0,
                         help='split seqs into n-length blocks (DEFAULT: None)')
     parser.add_argument('-l', '--label', type=int, default=None, nargs="+",
@@ -38,6 +42,8 @@ def main():
         ])
     kmer_size = args.kmer_size
     label = args.label
+    mappings = args.mappings
+    tokeniser_path = args.tokeniser_path
     do_reverse_complement = args.no_reverse_complement
     np.set_printoptions(threshold=sys.maxsize)
 
@@ -98,6 +104,12 @@ def main():
     vocab_key = dict()
     for i, j in enumerate(unique):
         vocab_key[j] = i
+    with open(mappings) as args_json:
+        json.dump(vocab_key, args_json, ensure_ascii=False, indent=4)
+
+    tokeniser = _init_sp_tokeniser(unique)
+    with open(tokeniser_path) as token_out:
+        json.dump(tokeniser_path, token_out, ensure_ascii=False, indent=4)
 
     with open(outfile_path, mode="a+") as outfile:
         tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
