@@ -57,14 +57,15 @@ def main():
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
 
+    os.makedirs(os.path.dirname(tempfile_path), exist_ok=True)
+    os.makedirs(os.path.dirname(tokeniser_path), exist_ok=True)
+    os.makedirs(os.path.dirname(mappings), exist_ok=True)
+
     if os.path.exists(outfile_path):
         warn("Overwriting existing output file in --outfile_path!")
         os.remove(outfile_path)
     if os.path.exists(tempfile_path):
         os.remove(tempfile_path)
-    os.makedirs(os.path.basename(tempfile_path), exist_ok=True)
-    os.makedirs(os.path.basename(tokeniser_path), exist_ok=True)
-    os.makedirs(os.path.basename(mappings), exist_ok=True)
 
     header = \
       ",idx,feature,labels,input_ids,input_str,token_type_ids,attention_mask\n"
