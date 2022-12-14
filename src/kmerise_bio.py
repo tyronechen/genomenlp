@@ -117,6 +117,7 @@ def main():
         json.dump(tokeniser, token_out, ensure_ascii=False, indent=4)
 
     with open(outfile_path, mode="a+") as outfile:
+        outfile.write(header)
         tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
         for data in tqdm(tempfile, desc="Mapping vocabulary"):
             input_str = pd.Series(np.array(
