@@ -7,22 +7,31 @@ import os
 import sys
 from warnings import warn
 from datasets import Dataset, DatasetDict
+import numpy as np
 import pandas as pd
 import screed
 import torch
 from datasets import load_dataset
 from gensim.models import Word2Vec
 from tokenizers import SentencePieceUnigramTokenizer
+from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from utils import embed_seqs_kmers, parse_sp_tokenised, reverse_complement, split_datasets
+from utils import embed_seqs_kmers, embed_seqs_sp, parse_sp_tokenised, reverse_complement, split_datasets
+
+def parse_kmers(infile_path, colname="input_str"):
+    """Generator to parse kmers from a SP-like tokenised data file"""
+    for j in tqdm(
+        pd.read_csv(infile_path, index_col=0, chunksize=1),desc="Extract tokens"
+        ):
+        yield j[colname].apply(lambda x: x[1:-1].replace("\'", "").split()).iloc[0]
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Take fasta files, parameters and generate embedding. \
-        Fasta files can be .gz. Sequences are reverse complemented by default.'
+        description='Take tokenised data, parameters and generate embedding. \
+        Note that this takes output of kmerise_bio.py, and NOT raw fasta files.'
     )
     parser.add_argument('-i', '--infile_path', type=str, nargs="+",
-                        help='path to fasta/gz file')
+                        help='path to input tokenised data file')
     parser.add_argument('-o', '--output_dir', type=str, default="embed/",
                         help='write embeddings to disk (DEFAULT: "embed/")')
     parser.add_argument('-m', '--model', type=str, default=None,
@@ -71,18 +80,13 @@ def main():
     tmp = "/".join([output_dir, ".tmp"])
     model_path = "/".join([output_dir, "kmers.model"])
     vector_path = "/".join([output_dir, "kmers.w2v"])
+    tokens_path = "/".join([output_dir, "kmers.csv"])
+    projected_path = "/".join([output_dir, "kmers_embeddings.csv"])
     if os.path.isfile(tmp):
         os.remove(tmp)
 
     if model == None:
-        kmers = [embed_seqs_kmers(
-            infile_path=i,
-            ksize=ksize,
-            slide=slide,
-            rc=do_reverse_complement,
-            chunk=chunk,
-            outfile_path=tmp
-            ) for i in infile_path]
+        kmers = [parse_kmers(i) for i in infile_path]
         all_kmers = itertools.chain()
         for i in kmers:
             all_kmers = itertools.chain(all_kmers, i)
@@ -97,11 +101,35 @@ def main():
         model.save(model_path)
         model.wv.save(vector_path)
     else:
-        Word2Vec.load(model)
+        model = Word2Vec.load(model)
 
     if sample_seq != None:
         print(model.wv[sample_seq])
         print(model.wv.most_similar(sample_seq, topn=10))
+
+    # NOTE: different from SP pathway! here kmerise_bio.py gets tokens directly
+    # so we just plug that output into here - data files not fasta files
+    # then map these onto embedding into projection vectors
+    if os.path.isfile(projected_path):
+        os.remove(projected_path)
+
+    for i in infile_path:
+        for entry in tqdm(
+            pd.read_csv(i, index_col=0, chunksize=1), desc="Extract tokens"
+            ):
+            tokens = entry["input_str"].apply(
+                lambda x: x[1:-1].replace("\'", "").split()
+                ).iloc[0]
+            meta = pd.DataFrame(
+                {"labels": [entry["labels"].iloc[0]],
+                 "seq": "".join(tokens[::ksize])}
+                )
+            if len(tokens) == 0:
+                pass
+            else:
+                data = pd.DataFrame(np.concatenate(model.wv[tokens])).transpose()
+                data = pd.concat([meta, data], axis=1)
+                data.to_csv(projected_path, mode="a+", header=False, index=False)
 
 if __name__ == "__main__":
     main()
