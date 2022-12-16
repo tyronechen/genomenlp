@@ -188,17 +188,18 @@ def main():
     with open(tokeniser_path, mode="w") as token_out:
         json.dump(tokeniser, token_out, ensure_ascii=False, indent=4)
 
-    with open(outfile_path, mode="a+") as outfile:
+    with open(outfile_path, mode="w") as outfile:
         outfile.write(header)
-        tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
-        for data in tqdm(tempfile, desc="Mapping vocabulary"):
-            input_str = pd.Series(np.array(
-                data["input_str"].iloc[0][1:-1].replace("\'", "").split()
-                ))
-            data["input_ids"] = str(input_str.apply(
-                lambda x: np.vectorize(vocab_key.get)(x)
-                ).to_list())
-            data.to_csv(outfile_path, header=False, mode="a+")
+        
+    tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
+    for data in tqdm(tempfile, desc="Mapping vocabulary"):
+        input_str = pd.Series(np.array(
+            data["input_str"].iloc[0][1:-1].replace("\'", "").split()
+            ))
+        data["input_ids"] = str(input_str.apply(
+            lambda x: np.vectorize(vocab_key.get)(x)
+            ).to_list())
+        data.to_csv(outfile_path, header=False, mode="a+")
 
 if __name__ == "__main__":
     main()
