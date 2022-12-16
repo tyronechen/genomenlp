@@ -12,7 +12,7 @@ import screed
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from utils import build_kmers, _init_sp_tokeniser
+from utils import build_kmers, _init_sp_tokeniser, reverse_complement
 
 def main():
     parser = argparse.ArgumentParser(
@@ -22,6 +22,8 @@ def main():
                         help='path to files with biological seqs split by line')
     parser.add_argument('-o', '--outfile_path', type=str, default="out.csv",
                         help='path to output huggingface-like dataset.csv file')
+    parser.add_argument('-c', '--chunk', type=int, default=None,
+                        help='split seqs into n-length blocks (DEFAULT: None)')
     parser.add_argument('-m', '--mappings', type=str, default="mappings.json",
                         help='path to output mappings file')
     parser.add_argument('-t', '--tokeniser_path', type=str, default="tokeniser.json",
@@ -42,6 +44,7 @@ def main():
         os.path.basename(outfile_path), ".tmp"
         ])
     kmer_size = args.kmer_size
+    chunk = args.chunk
     label = args.label
     mappings = args.mappings
     tokeniser_path = args.tokeniser_path
@@ -74,29 +77,98 @@ def main():
         for i, j in infile_label:
             with screed.open(i) as infile:
                 count = 0
-                for read in tqdm(infile, desc="Parsing reads"):
-                    idx = read.name
-                    feature = read.sequence
-                    labels = str(j)
-                    input_ids = str(np.nan)
-                    input_arr = np.array(
-                        [i for i in build_kmers(read.sequence, kmer_size)]
-                        )
-                    input_str = str(input_arr)
-                    token_type_ids = str(np.zeros(len(input_arr), dtype=int))
-                    attention_mask = str(np.ones(len(input_arr), dtype=int))
-                    data = "".join([
-                        str(count), ",",
-                        "\"", idx, "\",",
-                        "\"", feature, "\",",
-                        labels, ",",
-                        "\"", input_ids, "\",",
-                        "\"", input_str, "\",",
-                        "\"", token_type_ids, "\",",
-                        "\"", attention_mask, "\"",
-                    ])
-                    tempfile.write(data + "\n")
-                    count += 1
+                if chunk == None:
+                    for read in tqdm(infile, desc="Parsing reads"):
+                        idx = read.name
+                        feature = read.sequence
+                        labels = str(j)
+                        input_ids = str(np.nan)
+                        input_arr = np.array(
+                            [i for i in build_kmers(read.sequence, kmer_size)]
+                            )
+                        input_str = str(input_arr)
+                        token_type_ids = str(np.zeros(len(input_arr), dtype=int))
+                        attention_mask = str(np.ones(len(input_arr), dtype=int))
+                        data = "".join([
+                            str(count), ",",
+                            "\"", idx, "\",",
+                            "\"", feature, "\",",
+                            labels, ",",
+                            "\"", input_ids, "\",",
+                            "\"", input_str, "\",",
+                            "\"", token_type_ids, "\",",
+                            "\"", attention_mask, "\"",
+                        ])
+                        tempfile.write(data + "\n")
+                        if do_reverse_complement == True:
+                            count += 1
+                            idx = "".join([idx, "__RC"])
+                            input_arr = np.array(
+                                [i for i in build_kmers(
+                                    reverse_complement(read.sequence), kmer_size
+                                    )
+                                 ]
+                                )
+                            input_str = str(input_arr)
+                            data = "".join([
+                                str(count), ",",
+                                "\"", idx, "\",",
+                                "\"", feature, "\",",
+                                labels, ",",
+                                "\"", input_ids, "\",",
+                                "\"", input_str, "\",",
+                                "\"", token_type_ids, "\",",
+                                "\"", attention_mask, "\"",
+                            ])
+                            tempfile.write(data + "\n")
+                        count += 1
+                else:
+                    for read in tqdm(infile, desc="Parsing reads"):
+                        idx = read.name
+                        feature = read.sequence
+                        labels = str(j)
+                        input_ids = str(np.nan)
+                        seq = [feature[i:i + chunk] for i in range(0, len(feature), chunk)]
+                        for i in range(len(seq)):
+                            subhead = "".join([idx, "__PARTIAL_SEQ_CHUNK_", str(i)])
+                            for_rc = seq[i]
+                            input_arr = np.array(
+                                [x for x in build_kmers(seq[i], kmer_size)]
+                                )
+                            input_str = str(input_arr)
+                            token_type_ids = str(np.zeros(len(input_arr), dtype=int))
+                            attention_mask = str(np.ones(len(input_arr), dtype=int))
+                            data = "".join([
+                                str(count), ",",
+                                "\"", subhead, "\",",
+                                "\"", seq[i], "\",",
+                                labels, ",",
+                                "\"", input_ids, "\",",
+                                "\"", input_str, "\",",
+                                "\"", token_type_ids, "\",",
+                                "\"", attention_mask, "\"",
+                            ])
+                            tempfile.write(data + "\n")
+                            if do_reverse_complement == True:
+                                count += 1
+                                subhead = "".join([subhead, "__RC"])
+                                seq_rc = reverse_complement(for_rc)
+                                input_arr = np.array(
+                                    [i for i in build_kmers(seq_rc, kmer_size)]
+                                    )
+                                input_str = str(input_arr)
+                                data = "".join([
+                                    str(count), ",",
+                                    "\"", subhead, "\",",
+                                    "\"", seq_rc, "\",",
+                                    labels, ",",
+                                    "\"", input_ids, "\",",
+                                    "\"", input_str, "\",",
+                                    "\"", token_type_ids, "\",",
+                                    "\"", attention_mask, "\"",
+                                ])
+                                tempfile.write(data + "\n")
+                            count += 1
 
     tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
     unique = set()
