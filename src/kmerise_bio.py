@@ -190,15 +190,18 @@ def main():
 
     with open(outfile_path, mode="w") as outfile:
         outfile.write(header)
-        
+
     tempfile = pd.read_csv(tempfile_path, index_col=0, sep=",", chunksize=1)
     for data in tqdm(tempfile, desc="Mapping vocabulary"):
         input_str = pd.Series(np.array(
             data["input_str"].iloc[0][1:-1].replace("\'", "").split()
             ))
-        data["input_ids"] = str(input_str.apply(
+        # data["input_ids"] = str(input_str.apply(
+        #     lambda x: np.vectorize(vocab_key.get)(x)
+        #     ).to_list())
+        data["input_ids"] = np.array2string(np.array(input_str.apply(
             lambda x: np.vectorize(vocab_key.get)(x)
-            ).to_list())
+            ).to_list(), dtype=int))
         data.to_csv(outfile_path, header=False, mode="a+")
 
 if __name__ == "__main__":
