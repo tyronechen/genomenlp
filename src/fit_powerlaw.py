@@ -15,24 +15,23 @@ def main():
         Acts as a performance metric which is independent of data. \
         For more information refer here: https://arxiv.org/pdf/2202.02842.pdf'
         )
-    parser.add_argument('model_path', type=str,
+    parser.add_argument('-m', '--model_path', type=str, nargs="+", default=None,
                         help='path to trained model directory')
     parser.add_argument('-o', '--output_dir', type=str, default=None,
                         help='path to output metrics directory \
                         (DEFAULT: same as model_path)')
-    parser.add_argument('-c', '--compare_to', type=str, nargs="+", default=None,
-                        help='path(s) to models to compare (DEFAULT: None)')
     parser.add_argument('-a', '--alpha_max', type=int, default=8,
                         help='max alpha value to plot (DEFAULT: 8)')
     args = parser.parse_args()
     model_path = args.model_path
     output_dir = args.output_dir
-    compare_to = args.compare_to
     alpha_max = args.alpha_max
 
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
 
+    if model_path == None:
+        raise OSError("Must provide valid paths to model file(s)!")
     if output_dir == None:
         output_dir = "/".join([model_path, "fit_powerlaw"])
         print("No output_dir provided, default to:", output_dir)
@@ -45,36 +44,36 @@ def main():
     # logger = logging.getLogger('weightwatcher')
     # logger.setLevel(logging.INFO)
     # warnings.filterwarnings('ignore')
+    if model_path != None:
+        for i in model_path:
+            model = AutoModel.from_pretrained(i)
+            watcher = ww.WeightWatcher(model=model)
+            details = watcher.describe()
+            print("\nMODEL_DETAILS (summary):\n")
+            print(details)
+            model_out = "/".join([output_dir, os.path.basename(i)])
+            details = watcher.analyze(
+                randomize=True, min_evals=50, plot=True, savefig=model_out
+                )
+            print("\nMODEL_DETAILS (with fit):\n")
+            print(details)
+            alpha_main = "/".join([model_out, "alpha_main.tsv"])
+            details.to_csv(alpha_main, sep="\t")
+            model_info = details[(details.alpha<alpha_max) & (details.alpha>0)]
 
-    model = AutoModel.from_pretrained(model_path)
-    watcher = ww.WeightWatcher(model=model)
-    details = watcher.describe()
-    print("\nMODEL_DETAILS (summary):\n")
-    print(details)
-    details = watcher.analyze(
-        randomize=True, min_evals=50, plot=True, savefig=output_dir
-        )
-    print("\nMODEL_DETAILS (with fit):\n")
-    print(details)
-
-    alpha_main = "/".join([output_dir, "alpha_main.tsv"])
     alpha_hist = "/".join([output_dir, "alpha_hist.pdf"])
     alpha_plot = "/".join([output_dir, "alpha_plot.pdf"])
 
-    details.to_csv(alpha_main, sep="\t")
-
-    model_info = details[(details.alpha < alpha_max) & (details.alpha > 0)]
-
     # save all the trained weights for further reuse and write to output_dir
-    if compare_to != None:
+    if model_path != None:
         print("\nCOMPARISONS:\n", compare_to, "\n")
-        compare_to = [(i,ww.WeightWatcher(AutoModel.from_pretrained(i)).analyze(
-                        randomize=True, min_evals=50)) for i in compare_to]
-        for i, j in compare_to:
+        model_path = [(i,ww.WeightWatcher(AutoModel.from_pretrained(i)).analyze(
+                        randomize=True, min_evals=50)) for i in model_path]
+        for i, j in model_path:
             j.to_csv("".join([output_dir,"/",i.split("/")[-1],".tsv"]),sep="\t")
 
-    plot_hist(model_info, alpha_hist, compare_to)
-    plot_scatter(model_info, alpha_plot, compare_to)
+    plot_hist(model_path, alpha_hist)
+    plot_scatter(model_path, alpha_plot)
 
 if __name__ == "__main__":
     main()

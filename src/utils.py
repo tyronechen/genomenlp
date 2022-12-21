@@ -908,11 +908,20 @@ def parse_sp_tokenised(infile_path: str, outfile_path: str,
             mask_token="<mask>",
             )
         token_map = {v: k.replace("▁", "")  for k, v in tokeniser.vocab.items()}
+        # token_map = {k.replace("▁", ""): v  for k, v in tokeniser.vocab.items()}
     # load the files in chunks to avoid memory issues
     if os.path.exists(outfile_path):
         os.remove(outfile_path)
     with open(outfile_path, mode="a+") as outfile:
         outfile.write("," + ",".join(columns) + "\n")
+
+    # input_str = pd.Series(np.array(
+    #     data["input_str"].iloc[0][1:-1].replace("\'", "").split()
+    #     ))
+    # data["input_ids"] input_ids = str(input_str.apply(
+    #     lambda x: np.vectorize(token_map.get)(x)
+    #     ).to_list())
+    #
     for data in tqdm(
         pd.read_csv(infile_path, index_col=0, chunksize=chunksize),
         desc="Parse SP tokens"):
@@ -1166,15 +1175,13 @@ def split_datasets(dataset: DatasetDict, outfile_dir: str, train: float,
         dataset_to_disk(data["test"], outfile_dir, "test")
         return data
 
-def plot_hist(model_info: pd.DataFrame, outfile_path: str=None,
-              compare: list=None):
+def plot_hist(compare: list, outfile_path: str=None):
     """Plot histogram of alphas. Writes plot directly to disk. Also see
     :py:func:`plot_scatter`
 
     Args:
-        model_details (pd.DataFrame): Calculated weights and alpha values
-        outfile_path (str): Write the plot to this path
         compare (list[pd.DataFrame]): Paths to pandas dataframes with model info
+        outfile_path (str): Write the plot to this path
 
     Returns:
         None:
@@ -1196,9 +1203,6 @@ def plot_hist(model_info: pd.DataFrame, outfile_path: str=None,
             model = DistilBertModel.from_pretrained('distilbert-base-uncased')
             model.save_pretrained("/path/to/distilbert")
     """
-    model_info.alpha.plot.hist(bins=100, label='main', density=True,)
-    plt.axvline(model_info.alpha.mean(), linestyle='dashed')
-
     def _plot_single(model_info, model_name: str=None, color: str=None):
         """Helper function to automate plotting of individual models."""
         model_info.alpha.plot.hist(bins=100, label=model_name, density=True,)# color=color)
@@ -1212,15 +1216,13 @@ def plot_hist(model_info: pd.DataFrame, outfile_path: str=None,
     plt.savefig(outfile_path, dpi=300)
     plt.close()
 
-def plot_scatter(model_info: pd.DataFrame, outfile_path: str=None,
-                 compare: list=None):
+def plot_scatter(compare: list, outfile_path: str=None):
     """Plot scatterplot of alphas. Writes plot directly to disk. Also see
     :py:func:`plot_hist`
 
     Args:
-        model_details (pd.DataFrame): Calculated weights and alpha values
-        outfile_path (str): Write the plot to this path
         compare (list[pd.DataFrame]): Paths to pandas dataframes with model info
+        outfile_path (str): Write the plot to this path
 
     Returns:
         None:
@@ -1242,11 +1244,6 @@ def plot_scatter(model_info: pd.DataFrame, outfile_path: str=None,
             model = DistilBertModel.from_pretrained('distilbert-base-uncased')
             model.save_pretrained("/path/to/distilbert")
     """
-    x = model_info.layer_id.to_numpy()
-    y = model_info.alpha.to_numpy()
-    plt.scatter(x, y, label='main')
-    plt.axhline(np.mean(y), linestyle='dashed')
-
     def _plot_single(model_info, model_name: str=None, color: str=None):
         """Helper function to automate plotting of individual models."""
         x = model_info.layer_id.to_numpy()
