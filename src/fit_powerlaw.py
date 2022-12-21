@@ -66,7 +66,7 @@ def main():
 
     # save all the trained weights for further reuse and write to output_dir
     if model_path != None:
-        print("\nCOMPARISONS:\n", compare_to, "\n")
+        print("\nCOMPARISONS:\n", model_path, "\n")
         model_path = [(i,ww.WeightWatcher(AutoModel.from_pretrained(i)).analyze(
                         randomize=True, min_evals=50)) for i in model_path]
         for i, j in model_path:
