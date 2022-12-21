@@ -74,6 +74,20 @@ def main():
     w2v_window = args.w2v_window
     w2v_vector_size = args.w2v_vector_size
     sample_seq = args.sample_seq
+    do_reverse_complement = args.no_reverse_complement
+
+    # infile_path = ["../results/tmp/bcwp_kmer_5/train.csv"]
+    # output_dir = "../results/tmp/embed_bcwp_kmers"
+    # labels = "labels"
+    # column_name = "input_str"
+    # column_names = ["idx", "feature", "labels", "input_ids", "token_type_ids", "attention_mask", "input_str"]
+    # tokeniser_path = "../data/prot/BCW_prot_kmers.json"
+    # special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
+    # njobs = 1
+    # w2v_min_count = 1
+    # w2v_sg = 1
+    # w2v_window = 100
+    # w2v_vector_size = 10
 
     i = " ".join([i for i in sys.argv[0:]])
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
@@ -136,10 +150,16 @@ def main():
     if os.path.isfile(projected_path):
         os.remove(projected_path)
     for i, j in all_kmers:
-        meta = pd.DataFrame({"labels": [j], "seq": "".join(i)})
-        data = pd.DataFrame(np.concatenate(model.wv[i])).transpose()
-        data = pd.concat([meta, data], axis=1)
+        data = pd.DataFrame(model.wv[i])
+        data["labels"] = j
+        data["seq"] = i
+        cols = data.columns.tolist()
+        data = data[cols[-2:] + cols[:-2]]
         data.to_csv(projected_path, mode="a+", header=False, index=False)
+        # meta = pd.DataFrame({"labels": [j], "seq": "".join(i)})
+        # data = pd.DataFrame(np.concatenate(model.wv[i])).transpose()
+        # data = pd.concat([meta, data], axis=1)
+        # data.to_csv(projected_path, mode="a+", header=False, index=False)
 
 if __name__ == "__main__":
     main()

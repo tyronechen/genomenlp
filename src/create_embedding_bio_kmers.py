@@ -16,14 +16,15 @@ from gensim.models import Word2Vec
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from utils import embed_seqs_kmers, embed_seqs_sp, parse_sp_tokenised, reverse_complement, split_datasets
+from utils import build_kmers, embed_seqs_kmers, embed_seqs_sp, parse_sp_tokenised, reverse_complement, split_datasets
 
-def parse_kmers(infile_path, colname="input_str"):
+def parse_kmers(infile_path, ksize, slide, colname="feature"):
     """Generator to parse kmers from a SP-like tokenised data file"""
     for j in tqdm(
         pd.read_csv(infile_path, index_col=0, chunksize=1),desc="Extract tokens"
         ):
-        yield j[colname].apply(lambda x: x[1:-1].replace("\'", "").split()).iloc[0]
+        seq = j[colname].iloc[0]
+        yield [seq[i:i + ksize] for i in range(len(seq) - ksize + 1)][::slide]
 
 def main():
     parser = argparse.ArgumentParser(
@@ -39,7 +40,7 @@ def main():
     parser.add_argument('-k' ,'--ksize', type=int, default=5,
                         help='set size of k-mers')
     parser.add_argument('-w' ,'--slide', type=int, default=1,
-                        help='set length of sliding window on k-mers')
+                        help='set length of sliding window on k-mers (min 1)')
     parser.add_argument('-c', '--chunk', type=int, default=None,
                         help='split seqs into n-length blocks (DEFAULT: None)')
     parser.add_argument('-n' ,'--njobs', type=int, default=1,
@@ -86,7 +87,7 @@ def main():
         os.remove(tmp)
 
     if model == None:
-        kmers = [parse_kmers(i) for i in infile_path]
+        kmers = [parse_kmers(i, ksize, slide) for i in infile_path]
         all_kmers = itertools.chain()
         for i in kmers:
             all_kmers = itertools.chain(all_kmers, i)
@@ -117,19 +118,30 @@ def main():
         for entry in tqdm(
             pd.read_csv(i, index_col=0, chunksize=1), desc="Extract tokens"
             ):
-            tokens = entry["input_str"].apply(
-                lambda x: x[1:-1].replace("\'", "").split()
-                ).iloc[0]
-            meta = pd.DataFrame(
-                {"labels": [entry["labels"].iloc[0]],
-                 "seq": "".join(tokens[::ksize])}
-                )
-            if len(tokens) == 0:
+            # tokens = entry["input_str"].apply(
+            #     lambda x: x[1:-1].replace("\'", "").split()
+            #     ).iloc[0]
+            seq = entry["feature"].iloc[0]
+            # meta = pd.DataFrame(
+            #     {"labels": [entry["labels"].iloc[0]],
+            #      "seq": "".join(tokens[::ksize])}
+            #     )
+            if len(seq) == 0:
                 pass
             else:
-                data = pd.DataFrame(np.concatenate(model.wv[tokens])).transpose()
-                data = pd.concat([meta, data], axis=1)
-                data.to_csv(projected_path, mode="a+", header=False, index=False)
+                tokens = [seq[i:i+ksize] for i in range(len(seq)-ksize+1)][::slide]
+                if len(tokens) == 0:
+                    pass
+                else:
+                    data = pd.DataFrame(model.wv[tokens])
+                    data["labels"] = entry["labels"].iloc[0]
+                    data["seq"] = tokens
+                    cols = data.columns.tolist()
+                    data = data[cols[-2:] + cols[:-2]]
+                    data.to_csv(projected_path, mode="a+", header=False, index=False)
+                    # data = pd.DataFrame(np.concatenate(model.wv[tokens])).transpose()
+                    # data = pd.concat([meta, data], axis=1)
+                    # data.to_csv(projected_path, mode="a+", header=False, index=False)
 
 if __name__ == "__main__":
     main()
