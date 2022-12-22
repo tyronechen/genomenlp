@@ -1208,9 +1208,8 @@ def plot_hist(compare: list, outfile_path: str=None):
         model_info.alpha.plot.hist(bins=100, label=model_name, density=True,)# color=color)
         plt.axvline(model_info.alpha.mean(), linestyle='dashed',) # color=color,)
 
-    if compare != None:
-        for name, info in compare:
-            _plot_single(info, name)
+    for name, info in compare:
+        _plot_single(info, name)
 
     plt.legend()
     plt.savefig(outfile_path, dpi=300)
@@ -1251,9 +1250,8 @@ def plot_scatter(compare: list, outfile_path: str=None):
         plt.scatter(x, y, label=model_name)# color=color,)
         plt.axhline(np.mean(y), linestyle='dashed',)# color=color,)
 
-    if compare != None:
-        for name, info in compare:
-            _plot_single(info, name)
+    for name, info in compare:
+        _plot_single(info, name)
 
     plt.legend()
     plt.savefig(outfile_path, dpi=300)
