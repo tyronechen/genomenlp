@@ -60,8 +60,6 @@ def main():
             alpha_main = "/".join([model_out, "alpha_main.tsv"])
             details.to_csv(alpha_main, sep="\t")
             model_info = details[(details.alpha<alpha_max) & (details.alpha>0)]
-            plot_hist(details, "".join([model_out, "/alpha_hist.", "pdf"]))
-            plot_scatter(details, "".join([model_out, "/alpha_plot.", "pdf"]))
 
     alpha_hist = "/".join([output_dir, "alpha_hist.pdf"])
     alpha_plot = "/".join([output_dir, "alpha_plot.pdf"])
@@ -72,7 +70,12 @@ def main():
         model_path = [(i,ww.WeightWatcher(AutoModel.from_pretrained(i)).analyze(
                         randomize=True, min_evals=50)) for i in model_path]
         for i, j in model_path:
-            j.to_csv("".join([output_dir,"/",i.split("/")[-1],".tsv"]),sep="\t")
+            out_dir = "".join([output_dir, "/", i.split("/")[-1], "/"])
+            if not os.path.isdir(out_dir):
+                os.makedirs(out_dir)
+            j.to_csv("".join([out_dir, "alpha.tsv"]),sep="\t")
+            plot_hist(j, "".join([out_dir, "alpha_hist.pdf"]))
+            plot_scatter(j, "".join([out_dir, "alpha_plot.pdf"]))
 
     plot_hist(model_path, alpha_hist)
     plot_scatter(model_path, alpha_plot)
