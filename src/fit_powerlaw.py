@@ -60,6 +60,8 @@ def main():
             alpha_main = "/".join([model_out, "alpha_main.tsv"])
             details.to_csv(alpha_main, sep="\t")
             model_info = details[(details.alpha<alpha_max) & (details.alpha>0)]
+            plot_hist(details, "".join([model_out, "/alpha_hist.", "pdf"]))
+            plot_scatter(details, "".join([model_out, "/alpha_plot.", "pdf"]))
 
     alpha_hist = "/".join([output_dir, "alpha_hist.pdf"])
     alpha_plot = "/".join([output_dir, "alpha_plot.pdf"])
