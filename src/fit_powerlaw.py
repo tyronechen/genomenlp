@@ -74,8 +74,8 @@ def main():
             if not os.path.isdir(out_dir):
                 os.makedirs(out_dir)
             j.to_csv("".join([out_dir, "alpha.tsv"]),sep="\t")
-            plot_hist(j, "".join([out_dir, "alpha_hist.pdf"]))
-            plot_scatter(j, "".join([out_dir, "alpha_plot.pdf"]))
+            plot_hist([(i, j)], "".join([out_dir, "alpha_hist.pdf"]))
+            plot_scatter([(i, j)], "".join([out_dir, "alpha_plot.pdf"]))
 
     plot_hist(model_path, alpha_hist)
     plot_scatter(model_path, alpha_plot)
