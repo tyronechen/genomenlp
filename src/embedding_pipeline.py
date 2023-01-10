@@ -1,0 +1,309 @@
+#!/usr/bin/python
+import argparse
+import json
+import os
+import warnings
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from joblib import dump, load
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score, plot_confusion_matrix, precision_score, recall_score, roc_auc_score
+from sklearn.model_selection import train_test_split, ParameterGrid, ParameterSampler, cross_val_score, StratifiedKFold, cross_validate
+from tqdm import tqdm
+from transformers import PreTrainedTokenizerFast, AutoModel
+from utils import parse_sp_tokenised
+from xgboost import XGBClassifier
+from yellowbrick.text import FreqDistVisualizer
+
+def _compute_metrics(y_test, y_pred):
+    accuracy = accuracy_score(y_test, y_pred)
+    f1_0 = f1_score(y_test, y_pred, pos_label=0)
+    f1_1 = f1_score(y_test, y_pred, pos_label=1)
+    precision_0 = precision_score(y_test, y_pred, pos_label=0)
+    precision_1 = precision_score(y_test, y_pred, pos_label=1)
+    recall_0 = recall_score(y_test, y_pred, pos_label=0)
+    recall_1 = recall_score(y_test, y_pred, pos_label=1)
+    roc_auc = roc_auc_score(y_test, y_pred)
+    conf_mat = confusion_matrix(y_test, y_pred)
+    return {
+        "accuracy": accuracy,
+        "f1_0": f1_0,
+        "f1_1": f1_1,
+        "precision_0": precision_0,
+        "precision_1": precision_1,
+        "recall_0": recall_0,
+        "recall_1": recall_1,
+        "roc_auc": roc_auc,
+        "conf_mat": conf_mat,
+    }
+
+def _run_search(model, param, x_train, y_train, x_test, y_test, feature,
+                n_top_features=100, n_jobs=-1):
+    "Helper function to run search, not to be used directly"
+    clf = model(
+        n_estimators=param["n_estimators"],
+        min_samples_split=param["min_samples_split"],
+        min_samples_leaf=param["min_samples_leaf"],
+        max_features=param["max_features"],
+        max_depth=param["max_depth"],
+        bootstrap=param["bootstrap"],
+        n_jobs=n_jobs
+    )
+    clf.fit(x_train, y_train)
+    y_pred = clf.predict(x_test)
+    y_probas = clf.predict_proba(x_test)
+    metrics = _compute_metrics(y_test, y_pred)
+    # compute_feature_importances(clf, feature, n_top_features)
+    return {"param": param, "metrics": metrics,
+            "y_pred": y_pred, "y_probas": y_probas}
+
+def compute_feature_importances(model, feature, n_top_features, outfile_path=None):
+    importances = model.feature_importances_
+    indices = np.argsort(importances)[::-1]
+    plt.barh(
+        np.array(feature)[indices][:n_top_features],
+        importances[indices][:n_top_features]
+        )
+    plt.xlabel("RF feature Importance")
+    if outfile_path != None:
+        plt.savefig(outfile_path)
+    plt.clf()
+
+def token_freq_plot(feature, X):
+    visualizer = FreqDistVisualizer(features=feature, orient='v')
+    visualizer.fit(X)
+    visualizer.show()
+
+def main():
+    parser = argparse.ArgumentParser(
+         description='Take HuggingFace dataset and perform parameter sweeping.'
+        )
+    parser.add_argument('--infile_path', type=str, nargs="+", default=None,
+                        help='path to [ csv | csv.gz | json | parquet ] file')
+    parser.add_argument('--format', type=str, default="csv",
+                        help='specify input file type [ csv | json | parquet ]')
+    parser.add_argument('--embeddings', type=str, default=None,
+                        help='path to embeddings model file')
+    parser.add_argument('--chunk_size', type=int, default=9999999999999999,
+                        help='iterate over input file for these many rows')
+    parser.add_argument('-t', '--tokeniser_path', type=str, default=None,
+                        help='path to tokeniser.json file to load data from')
+    parser.add_argument('-f', '--freq_method', type=str, default="embed",
+                        help='choose dist [ embed ] (DEFAULT: embed)')
+    parser.add_argument('--column_names', type=str, default=["idx",
+                        "feature", "labels", "input_ids", "token_type_ids",
+                        "attention_mask", "input_str"],
+                        help='column name for sp tokenised data \
+                        (DEFAULT: input_str)')
+    parser.add_argument('--column_name', type=str, default="input_str",
+                        help='column name for extracting embeddings \
+                        (DEFAULT: input_str)')
+    parser.add_argument('-m', '--model', type=str, default="rf",
+                        help='choose model [ rf | xg ] (DEFAULT: rf)')
+    parser.add_argument('-e', '--model_features', type=int, default=None,
+                        help='number of features in data to use (DEFAULT: ALL)')
+    parser.add_argument('-k', '--kfolds', type=int, default=8,
+                        help='number of cross validation folds (DEFAULT: 8)')
+    parser.add_argument('--ngram_from', type=int, default=1,
+                        help='ngram slice starting index (DEFAULT: 1)')
+    parser.add_argument('--ngram_to', type=int, default=1,
+                        help='ngram slice ending index (DEFAULT: 1)')
+    parser.add_argument('--split_train', type=float, default=0.90,
+                        help='proportion of training data (DEFAULT: 0.90)')
+    parser.add_argument('--split_test', type=float, default=0.05,
+                        help='proportion of testing data (DEFAULT: 0.05)')
+    parser.add_argument('--split_val', type=float, default=0.05,
+                        help='proportion of validation data (DEFAULT: 0.05)')
+    parser.add_argument('-o', '--output_dir', type=str, default="./results_out",
+                        help='specify path for output (DEFAULT: ./results_out)')
+    parser.add_argument('-s', '--vocab_size', type=int, default=32000,
+                        help='vocabulary size for model configuration')
+    parser.add_argument('--special_tokens', type=str, nargs="+",
+                        default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
+                        help='assign special tokens, eg space and pad tokens \
+                        (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
+    parser.add_argument('-w', '--hyperparameter_sweep', type=str, default=None,
+                        help='run a hyperparameter sweep with config from file')
+    parser.add_argument('--sweep_method', type=str, default="random",
+                        help='specify sweep search strategy \
+                        [ bayes | grid | random ] (DEFAULT: random)')
+    parser.add_argument('-n', '--sweep_count', type=int, default=8,
+                        help='run n hyperparameter sweeps (DEFAULT: 8)')
+    parser.add_argument('-c', '--metric_opt', type=str, default="f1",
+                        help='score to maximise [ accuracy | f1 | precision | \
+                        recall ] (DEFAULT: f1)')
+    parser.add_argument('-j', '--njobs', type=int, default=-1,
+                        help='run on n threads (DEFAULT: -1)')
+    args = parser.parse_args()
+
+    infile_path = args.infile_path
+    chunk_size = args.chunk_size
+    column_name = args.column_name
+    column_names = args.column_names
+    format = args.format
+    n_gram_from = args.ngram_from
+    n_gram_to = args.ngram_to
+    embeddings = args.embeddings
+    split_train = args.split_train
+    split_test = args.split_test
+    split_val = args.split_val
+    kfolds = args.kfolds
+    model_features = args.model_features
+    output_dir = args.output_dir
+    vocab_size = args.vocab_size
+    special_tokens = args.special_tokens
+    param = args.hyperparameter_sweep
+    sweep_method = args.sweep_method
+    sweep_count = args.sweep_count
+    metric_opt = args.metric_opt
+    model = args.model
+    freq_method = args.freq_method
+    n_jobs = args.njobs
+    tokeniser_path = args.tokeniser_path
+
+    print("\n\nARGUMENTS:\n", args, "\n\n")
+
+    if infile_path == None:
+        raise OSError("Require at least one input file path")
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+
+    if model == "rf":
+        model = RandomForestClassifier
+    if model == "xg":
+        model = XGBClassifier
+
+    if param != None:
+        with open(param, mode="r") as infile:
+            param = json.load(infile)
+    else:
+        param = {
+            'n_estimators': [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+            'max_features': ["sqrt", "log2", None],
+            'max_depth': [10, 20, 30, 40, 50],
+            'min_samples_split': [2, 3, 5, 7, 11],
+            'min_samples_leaf': [2, 3, 5, 7, 11],
+            'bootstrap': [True, False],
+            }
+
+    # choose frequency vectoriser method, weighted (tfidf) or nonweighted (cvec)
+    data = pd.read_csv(infile_path[0], sep=" ", header=None)
+    data = data[0].str.split(",", expand=True)
+    labels = np.array(data[0].apply(pd.to_numeric))
+    features = data[1].to_list()
+    data.drop([0, 1], axis=1, inplace=True)
+    vectorised = data.apply(pd.to_numeric).fillna(np.nan).apply(np.nan_to_num)
+    vectorised = np.array(vectorised)
+
+    # reduce features to streamline embedding process
+    if model_features != None:
+        print("BEFORE FEATURE SELECTION:\n", vectorised.shape)
+        vectorised = SelectKBest(
+            k=model_features
+            ).fit_transform(vectorised, labels)
+        print("AFTER FEATURE SELECTION:\n", vectorised.shape)
+
+    # assign training and testing splits, validation optional
+    if split_val is None:
+        split_val = 0
+    assert split_train + split_test + split_val == 1, \
+        "Proportions of datasets must sum to 1!"
+
+    train_size = 1 - split_train
+    test_size = 1 - split_test / (split_test + split_val)
+    val_size = 1 - split_val / (split_test + split_val)
+
+    # NOTE: train_size assigned to test_size is not a mistake
+    x_train, x_test, y_train, y_test = train_test_split(
+        vectorised, labels, test_size=train_size, shuffle=True,
+        )
+    if split_val > 0:
+        x_val, x_test, y_val, y_test = train_test_split(
+            x_test, y_test, test_size=val_size, shuffle=True
+        )
+
+    # print out stats for debugging
+    print("Total data items:", vectorised.shape)
+    print("Total data labels", labels.shape)
+    print("Training data:",x_train.shape)
+    print("Training data labels:",y_train.shape)
+    print("Test data:",x_test.shape)
+    print("Test data labels:",y_test.shape)
+    print("Validation data:",x_val.shape)
+    print("Validation data labels:",y_val.shape)
+
+    # perform the hyperparameter sweeps using the specified algorithm
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        if sweep_method == "grid":
+            param_instances = [i for i in ParameterGrid(param)][:sweep_count]
+            metrics_sweep = [
+                _run_search(model, i, x_train, y_train, x_test, y_test, features,
+                n_top_features=100, n_jobs=n_jobs) for i in tqdm(param_instances,
+                                                      desc="Grid Search:")
+                ]
+        if sweep_method == "random":
+            metrics_sweep = [
+                _run_search(model, i, x_train, y_train, x_test, y_test, features,
+                n_top_features=100, n_jobs=n_jobs)
+                for i in tqdm(ParameterSampler(param, n_iter=sweep_count),
+                                                      desc="Random Search:")
+                ]
+        if sweep_method == "bayes":
+            pass
+
+    # compile metrics from the corresponding sweeps for selecting best params
+    metrics_all = pd.DataFrame([pd.Series(i["metrics"]) for i in metrics_sweep])
+    params_all = pd.concat([pd.DataFrame(
+        pd.Series(i["param"])).T for i in metrics_sweep]
+        ).reset_index().drop("index", axis=1)
+    metrics_params = pd.concat([metrics_all, params_all], axis=1)
+
+    # pick the best scoring instance and get the corresponding parameters
+    # NOTE: for metrics calculated on each class, the score is averaged for sort
+    if metric_opt == "f1" or metric_opt == "precision" or metric_opt == "recall":
+        metric_opts = ["_".join([metric_opt, str(i)]) for i in [0, 1]]
+        metrics_params[metric_opt] = metrics_params[metric_opts].apply("mean", axis=1)
+        best_params = metrics_params.sort_values(metric_opt, ascending=False).iloc[0]
+
+    if metric_opt == "accuracy" or metric_opt == "roc_auc":
+        best_params = metrics_params.sort_values(metric_opt, ascending=False).iloc[0]
+
+    # train model on best parameters
+    clf = model(
+        n_estimators=best_params["n_estimators"],
+        min_samples_split=best_params["min_samples_split"],
+        min_samples_leaf=best_params["min_samples_leaf"],
+        max_features=best_params["max_features"],
+        max_depth=best_params["max_depth"],
+        bootstrap=best_params["bootstrap"],
+        n_jobs=n_jobs
+    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        clf.fit(x_train, y_train)
+    y_pred = clf.predict(x_test)
+    y_probas = clf.predict_proba(x_test)
+    metrics = _compute_metrics(y_test, y_pred)
+    # compute_feature_importances(clf, feature, n_top_features)
+
+    # save model
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
+    dump(clf, "/".join([output_dir, "model.joblib"]))
+
+    # perform cross validation on best model
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        cval_scores = cross_val_score(
+            clf, x_train, y_train, cv=8, scoring="roc_auc", n_jobs=n_jobs
+            )
+    cval_scores = pd.DataFrame(cval_scores)
+    cval_scores.columns = ["roc_auc_scores"]
+    cval_scores.to_csv("".join([output_dir, "/cval_auc.tsv",]), index=False)
+
+if __name__ == "__main__":
+    main()
