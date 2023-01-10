@@ -139,9 +139,12 @@ def main():
     for i in dataset:
         if "token_type_ids" in dataset[i].features:
             dataset[i] = dataset[i].remove_columns("token_type_ids")
+        if "input_str" in dataset[i].features:
+            dataset[i] = dataset[i].remove_columns("input_str")
     dataset = dataset.class_encode_column(args.label_names[0])
     # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
+    # dataset = dataset.map(lambda data: tokeniser(data['feature']), batched=True)
 
     col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
     # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
