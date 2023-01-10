@@ -91,7 +91,7 @@ def main():
         auc.to_csv("/".join([output_dir,"auc_scores.tsv"]),index=False,sep="\t")
     else:
         auc = [pd.read_csv(x, sep="\t") for x in auc_scores]
-        auc = pd.concat(auc)
+        auc = pd.concat(auc, axis=1)
 
     violinplot_path = "/".join([output_dir, "metrics_violinplot.pdf"])
     boxplot_path = "/".join([output_dir, "metrics_boxplot.pdf"])
