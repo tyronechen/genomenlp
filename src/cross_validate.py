@@ -23,7 +23,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import load_args_json, load_args_cmd, export_run_metrics
+from utils import load_args_json, load_args_cmd, get_run_metrics
 # import nevergrad as ng
 import ray
 from ray import tune
@@ -46,7 +46,7 @@ def main():
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('format', type=str,
                         help='specify input file type [ csv | json | parquet ]')
-    parser.add_argument('tokeniser_path', type=str,
+    parser.add_argument('--tokeniser_path', type=str, default="",
                         help='path to tokeniser.json file to load data from')
     parser.add_argument('-t', '--test', type=str, default=None,
                         help='path to [ csv | csv.gz | json | parquet ] file')
@@ -334,7 +334,10 @@ def main():
         runs = api.runs(path="/".join([entity_name, project_name]),
                         filters={"group": group_name})
 
-    export_run_metrics(runs, args_train.output_dir)
+    scores = get_run_metrics(runs, "cval")
+    # scores = pd.DataFrame(scores.summary.apply(lambda x: x[metric_opt]))
+    # scores.columns = ["roc_auc_scores"]
+    # scores.to_csv("."join(["roc_auc_scores"]))
 
     # identify best model file from the sweep
     runs = sorted(
