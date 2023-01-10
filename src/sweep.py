@@ -146,7 +146,7 @@ def main():
     # for frequency based feature selection
     # it is not straightforward to remove vocab from a tokeniser, see below
     # NOTE: https://github.com/huggingface/transformers/issues/15032
-    if model_features != None
+    if model_features != None:
         counts = Counter([x for y in dataset['train']['input_ids'] for x in y])
         counts = {
             k: v for k, v in
