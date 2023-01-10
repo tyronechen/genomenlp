@@ -1,4 +1,5 @@
 import argparse
+from collections import Counter
 import functools
 import gzip
 import os
