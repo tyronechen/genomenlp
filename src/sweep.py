@@ -9,7 +9,7 @@ import json
 import numpy as np
 import pandas as pd
 import torch
-from tokenizers import SentencePieceUnigramTokenizer
+from tokenizers import models, SentencePieceUnigramTokenizer
 from tqdm import tqdm
 import transformers
 from transformers import AutoModelForSequenceClassification, \
@@ -45,6 +45,11 @@ def main():
                         distilbert handles shorter sequences up to 512 tokens \
                         longformer handles longer sequences up to 4096 tokens \
                         (DEFAULT: distilbert)')
+    parser.add_argument('--model_features', type=int, default=None,
+                        help='number of features in data to use (DEFAULT: ALL) \
+                        NOTE: this is separate from the vocab_size argument. \
+                        under normal circumstances (eg a tokeniser generated \
+                        by SentencePiece), setting this is not necessary')
     parser.add_argument('-o', '--output_dir', type=str, default="./sweep_out",
                         help='specify path for output (DEFAULT: ./sweep_out)')
     parser.add_argument('-d', '--device', type=str, default="auto",
@@ -91,6 +96,7 @@ def main():
     project_name = args.project_name
     group_name = args.group_name
     metric_opt = args.metric_opt
+    model_features = args.model_features
     output_dir = args.output_dir
     fp16 = args.fp16_off
     resume_sweep = args.resume_sweep
@@ -136,6 +142,60 @@ def main():
     if valid != None:
         infile_paths["valid"] = valid
     dataset = load_dataset(format, data_files=infile_paths)
+
+    # for frequency based feature selection
+    # it is not straightforward to remove vocab from a tokeniser, see below
+    # NOTE: https://github.com/huggingface/transformers/issues/15032
+    if model_features != None
+        counts = Counter([x for y in dataset['train']['input_ids'] for x in y])
+        counts = {
+            k: v for k, v in
+            sorted(counts.items(), key=lambda item: item[1], reverse=True)
+            }
+        vocab_rev = {k: v for v, k in tokeniser.vocab.items()}
+        wanted = [vocab_rev[i] for i in list(counts.keys())[:model_features]]
+        # unwanted = [vocab_rev[i] for i in list(counts.keys())[model_features:]]
+        model_state = json.loads(
+            tokeniser.backend_tokenizer.model.__getstate__()
+            )
+        ref = pd.DataFrame(model_state["vocab"])
+        remove = ref[~ref[0].isin(wanted)].index.tolist()
+
+        # remove = remove[:2] + [2] + remove[2:]
+        # for i in tqdm(sorted(remove, reverse=True)):
+            # del model_state["vocab"][i]
+        # model_class = getattr(models, model_state.pop("type"))
+        # tokenizer.backend_tokenizer.model = model_class(**model_state)
+
+        with open(tokeniser_path, 'r') as infile:
+            tokeniser_file = json.load(infile)
+        for i in tqdm(sorted(remove, reverse=True)):
+            del tokeniser_file["model"]["vocab"][i]
+
+        tokeniser_path_reduced = ".".join([
+            "".join(tokeniser_path.split(".json")), str(model_features), "json"
+            ])
+        with open(tokeniser_path_reduced, 'w', encoding='utf-8') as f:
+            json.dump(
+                tokeniser_file, f, ensure_ascii=False, indent=4
+                )
+
+        special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
+        print("USING MODIFIED TOKENISER:", tokeniser_path_reduced)
+        tokeniser = PreTrainedTokenizerFast(
+            tokenizer_file=tokeniser_path_reduced,
+            special_tokens=special_tokens,
+            bos_token="<s>",
+            eos_token="</s>",
+            unk_token="<unk>",
+            sep_token="<sep>",
+            pad_token="<pad>",
+            cls_token="<cls>",
+            mask_token="<mask>",
+            )
+        data_collator = DataCollatorWithPadding(tokenizer=tokeniser,
+                                                padding="longest")
+
     for i in dataset:
         if "token_type_ids" in dataset[i].features:
             dataset[i] = dataset[i].remove_columns("token_type_ids")
