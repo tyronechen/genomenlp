@@ -81,23 +81,6 @@ def main():
                         help='run hyperparameter tuning using the wandb api \
                         and log training in real time online (DEFAULT: ON)')
 
-train = "../results/tmp/bcwp_kmer_5_512/train.parquet"
-format = "parquet"
-tokeniser_path = "../data/prot/BCW_protein_kmers.json"
-test = "../results/tmp/bcwp_kmer_5_512/test.parquet"
-valid = "../results/tmp/bcwp_kmer_5_512/valid.parquet"
-hyperparameter_sweep = "random.json"
-entity_name = "tyagilab"
-project_name = "bcw_protein_kmer_32000"
-group_name = "bcw_protein_kmer_32000"
-output_dir = "../results/tmp/dbert_bcwp_kmer.32000"
-model_features = 32000
-label_names = "labels"
-model = "distilbert"
-sweep_count = 8
-metric_opt = "eval/f1"
-device = "cpu"
-
     args = parser.parse_args()
     train = args.train
     format = args.format
