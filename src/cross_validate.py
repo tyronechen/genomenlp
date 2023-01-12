@@ -155,7 +155,9 @@ def main():
     dataset = dataset.class_encode_column(args.label_names[0])
     # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
-
+    dataset = dataset.map(
+        lambda data: tokeniser(data['feature'], padding=True), batched=True
+        )
     col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
     # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
     print(dataset)
