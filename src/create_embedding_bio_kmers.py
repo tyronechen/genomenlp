@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # create huggingface dataset given input fasta, control and tokeniser files
 import argparse
+from collections import Counter
 import gzip
 import itertools
 import os
@@ -47,6 +48,8 @@ def main():
                         help='set number of threads to use')
     parser.add_argument('-s' ,'--sample_seq', type=str, default=None,
                         help='set sample sequence to test model (DEFAULT: None)')
+    parser.add_argument('-v', '--vocab_size', type=int, default=0,
+                        help='vocabulary size for model config (DEFAULT: all)')
     parser.add_argument('--w2v_min_count' ,type=int, default=1,
                         help='set minimum count for w2v (DEFAULT: 1)')
     parser.add_argument('--w2v_sg' ,type=int, default=1,
@@ -66,6 +69,7 @@ def main():
     slide = args.slide
     chunk = args.chunk
     njobs = args.njobs
+    vocab_size = args.vocab_size
     w2v_min_count = args.w2v_min_count
     w2v_sg = args.w2v_sg
     w2v_window = args.w2v_window
@@ -91,6 +95,32 @@ def main():
         all_kmers = itertools.chain()
         for i in kmers:
             all_kmers = itertools.chain(all_kmers, i)
+
+        if vocab_size > 0:
+            # reduce vocab_size to desired amount
+            counts = Counter()
+            for i in all_kmers:
+                counts += Counter(i)
+            counts = {
+                k: v for k, v in
+                sorted(counts.items(), key=lambda item: item[1], reverse=True)
+                }
+            counts = list(counts.keys())[:vocab_size]
+
+            # reset generator as it was consumed in previous step
+            kmers = [parse_kmers(i, ksize, slide) for i in infile_path]
+            all_kmers = itertools.chain()
+            for i in kmers:
+                all_kmers = itertools.chain(all_kmers, i)
+
+            all_kmers = [
+                sentence for sentence in [
+                    [
+                        word for word in sequence if word in counts
+                        ] for sequence in all_kmers
+                    ] if len(sentence) > 0
+                ]
+
         model = Word2Vec(
             sentences=all_kmers,
             vector_size=w2v_vector_size,
@@ -133,12 +163,19 @@ def main():
                 if len(tokens) == 0:
                     pass
                 else:
-                    data = pd.DataFrame(model.wv[tokens])
-                    data["labels"] = entry["labels"].iloc[0]
-                    data["seq"] = tokens
-                    cols = data.columns.tolist()
-                    data = data[cols[-2:] + cols[:-2]]
-                    data.to_csv(projected_path, mode="a+", header=False, index=False)
+                    if vocab_size > 0:
+                        tokens = [x for x in tokens if x in counts]
+                    if len(tokens) == 0:
+                        pass
+                    else:
+                        data = pd.DataFrame(model.wv[tokens])
+                        data["labels"] = entry["labels"].iloc[0]
+                        data["seq"] = tokens
+                        cols = data.columns.tolist()
+                        data = data[cols[-2:] + cols[:-2]]
+                        data.to_csv(
+                            projected_path, mode="a+", header=False, index=False
+                            )
                     # data = pd.DataFrame(np.concatenate(model.wv[tokens])).transpose()
                     # data = pd.concat([meta, data], axis=1)
                     # data.to_csv(projected_path, mode="a+", header=False, index=False)

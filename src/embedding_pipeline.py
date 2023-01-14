@@ -9,6 +9,7 @@ import pandas as pd
 from joblib import dump, load
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+from sklearn.feature_selection import SelectKBest
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, f1_score, plot_confusion_matrix, precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import train_test_split, ParameterGrid, ParameterSampler, cross_val_score, StratifiedKFold, cross_validate
 from tqdm import tqdm
@@ -102,7 +103,7 @@ def main():
                         (DEFAULT: input_str)')
     parser.add_argument('-m', '--model', type=str, default="rf",
                         help='choose model [ rf | xg ] (DEFAULT: rf)')
-    parser.add_argument('-e', '--model_features', type=int, default=None,
+    parser.add_argument('-e', '--model_features', type=int, default="all",
                         help='number of features in data to use (DEFAULT: ALL)')
     parser.add_argument('-k', '--kfolds', type=int, default=8,
                         help='number of cross validation folds (DEFAULT: 8)')
@@ -198,7 +199,8 @@ def main():
     vectorised = np.array(vectorised)
 
     # reduce features to streamline embedding process
-    if model_features != None:
+    if model_features != "all":
+        model_features = int(model_features)
         print("BEFORE FEATURE SELECTION:\n", vectorised.shape)
         vectorised = SelectKBest(
             k=model_features
@@ -241,13 +243,13 @@ def main():
             param_instances = [i for i in ParameterGrid(param)][:sweep_count]
             metrics_sweep = [
                 _run_search(model, i, x_train, y_train, x_test, y_test, features,
-                n_top_features=100, n_jobs=n_jobs) for i in tqdm(param_instances,
-                                                      desc="Grid Search:")
+                n_top_features=model_features, n_jobs=n_jobs)
+                for i in tqdm(param_instances, desc="Grid Search:")
                 ]
         if sweep_method == "random":
             metrics_sweep = [
                 _run_search(model, i, x_train, y_train, x_test, y_test, features,
-                n_top_features=100, n_jobs=n_jobs)
+                n_top_features=model_features, n_jobs=n_jobs)
                 for i in tqdm(ParameterSampler(param, n_iter=sweep_count),
                                                       desc="Random Search:")
                 ]
@@ -299,7 +301,7 @@ def main():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         cval_scores = cross_val_score(
-            clf, x_train, y_train, cv=8, scoring="roc_auc", n_jobs=n_jobs
+            clf, x_train, y_train, cv=kfolds, scoring="roc_auc", n_jobs=n_jobs
             )
     cval_scores = pd.DataFrame(cval_scores)
     cval_scores.columns = ["roc_auc_scores"]
