@@ -142,34 +142,6 @@ def main():
                                                 padding="longest")
         tokeniser.pad_token = tokeniser.eos_token
 
-    infile_paths = dict()
-    infile_paths["train"] = train
-    if test != None:
-        infile_paths["test"] = test
-    if valid != None:
-        infile_paths["valid"] = valid
-    dataset = load_dataset(format, data_files=infile_paths)
-    for i in dataset:
-        if "token_type_ids" in dataset[i].features:
-            dataset[i] = dataset[i].remove_columns("token_type_ids")
-    dataset = dataset.class_encode_column(args.label_names[0])
-    # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
-    print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
-    dataset = dataset.map(
-        lambda data: tokeniser(data['feature'], padding=True), batched=True
-        )
-    col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
-    # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
-    print(dataset)
-    dataset.set_format(type='torch', columns=col_torch)
-    dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
-    print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
-
-    # regarding evaluation metrics:
-    # https://huggingface.co/course/chapter3/3?fw=pt
-    # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
-    # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
-
     if config_from_run != None:
         run_id = "/".join([entity_name, project_name, config_from_run])
         api = wandb.Api()
@@ -200,6 +172,34 @@ def main():
         data_collator = DataCollatorWithPadding(tokenizer=tokeniser,
                                                 padding="longest")
         tokeniser.pad_token = tokeniser.eos_token
+
+    infile_paths = dict()
+    infile_paths["train"] = train
+    if test != None:
+        infile_paths["test"] = test
+    if valid != None:
+        infile_paths["valid"] = valid
+    dataset = load_dataset(format, data_files=infile_paths)
+    for i in dataset:
+        if "token_type_ids" in dataset[i].features:
+            dataset[i] = dataset[i].remove_columns("token_type_ids")
+    dataset = dataset.class_encode_column(args.label_names[0])
+    # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
+    print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
+    dataset = dataset.map(
+        lambda data: tokeniser(data['feature'], padding=True), batched=True
+        )
+    col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
+    # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
+    print(dataset)
+    dataset.set_format(type='torch', columns=col_torch)
+    dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
+    print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
+
+    # regarding evaluation metrics:
+    # https://huggingface.co/course/chapter3/3?fw=pt
+    # https://discuss.huggingface.co/t/log-multiple-metrics-while-training/8115/4
+    # https://wandb.ai/matt24/vit-snacks-sweeps/reports/Hyperparameter-Search-with-W-B-Sweeps-for-Hugging-Face-Transformer-Models--VmlldzoyMTUxNTg0
 
     if os.path.exists(model_path):
         model = AutoModelForSequenceClassification.from_pretrained(model_path)
