@@ -325,7 +325,7 @@ def main():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         cval_scores = cross_val_score(
-            clf, x_train, y_train, cv=8, scoring="roc_auc", n_jobs=n_jobs
+            clf, x_train, y_train, cv=kfolds, scoring="roc_auc", n_jobs=n_jobs
             )
     cval_scores = pd.DataFrame(cval_scores)
     cval_scores.columns = ["roc_auc_scores"]
