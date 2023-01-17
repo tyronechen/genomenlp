@@ -181,9 +181,9 @@ def main():
             param = json.load(infile)
     else:
         param = {
-            'n_estimators': [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000],
+            'n_estimators': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
             'max_features': ["sqrt", "log2", None],
-            'max_depth': [10, 20, 30, 40, 50],
+            'max_depth': [2, 3, 5, 7, 11],
             'min_samples_split': [2, 3, 5, 7, 11],
             'min_samples_leaf': [2, 3, 5, 7, 11],
             'bootstrap': [True, False],
