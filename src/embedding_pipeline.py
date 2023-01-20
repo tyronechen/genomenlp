@@ -103,7 +103,7 @@ def main():
                         (DEFAULT: input_str)')
     parser.add_argument('-m', '--model', type=str, default="rf",
                         help='choose model [ rf | xg ] (DEFAULT: rf)')
-    parser.add_argument('-e', '--model_features', type=int, default="all",
+    parser.add_argument('-e', '--model_features', type=int, default=0,
                         help='number of features in data to use (DEFAULT: ALL)')
     parser.add_argument('-k', '--kfolds', type=int, default=8,
                         help='number of cross validation folds (DEFAULT: 8)')
@@ -199,7 +199,7 @@ def main():
     vectorised = np.array(vectorised)
 
     # reduce features to streamline embedding process
-    if model_features != "all":
+    if model_features != 0:
         model_features = int(model_features)
         print("BEFORE FEATURE SELECTION:\n", vectorised.shape)
         vectorised = SelectKBest(
