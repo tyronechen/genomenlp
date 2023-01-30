@@ -136,6 +136,8 @@ def main():
                         recall ] (DEFAULT: f1)')
     parser.add_argument('-j', '--njobs', type=int, default=-1,
                         help='run on n threads (DEFAULT: -1)')
+    parser.add_argument('-d', '--pre_dispatch', default="0.5*n_jobs",
+                        help='specify dispatched jobs (DEFAULT: 0.5*n_jobs)')
     args = parser.parse_args()
 
     infile_path = args.infile_path
@@ -160,6 +162,7 @@ def main():
     model = args.model
     freq_method = args.freq_method
     n_jobs = args.njobs
+    pre_dispatch = args.pre_dispatch
     tokeniser_path = args.tokeniser_path
 
     print("\n\nARGUMENTS:\n", args, "\n\n")
@@ -325,7 +328,8 @@ def main():
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         cval_scores = cross_val_score(
-            clf, x_train, y_train, cv=kfolds, scoring="roc_auc", n_jobs=n_jobs
+            clf, x_train, y_train, cv=kfolds, scoring="roc_auc", n_jobs=n_jobs,
+            pre_dispatch=pre_dispatch
             )
     cval_scores = pd.DataFrame(cval_scores)
     cval_scores.columns = ["roc_auc_scores"]
