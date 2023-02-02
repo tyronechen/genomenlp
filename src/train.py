@@ -18,7 +18,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import load_args_json, load_args_cmd, export_run_metrics
+from utils import load_args_json, load_args_cmd
 import wandb
 
 def main():
