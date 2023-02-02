@@ -2,14 +2,18 @@ Welcome to ziran's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+  :maxdepth: 2
+  :caption: Contents:
 
   intro
-  generate_synthetic
   tokenise
   create_dataset_bio
-  create_dataset_nlp
+  create_embedding
+  sweep
+  train_model
+  cross_validate
+  generate_synthetic
+
 
 Indices and tables
 ==================

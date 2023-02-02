@@ -1,5 +1,5 @@
-Create a HuggingFace dataset object from sequences (BIO version)
-================================================================
+Create a HuggingFace dataset object from sequences
+==================================================
 
 This explains the use of ``create_dataset_bio.py``. We generate a ``HuggingFace`` dataset object given a ``fasta`` file containing sequences, a ``fasta`` file containing control sequences, and a pretrained ``tokeniser`` from ``tokeniser.py``.
 
@@ -25,13 +25,9 @@ Results
 
 Running the code as below::
 
-  python create_dataset.py \
-    /path/to/fasta.gz \
-    /path/to/control_fasta.gz \
-    /path/to/tokeniser.json \
-    -o /path/to/results/
+  python create_dataset_bio.py <INFILE_SEQS_1> <INFILE_SEQS_2> <TOKENISER_PATH> -c CHUNK -o OUTFILE_DIR
 
-``HuggingFace`` dataset files will be written to disk. This can be loaded directly into a "conventional" deep learning pipeline.
+``HuggingFace``-like dataset files will be written to disk. This can be loaded directly into a "conventional" deep learning pipeline.
 
 Notes
 -----

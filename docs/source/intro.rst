@@ -38,6 +38,7 @@ Install
 -------
 
 Manual install with ``conda`` or ``pip``::
+  
   gensim==4.2.0
   hyperopt==0.2.7
   pandas==1.4.2
@@ -122,7 +123,12 @@ Deep learning::
 
   You can provide the hyperparameter search space with a ``json`` file to ``--hyperparameter_sweep``. The ``label_names`` argument here is different from previous steps and refers to the column name containing labels, not a list of class labels. Set ``--device cuda:0`` if you have ``cuda`` installed and want to use GPU.
 
-Example ``hyperparameter.json`` file::
+.. raw:: html
+
+   <details>
+   <summary><a>Example hyperparameter.json file</a></summary>
+
+.. code-block:: python
 
   {
     "name" : "random",
@@ -154,6 +160,10 @@ Example ``hyperparameter.json`` file::
         "max_iter": 27
     }
   }
+
+.. raw:: html
+
+   </details>
 
 Background
 ----------
