@@ -166,6 +166,18 @@ Deep learning::
 
    </details>
 
+3. Comparing deep learning models
++++++++++++++++++++++++++++++++++
+
+The included method only works on deep learning models. For more information on the method, including interpretation, please refer to the publication (`https://arxiv.org/pdf/2202.02842.pdf`_).
+
+.. _https://arxiv.org/pdf/2202.02842.pdf: https://arxiv.org/pdf/2202.02842.pdf
+
+::
+  
+  python fit_powerlaw.py -i [ INFILE_PATH ... ] -t OUTPUT_DIR -a N
+
+
 Background
 ----------
 
