@@ -16,79 +16,38 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 
 [Visit our lab website here.](https://bioinformaticslab.erc.monash.edu/) Contact Sonika Tyagi at [sonika.tyagi@monash.edu](mailto:sonika.tyagi@monash.edu).
 
-## Background
+## Highlights
 
-[The name is a reference to a "base state"](https://en.wikipedia.org/wiki/Ziran) which we are trying to achieve with our data representation.
+- Takes raw sequence data directly and performs classification
+- Empirical tokenisation removes the need for arbitrary k-mer selection and handles out-of-vocab "words"
+- Compare multiple deep learning models without the need for retraining
 
-Package structure:
+## Requirements
 
-![Package structure](img/recode_genome_ml.png)
-
-## Main takeaways
-
-- Compile a python package for recoding genomic sequences into text representation format amenable to downsteam mahcine learrning tasks.
-- Comparison of different tokenizers.
-- Comparison of different ML modeling approaches for NLP classification
-
-Generic usage (this is just an example only, not restricted to this specific workflow):
-
-## Tokenisers/Embeddings used:
-
-- word2vec from dna2vec (https://github.com/pnpnpn/dna2vec)
-- TFIDF
-- Countvectorizer
-- Fastext
-- Elmo
-- Glove
-- BERT
-
-
-
+Manual install with ``conda`` or ``pip``:
 ```
-import RecodeSeqs
-seqs = RecodeSeqs(a_BioPython_seq_object)
-seqs.recode_onehot(padding=TRUE)
-seqs.recode_kmers(length=500)  # break seqs into n-length substrings
-                               # you can think of this as tokenising
-seqs.recode_something…         # other encodings as we think of them
+  gensim==4.2.0
+  hyperopt==0.2.7
+  matplotlib==3.5.2
+  pandas==1.4.2
+  pytorch==1.10.0
+  ray==1.13.0
+  scikit-learn==1.1.1
+  screed==1.0.5
+  seaborn==0.11.2
+  sentencepiece==0.1.96
+  tokenizers==0.12.1
+  tqdm==4.64.0
+  transformers==4.23.1
+  wandb==0.13.4
+  weightwatcher==0.5.9
+  xgboost==1.7.1
+  yellowbrick==1.3.post1
 ```
 
-## Problem
+## Usage
 
-There are a lot of packages which encode image and natural language data into `python` objects for input into popular deep learning frameworks such as `pytorch` and `tensorflow`. There are no known packages which do the same thing for biological sequence data.
-
-For example, genomic data are commonly represented as `bam`, `bed`, `fasta`, `fastq`, `sam`, `gtf`, `gff` files, or other genomic representations. In some cases, the raw sequence may not even be inherently present and require further processing (eg in the case of `bed` files, it records coordinates which need to be matched to a reference file or database to extract the actual data) or if we want to encode fasta sequences into images or text. (Descriptions of these file formats are publicly available.)
-
-Sample metadata is also inconsistent even within file formats of the same version. For example, in `fasta/q` files, naming conventions are inconsistent. In `sam/bam/gff/gtf` files, arbitrary fields can be added. For this part, it is impossible to account for all possible cases, so these should be specified in a constant format as minimum input requirement. Alternatively, metadata can be ignored and a specific metadata format can be created by us to restrict input.
-
-## Planning
-
-- Recode on the fly (probably start with this) or generate a binary object for easier loading next time (can worry about this later)? Eg hdf5 or TFRecord file
-- …
-
-## Relevant literature
-
-- Evaluation of Convolutionary Neural Networks Modeling of DNA Sequences using Ordinal versus one-hot Encoding Method
-- …
-
-## Relevant software
-
-- `Biopython` (read and parse fastq files, possible to read line by line instead of loading whole file into memory, very important considering fasta/q file sizes!)
-- Existing code for 1-hot encoding for use with CNN (currently loops through fastq files and feeds them to `Pytorch`, if you go back to earlier commits you can see the `Tensorflow` version)
-- ksahlin/strobemers: A repository for generating strobemers and evalaution
-- https://en.wikipedia.org/wiki/N-gram
-- https://github.com/huggingface/transformers/tree/v4.10.2
-- http://interpret.ml/
-- https://erroranalysis.ai/
-- https://2-bitbio.com/2018/06/one-hot-encode-dna-sequence-using.html
-- https://www.jwilber.me/permutationtest/
-- ...
-
-## Notes
-
-Different architectures have different input types. `Tensorflow` uses `TFRecord` objects on disk, need specify own encoder and decoder. `Pytorch` more flexible, probably easier to use, recommend starting here. Not sure about `megvii`.
-A lot of ChIP-Seq and ATAC-Seq protocols use genome tiling where they break the genome into lots of contigs/substrings of N length. May be a good place to start finding working code and fork from there.
-
+Please refer to the documentation for detailed usage information.
 
 ## Acknowledgements
 
