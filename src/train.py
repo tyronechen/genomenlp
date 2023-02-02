@@ -109,7 +109,7 @@ def main():
         fp16 = False
     else:
         fp16 = True
-
+    api = wandb.Api(timeout=10000)
     print("\n\nUSING DEVICE:\n", device)
     print("\n\nARGUMENTS:\n", args, "\n\n")
 
