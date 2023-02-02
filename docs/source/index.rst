@@ -12,6 +12,7 @@ Welcome to ziran's documentation!
   sweep
   train_model
   cross_validate
+  fit_powerlaw
   generate_synthetic
 
 

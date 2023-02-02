@@ -38,9 +38,10 @@ Install
 -------
 
 Manual install with ``conda`` or ``pip``::
-  
+
   gensim==4.2.0
   hyperopt==0.2.7
+  matplotlib==3.5.2
   pandas==1.4.2
   pytorch==1.10.0
   ray==1.13.0
