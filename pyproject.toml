@@ -152,6 +152,7 @@ dependencies = [ # Optional
 # which executes the function `main` from this package when invoked.
 [project.scripts]  # Optional
 create_dataset_bio = "ziran:create_dataset_bio"
+create_dataset_nlp = "ziran:create_dataset_nlp"
 create_embedding_bio_sp = "ziran:create_embedding_bio_sp"
 create_embedding_bio_kmers = "ziran:create_embedding_bio_kmers"
 cross_validate = "ziran:cross_validate"
@@ -160,8 +161,11 @@ fit_powerlaw = "ziran:fit_powerlaw"
 freq_pipeline = "ziran:freq_pipeline"
 generate_synthetic = "ziran:generate_synthetic"
 kmerise_bio = "ziran:kmerise_bio"
+parse_sp_tokens = "ziran:parse_sp_tokens"
+summarise_metrics = "ziran:summarise_metrics"
 sweep = "ziran:sweep"
 tokenise_bio = "ziran:tokenise_bio"
+train = "ziran:train"
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
