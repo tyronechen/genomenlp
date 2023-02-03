@@ -15,7 +15,7 @@ from sklearn import metrics
 from tqdm import tqdm
 import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
-import weightwatcher as ww
+# import weightwatcher as ww
 
 def _init_sp_tokeniser(vocab=None):
     """Helper function to generate SP-like formatted tokeniser from k-mers"""
