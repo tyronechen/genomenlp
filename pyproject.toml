@@ -17,7 +17,7 @@ name = "ziran"  # Required
 #
 # For a discussion on single-sourcing the version, see
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "1.0.1"  # Required
+version = "1.0.2"  # Required
 
 # This is a one-line description or tagline of what your project does. This
 # corresponds to the "Summary" metadata field:
@@ -150,21 +150,21 @@ dependencies = [ # Optional
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
 [project.scripts]  # Optional
-create_dataset_bio = "ziran:create_dataset_bio"
-create_dataset_nlp = "ziran:create_dataset_nlp"
-create_embedding_bio_sp = "ziran:create_embedding_bio_sp"
-create_embedding_bio_kmers = "ziran:create_embedding_bio_kmers"
-cross_validate = "ziran:cross_validate"
-embedding_pipeline = "ziran:embedding_pipeline"
-fit_powerlaw = "ziran:fit_powerlaw"
-freq_pipeline = "ziran:freq_pipeline"
-generate_synthetic = "ziran:generate_synthetic"
-kmerise_bio = "ziran:kmerise_bio"
-parse_sp_tokens = "ziran:parse_sp_tokens"
-summarise_metrics = "ziran:summarise_metrics"
-sweep = "ziran:sweep"
-tokenise_bio = "ziran:tokenise_bio"
-train = "ziran:train"
+create_dataset_bio = "ziran.create_dataset_bio:main"
+create_dataset_nlp = "ziran.create_dataset_nlp:main"
+create_embedding_bio_sp = "ziran.create_embedding_bio_sp:main"
+create_embedding_bio_kmers = "ziran.create_embedding_bio_kmers:main"
+cross_validate = "ziran.cross_validate:main"
+embedding_pipeline = "ziran.embedding_pipeline:main"
+fit_powerlaw = "ziran.fit_powerlaw:main"
+freq_pipeline = "ziran.freq_pipeline:main"
+generate_synthetic = "ziran.generate_synthetic:main"
+kmerise_bio = "ziran.kmerise_bio:main"
+parse_sp_tokens = "ziran.parse_sp_tokens:main"
+summarise_metrics = "ziran.summarise_metrics:main"
+sweep = "ziran.sweep:main"
+tokenise_bio = "ziran.tokenise_bio:main"
+train = "ziran.train:main"
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
