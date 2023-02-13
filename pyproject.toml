@@ -17,7 +17,7 @@ name = "ziran"  # Required
 #
 # For a discussion on single-sourcing the version, see
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "1.0.2"  # Required
+version = "1.0.3"  # Required
 
 # This is a one-line description or tagline of what your project does. This
 # corresponds to the "Summary" metadata field:
@@ -172,6 +172,8 @@ train = "ziran.train:main"
 # If there are data files included in your packages that need to be
 # installed, specify them here.
 # package-data = {"sample" = ["*.dat"]}
+packages = ["ziran"]
+package-dir = {"" = "ziran"} 
 
 [build-system]
 # These are the assumed default build requirements from pip:
