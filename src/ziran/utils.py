@@ -12,10 +12,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import screed
 from sklearn import metrics
+from sklearn.inspection import permutation_importance
 from tqdm import tqdm
 import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
-# import weightwatcher as ww
+import weightwatcher as ww
 
 def _init_sp_tokeniser(vocab=None):
     """Helper function to generate SP-like formatted tokeniser from k-mers"""
@@ -144,6 +145,91 @@ def _compute_metrics(eval_preds):
     metrics.update(recall_metric.compute(predictions=preds, references=labels, average='weighted'))
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
+
+def get_feature_importance_mdi(clf, features, model_type, show_features: int=50,
+                               output_dir: str=".") -> pd.Series:
+    """Calculate feature importance by Gini scores. This is more effective when
+    there are fewer classes. See also :py:func:`get_feature_importance_per`.
+
+    Args:
+        clf (sklearn.ensemble): a trained sklearn tree-like model.
+        features (np.ndarray): the output of `get_feature_names_out`.
+        model_type (str): Random Forest "rf" or XGBoost "xg".
+        show_features (int): number of features to plot (text export unaffected)
+        output_dir (str): figure and list of feature importances go here.
+
+    Returns:
+        pd.Series:
+
+        pandas Series object with feature importance scores mapped to features.
+    """
+    importances = clf.feature_importances_
+    order = np.argsort(importances)[::-1]
+    importances = importances[order]
+    features = np.array(features[order])
+
+    mdi_scores = pd.Series(importances, index=features)
+    mdi_scores.to_csv("/".join([output_dir, "mdi_scores.tsv"]), sep="\t")
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    if model_type == "rf":
+        std = np.std(
+            [x.feature_importances_ for x in clf.estimators_], axis=0
+            )[order]
+        mdi_scores[:show_features].plot.barh(yerr=std[:show_features], ax=ax)
+    else:
+        mdi_scores[:show_features].plot.barh(ax=ax)
+
+    ax.set_title("Feature importances using MDI")
+    ax.set_xlabel("Mean decrease in impurity (Gini importance)")
+    fig.tight_layout()
+    fig.savefig("/".join([output_dir, "mdi_scores.pdf"]), dpi=300)
+    plt.close()
+    return mdi_scores
+
+def get_feature_importance_per(clf, x_test, y_test, features, model_type,
+                               show_features: int=50, output_dir: str=".",
+                               n_repeats: int=10, n_jobs: int=1) -> pd.Series:
+    """Calculate feature importance by permutation. This tests feature
+    importance in the context of the model only. See also
+    :py:func:`get_feature_importance_mdi`.
+
+    Args:
+        clf (sklearn.ensemble): a trained sklearn tree-like model.
+        x_test (np.ndarray): test data.
+        y_test (np.ndarray): test labels.
+        features (np.ndarray): the output of `get_feature_names_out`.
+        show_features (int): number of features to plot (text export unaffected)
+        output_dir (str): figure and list of feature importances go here.
+        n_repeats (int): number of repeats for the permutation to run.
+        n_jobs (int): number of threads for the permutation to run on.
+
+    Returns:
+        pd.Series:
+
+        pandas Series object with feature importance scores mapped to features.
+    """
+    per_scores = permutation_importance(
+        clf, x_test, y_test, n_repeats=n_repeats, n_jobs=n_jobs
+        )
+    importances = per_scores.importances_mean
+    order = np.argsort(importances)[::-1]
+    importances = importances[order]
+    features = np.array(features[order])
+
+    per_scores = pd.Series(importances, index=features)
+    per_scores.to_csv("/".join([output_dir, "per_scores.tsv"]), sep="\t")
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    per_scores[:show_features].plot.barh(ax=ax)
+
+    ax.set_title("Feature importances using permutation")
+    ax.set_xlabel("Mean decrease in accuracy")
+    fig.tight_layout()
+    fig.savefig("/".join([output_dir, "per_scores.pdf"]), dpi=300)
+    plt.close()
+    return per_scores
 
 def build_kmers(sequence: str, ksize: int) -> str:
     """Generator that takes a fasta sequence and kmer size to return kmers

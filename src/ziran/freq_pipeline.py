@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 from sklearn.model_selection import train_test_split, ParameterGrid, ParameterSampler, cross_val_score, StratifiedKFold, cross_validate
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast, AutoModel
-from utils import parse_sp_tokenised
+from utils import parse_sp_tokenised, get_feature_importance_mdi, get_feature_importance_per
 from xgboost import XGBClassifier
 from yellowbrick.text import FreqDistVisualizer
 
@@ -106,6 +106,8 @@ def main():
                         help='number of features in data to use (DEFAULT: ALL)')
     parser.add_argument('-k', '--kfolds', type=int, default=8,
                         help='number of cross validation folds (DEFAULT: 8)')
+    parser.add_argument('--show_features', type=int, default=50,
+                        help='number of shown feature importance (DEFAULT: 50)')
     parser.add_argument('--ngram_from', type=int, default=1,
                         help='ngram slice starting index (DEFAULT: 1)')
     parser.add_argument('--ngram_to', type=int, default=1,
@@ -151,6 +153,7 @@ def main():
     split_test = args.split_test
     split_val = args.split_val
     kfolds = args.kfolds
+    show_features = args.show_features
     model_features = args.model_features
     output_dir = args.output_dir
     vocab_size = args.vocab_size
@@ -174,8 +177,10 @@ def main():
 
     if model == "rf":
         model = RandomForestClassifier
+        model_type = "rf"
     if model == "xg":
         model = XGBClassifier
+        model_type = "xg"
 
     if param != None:
         with open(param, mode="r") as infile:
@@ -322,7 +327,18 @@ def main():
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    dump(clf, "/".join([output_dir, "model.joblib"]))
+    if model_type == "rf":
+        dump(clf, "/".join([output_dir, "model.joblib"]))
+    if model_type == "xg":
+        clf.save_model("/".join([output_dir, "model.json"]))
+
+    mdi_scores = get_feature_importance_mdi(
+        clf, np.array(features), model_type, show_features, output_dir,
+        )
+    per_scores = get_feature_importance_per(
+        clf, x_test, y_test, np.array(features), model_type, show_features,
+        output_dir, n_repeats=10, n_jobs=n_jobs
+        )
 
     # perform cross validation on best model
     with warnings.catch_warnings():

@@ -14,7 +14,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 from sklearn.model_selection import train_test_split, ParameterGrid, ParameterSampler, cross_val_score, StratifiedKFold, cross_validate
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast, AutoModel
-from utils import parse_sp_tokenised
+from utils import parse_sp_tokenised, get_feature_importance_mdi, get_feature_importance_per
 from xgboost import XGBClassifier
 from yellowbrick.text import FreqDistVisualizer
 
@@ -298,7 +298,18 @@ def main():
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    dump(clf, "/".join([output_dir, "model.joblib"]))
+    if model_type == "rf":
+        dump(clf, "/".join([output_dir, "model.joblib"]))
+    if model_type == "xg":
+        clf.save_model("/".join([output_dir, "model.json"]))
+
+    mdi_scores = get_feature_importance_mdi(
+        clf, np.array(features), model_type, show_features, output_dir,
+        )
+    per_scores = get_feature_importance_per(
+        clf, x_test, y_test, np.array(features), model_type, show_features,
+        output_dir, n_repeats=10, n_jobs=n_jobs
+        )
 
     # perform cross validation on best model
     with warnings.catch_warnings():
