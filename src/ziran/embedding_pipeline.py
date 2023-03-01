@@ -107,6 +107,8 @@ def main():
                         help='number of features in data to use (DEFAULT: ALL)')
     parser.add_argument('-k', '--kfolds', type=int, default=8,
                         help='number of cross validation folds (DEFAULT: 8)')
+    parser.add_argument('--show_features', type=int, default=50,
+                        help='number of shown feature importance (DEFAULT: 50)')
     parser.add_argument('--ngram_from', type=int, default=1,
                         help='ngram slice starting index (DEFAULT: 1)')
     parser.add_argument('--ngram_to', type=int, default=1,
@@ -153,6 +155,7 @@ def main():
     split_test = args.split_test
     split_val = args.split_val
     kfolds = args.kfolds
+    show_features = args.show_features
     model_features = args.model_features
     output_dir = args.output_dir
     vocab_size = args.vocab_size
@@ -176,8 +179,10 @@ def main():
 
     if model == "rf":
         model = RandomForestClassifier
+        model_type = "rf"
     if model == "xg":
         model = XGBClassifier
+        model_type = "xg"
 
     if param != None:
         with open(param, mode="r") as infile:
