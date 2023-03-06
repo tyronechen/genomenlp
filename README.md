@@ -26,6 +26,8 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 - We present the first publicly available, high-level toolkit that infers the grammar of genomic data directly through artificial neural networks.
 - Preprocessing, hyperparameter sweeps, cross validations, metrics and interactive visualisations are automated but can be adjusted by the user as needed.
 
+![graphical abstract describing the repository](fig/graphical_abstract.png)
+
 ## Cite us with:
 
 *To be written*
