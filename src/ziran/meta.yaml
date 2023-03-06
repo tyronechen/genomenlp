@@ -1,13 +1,13 @@
 package:
   name: "ziran"
-  version: "1.0.3"
+  version: "1.0.5"
 
 source:
-  git_rev: v1.0.3
+  git_rev: v1.0.5
   #git_url: https://github.com/tyronechen/ziran.git
   git_url: /fs04/lz25/tyronec/repos/test/ziran
   # url: https://github.com/tyronechen/ziran/releases/download/{{ version }}/ziran-{{ version }}.tar.gz
-  git_depth: -1
+  git_depth: 0
 
 build:
   script: {{ PYTHON }} -m pip install . -vv

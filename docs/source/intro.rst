@@ -3,7 +3,7 @@ Ziran: Genome recoding for Machine Learning Usage
 
 .. raw:: html
 
-  Copyright (c) 2022 <a href="https://orcid.org/0000-0002-9207-0385">Tyrone Chen <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, <a href="https://orcid.org/0000-0003-0181-6258">Sonika Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a> Navya Tyagi, and Sarthak Chauhan.
+  Copyright (c) 2022 <a href="https://orcid.org/0000-0002-9207-0385">Tyrone Chen <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, Navya Tyagi, Sarthak Chauhan, <a href="https://orcid.org/0000-0002-2296-2126">Anton Peleg <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, and <a href="https://orcid.org/0000-0003-0181-6258">Sonika Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>.
 
 Code in this repository is provided under a `MIT license`_. This documentation is provided under a `CC-BY-3.0 AU license`_.
 
@@ -23,21 +23,48 @@ Code in this repository is provided under a `MIT license`_. This documentation i
 
 .. _The main repository is on gitlab.: https://gitlab.com/tyagilab/ziran
 
-.. NOTE::
-
-  No raw data is present in this repository at time of writing as manuscript(s) associated with the primary data are unpublished.
 
 Highlights
 ----------
 
-- Takes raw sequence data directly and performs classification
-- Empirical tokenisation removes the need for arbitrary k-mer selection and handles out-of-vocab "words"
-- Compare multiple deep learning models without the need for retraining
+- We provide a comprehensive classification of genomic data tokenisation and representation approaches for ML applications along with their pros and cons.
+- We infer k-mers directly from the data and handle out-of-vocabulary words. At the same time, we achieve a significantly reduced vocabulary size compared to the conventional k-mer approach reducing the computational complexity drastically.
+- Our method is agnostic to species or biomolecule type as it is data-driven.
+- We enable comparison of trained model performance without requiring original input data, metadata or hyperparameter settings.
+- We present the first publicly available, high-level toolkit that infers the grammar of genomic data directly through artificial neural networks.
+- Preprocessing, hyperparameter sweeps, cross validations, metrics and interactive visualisations are automated but can be adjusted by the user as needed.
+
+Cite us with:
+-------------
+
+*To be written*
+
 
 Install
 -------
 
-Manual install with ``conda`` or ``pip``::
+Conda (automated)
++++++++++++++++++
+
+This is the recommended install method as it automatically handles dependencies. Note that this has only been tested on a linux operating system.
+
+First try this::
+
+  conda install -c tyronechen ziran
+
+If there are any errors with the previous step (especially if you are on a cluster with GPU access), try this first and then repeat the previous step::
+
+  conda install -c anaconda cudatoolkit
+
+If neither works, please submit an issue with the full stack trace and any supporting information.
+
+
+Conda (manual)
+++++++++++++++
+
+Clone the git repository. This will also allow you to manually run the python scripts.
+
+Then manually install the following dependencies with ``conda`` or ``pip``::
 
   gensim==4.2.0
   hyperopt==0.2.7
@@ -57,9 +84,37 @@ Manual install with ``conda`` or ``pip``::
   xgboost==1.7.1
   yellowbrick==1.3.post1
 
+You should then be able to run the scripts manually from ``src/ziran``. As with the automated step, ``cudatoolkit`` may be required.
+
 
 Usage
 -----
+
+0. Available commands
++++++++++++++++++++++
+
+If installed correctly using the automated ``conda`` method, each of these commands will be available directly on the command line::
+
+  create_dataset_bio
+  create_dataset_nlp
+  create_embedding_bio_sp
+  create_embedding_bio_kmers
+  cross_validate
+  embedding_pipeline
+  fit_powerlaw
+  freq_pipeline
+  generate_synthetic
+  kmerise_bio
+  parse_sp_tokens
+  summarise_metrics
+  sweep
+  tokenise_bio
+  train
+
+If installed correctly using the manual ``conda`` method, each of the above commands can be called from their corresponding python script, for example::
+
+  python create_dataset_bio.py
+
 
 1. Preprocessing
 ++++++++++++++++
@@ -68,21 +123,21 @@ Tokenise the biological sequence data into segments using either empirical token
 
 Empirical tokenisation pathway::
 
-  python tokenise_bio.py -i [INFILE_PATH ... ] -t TOKENISER_PATH
-  python create_dataset_bio.py <INFILE_SEQS_1> <INFILE_SEQS_2> <TOKENISER_PATH> -c CHUNK -o OUTFILE_DIR
+  tokenise_bio -i [INFILE_PATH ... ] -t TOKENISER_PATH
+  create_dataset_bio <INFILE_SEQS_1> <INFILE_SEQS_2> <TOKENISER_PATH> -c CHUNK -o OUTFILE_DIR
 
 Conventional k-mers pathway::
 
   # LABEL must match INFILE_PATH! assume that one fasta file has one seq class
-  python kmerise_bio.py -i [INFILE_PATH ... ] -t TOKENISER_PATH -k KMER_SIZE -l [LABEL ... ] -c CHUNK -o OUTFILE_DIR
+  kmerise_bio -i [INFILE_PATH ... ] -t TOKENISER_PATH -k KMER_SIZE -l [LABEL ... ] -c CHUNK -o OUTFILE_DIR
 
 Embedding pathway (input files here are ``csv`` created from previous step)::
 
   # after the empirical tokenisation pathway::
-  create_embedding_bio_sp.py -i [INFILE_PATH ... ] -t TOKENISER_PATH -o OUTFILE_DIR
+  create_embedding_bio_sp -i [INFILE_PATH ... ] -t TOKENISER_PATH -o OUTFILE_DIR
 
   # after the conventional k-mers pathway::
-  create_embedding_bio_kmers.py -i [INFILE_PATH ... ] -t TOKENISER_PATH  -o OUTFILE_DIR
+  create_embedding_bio_kmers -i [INFILE_PATH ... ] -t TOKENISER_PATH  -o OUTFILE_DIR
 
 
 .. NOTE::
@@ -101,11 +156,11 @@ Deep learning requires a ``wandb`` account set up and configured to visualise in
 
 Frequency-based approaches::
 
-  python freq_pipeline.py -i [INFILE_PATH ... ] --format "csv" -t TOKENISER_PATH --freq_method [ cvec | tfidf ] --model [ rf | xg ] --kfolds N --sweep_count N --metric_opt [ accuracy | f1 | precision | recall | roc_auc ] --output_dir OUTPUT_DIR
+  freq_pipeline -i [INFILE_PATH ... ] --format "csv" -t TOKENISER_PATH --freq_method [ cvec | tfidf ] --model [ rf | xg ] --kfolds N --sweep_count N --metric_opt [ accuracy | f1 | precision | recall | roc_auc ] --output_dir OUTPUT_DIR
 
 Embedding::
 
-  python embedding_pipeline.py -i [INFILE_PATH ... ] --format "csv" -t TOKENISER_PATH --freq_method [ cvec | tfidf ] --model [ rf | xg ] --kfolds N --sweep_count N --metric_opt [ accuracy | f1 | precision | recall | roc_auc ] --output_dir OUTPUT_DIR
+  embedding_pipeline -i [INFILE_PATH ... ] --format "csv" -t TOKENISER_PATH --freq_method [ cvec | tfidf ] --model [ rf | xg ] --kfolds N --sweep_count N --metric_opt [ accuracy | f1 | precision | recall | roc_auc ] --output_dir OUTPUT_DIR
 
 .. NOTE::
 
@@ -113,11 +168,11 @@ Embedding::
 
 Deep learning::
 
-  python sweep.py <TRAIN_DATA> <FORMAT> <TOKENISER_PATH> --test TEST_DATA --valid VALIDATION_DATA --hyperparameter_sweep PARAMS.JSON --entity_name WANDB_ENTITY_NAME --project_name WANDB_PROJECT_NAME --group_name WANDB_GROUP_NAME --sweep_count N --metric_opt [ eval/accuracy | eval/validation | eval/loss | eval/precision | eval/recall ] --output_dir OUTPUT_DIR
+  sweep <TRAIN_DATA> <FORMAT> <TOKENISER_PATH> --test TEST_DATA --valid VALIDATION_DATA --hyperparameter_sweep PARAMS.JSON --entity_name WANDB_ENTITY_NAME --project_name WANDB_PROJECT_NAME --group_name WANDB_GROUP_NAME --sweep_count N --metric_opt [ eval/accuracy | eval/validation | eval/loss | eval/precision | eval/recall ] --output_dir OUTPUT_DIR
 
   # use the WANDB_ENTITY_NAME, WANDB_PROJECT_NAME and the best run id corresponding to the sweep
   # WANDB_GROUP_NAME should be changed to reflect the new category of runs (eg "cval")
-  python cross_validate.py <TRAIN_DATA> <FORMAT> --test TEST_DATA --valid VALIDATION_DATA --entity_name WANDB_ENTITY_NAME --project_name WANDB_PROJECT_NAME --group_name WANDB_GROUP_NAME --kfolds N --config_from_run WANDB_RUN_ID --output_dir OUTPUT_DIR
+  cross_validate <TRAIN_DATA> <FORMAT> --test TEST_DATA --valid VALIDATION_DATA --entity_name WANDB_ENTITY_NAME --project_name WANDB_PROJECT_NAME --group_name WANDB_GROUP_NAME --kfolds N --config_from_run WANDB_RUN_ID --output_dir OUTPUT_DIR
 
 
 .. NOTE::
@@ -174,15 +229,17 @@ The included method only works on deep learning models. For more information on 
 .. _https://arxiv.org/pdf/2202.02842.pdf: https://arxiv.org/pdf/2202.02842.pdf
 
 ::
-  
-  python fit_powerlaw.py -i [ INFILE_PATH ... ] -t OUTPUT_DIR -a N
+
+  fit_powerlaw -i [ INFILE_PATH ... ] -t OUTPUT_DIR -a N
 
 
 Background
 ----------
 
-.. `The name is a reference to a "base state"`_ which we are trying to achieve with our data representation.
-
-.. _The name is a reference to a "base state": https://en.wikipedia.org/wiki/Ziran
-
 *To be written*
+
+
+Acknowledgements
+----------------
+
+TC was supported by an Australian Government Research Training Program (RTP) Scholarship and Monash Faculty of Science Dean’s Postgraduate Research Scholarship. ST acknowledges support from Early Mid-Career Fellowship by Australian Academy of Science and Australian Women Research Success Grant at Monash University. AP and ST acnowledge MRFF funding for the SuperbugAI flagship. [This work was supported by the [MASSIVE HPC facility](www.massive.org.au) and the authors thank the Monash Bioinformatics Platform as well as the HPC team at Monash eResearch Centre for their continuous personnel support. We thank Yashpal Ramakrishnaiah for helpful suggestions on package management, code architecture and documentation hosting. We thank Jane Hawkey for advice on recovering deprecated bacterial protein identifier mappings in NCBI. We thank Andrew Perry and Richard Lupat for helping resolve an issue with the python package building process. Biorender was used to create many figures in this publication. [We acknowledge and pay respects to the Elders and Traditional Owners of the land on which our 4 Australian campuses stand](https://www.monash.edu/indigenous-australians/about-us/recognising-traditional-owners).

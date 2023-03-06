@@ -21,6 +21,10 @@ Any ``fasta`` file can be used.
 Results
 -------
 
+.. NOTE::
+
+  Entry points are available if this is installed using the automated conda method. You can then use the command line argument directly, for example: ``create_dataset_bio``. If not, you will need to use the script directly, which follows the same naming pattern, for example: ``python create_dataset_bio.py``.
+
 Running the code as below::
 
   python generate_synthetic.py \

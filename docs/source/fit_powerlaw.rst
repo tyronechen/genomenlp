@@ -24,6 +24,10 @@ Directories containing trained models from a standard ``huggingface`` or ``pytor
 Results
 -------
 
+.. NOTE::
+
+  Entry points are available if this is installed using the automated conda method. You can then use the command line argument directly, for example: ``create_dataset_bio``. If not, you will need to use the script directly, which follows the same naming pattern, for example: ``python create_dataset_bio.py``.
+
 Running the code as below::
 
   python fit_powerlaw.py -i [ INFILE_PATH ... ] -t OUTPUT_DIR -a N
@@ -33,7 +37,7 @@ Plots will be output to the directory. A combined plot with all performance over
 Notes
 -----
 
-Interpreting the plots may not be straightforward. Please refer to the publication for more information (`https://arxiv.org/pdf/2202.02842.pdf`_). 
+Interpreting the plots may not be straightforward. Please refer to the publication for more information (`https://arxiv.org/pdf/2202.02842.pdf`_).
 
 Usage
 -----

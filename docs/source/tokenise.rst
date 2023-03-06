@@ -12,7 +12,7 @@ All available via ``pip install``::
   scikit-learn==1.1.1
   tqdm==4.64.0
   transformers==4.18.0
-  tokenizers==0.11.6  
+  tokenizers==0.11.6
   xgboost==1.7.1
   yellowbrick==1.3.post1
 
@@ -24,6 +24,10 @@ Any ``fasta`` file can be used.
 
 Results
 -------
+
+.. NOTE::
+
+  Entry points are available if this is installed using the automated conda method. You can then use the command line argument directly, for example: ``create_dataset_bio``. If not, you will need to use the script directly, which follows the same naming pattern, for example: ``python create_dataset_bio.py``.
 
 Running the code as below:
 

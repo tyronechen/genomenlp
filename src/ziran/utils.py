@@ -146,6 +146,11 @@ def _compute_metrics(eval_preds):
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
 
+def _cite_me():
+    """Print the citation for this paper before and after each run"""
+    # to be added once the manuscript is published
+    pass
+
 def get_feature_importance_mdi(clf, features, model_type, show_features: int=50,
                                output_dir: str=".") -> pd.Series:
     """Calculate feature importance by Gini scores. This is more effective when
@@ -718,7 +723,7 @@ def process_seqs(infile_path: str, outfile_path: str, rc: bool=True, chunk: int=
                             tmp.write("".join([subhead, "__RC", ","]))
                             tmp.write("".join([reverse_complement(seq[i]), "\n"]))
 
-class EmbedSeqsKmers(object):
+class _EmbedSeqsKmers(object):
     """this doesnt work correctly, keeps getting the same instance back."""
 
     def __init__(self, infile_paths: str, ksize: int, slide=1, rc: bool=True, chunk: int=None):
