@@ -23,6 +23,8 @@ def main():
                         help='path to files with biological seqs split by line')
     parser.add_argument('-t', '--tokeniser_path', type=str, default="",
                         help='path to tokeniser.json file to save or load data')
+    parser.add_argument('-v', '--vocab_size', type=int, default=32000,
+                        help='select vocabulary size (DEFAULT: 32000)')
     parser.add_argument('-s', '--special_tokens', type=str, nargs="+",
                         default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
                         help='assign special tokens, eg space and pad tokens \
@@ -33,6 +35,7 @@ def main():
     args = parser.parse_args()
     infile_paths = args.infile_paths
     tokeniser_path = args.tokeniser_path
+    vocab_size = args.vocab_size
     special_tokens = args.special_tokens
     example_seq = args.example_seq
 
@@ -58,7 +61,7 @@ def main():
         tokeniser.train_from_iterator(
             _gzip_iterator(infile_paths),
             unk_token="<unk>",
-            vocab_size=32000,
+            vocab_size=vocab_size,
             show_progress=True,
             special_tokens=special_tokens,
             # limit_alphabet=500,
