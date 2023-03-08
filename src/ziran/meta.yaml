@@ -4,8 +4,8 @@ package:
 
 source:
   git_rev: v1.0.6
-  git_url: https://github.com/tyronechen/ziran.git
-  #git_url: /fs04/lz25/tyronec/repos/test/ziran
+  # git_url: https://github.com/tyronechen/ziran.git
+  git_url: /fs04/lz25/tyronec/repos/test/ziran
   # url: https://github.com/tyronechen/ziran/releases/download/{{ version }}/ziran-{{ version }}.tar.gz
   git_depth: 0
 
