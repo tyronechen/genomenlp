@@ -1,4 +1,10 @@
 #!/usr/bin/python
+# make sure utils can be imported
+import inspect
+import os
+import sys
+sys.path.insert(0, os.path.dirname(inspect.getfile(lambda: None)))
+
 # generic tools
 import itertools
 import json
@@ -16,7 +22,7 @@ from sklearn.inspection import permutation_importance
 from tqdm import tqdm
 import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
-import weightwatcher as ww
+# import weightwatcher as ww
 
 def _init_sp_tokeniser(vocab=None):
     """Helper function to generate SP-like formatted tokeniser from k-mers"""

@@ -1,3 +1,11 @@
+#!/usr/bin/python
+# make sure utils can be imported
+import inspect
+import os
+import sys
+sys.path.insert(0, os.path.dirname(inspect.getfile(lambda: None)))
+
+# perform power law fitting
 import argparse
 import os
 import logging

@@ -1,4 +1,10 @@
 #!/usr/bin/python
+# make sure utils can be imported
+import inspect
+import os
+import sys
+sys.path.insert(0, os.path.dirname(inspect.getfile(lambda: None)))
+
 import argparse
 import json
 import os
