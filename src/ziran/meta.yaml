@@ -1,9 +1,9 @@
 package:
   name: "ziran"
-  version: "1.0.7"
+  version: "1.0.8"
 
 source:
-  git_rev: v1.0.7
+  git_rev: v1.0.8
   # git_url: https://github.com/tyronechen/ziran.git
   git_url: /fs04/lz25/tyronec/repos/test/ziran
   # url: https://github.com/tyronechen/ziran/releases/download/{{ version }}/ziran-{{ version }}.tar.gz
@@ -13,21 +13,21 @@ build:
   script: {{ PYTHON }} -m pip install . -vv
   number: 0
   entry_points:
-    - create_dataset_bio = "ziran.create_dataset_bio:main"
-    - create_dataset_nlp = "ziran.create_dataset_nlp:main"
-    - create_embedding_bio_sp = "ziran.create_embedding_bio_sp:main"
-    - create_embedding_bio_kmers = "ziran.create_embedding_bio_kmers:main"
-    - cross_validate = "ziran.cross_validate:main"
-    - embedding_pipeline = "ziran.embedding_pipeline:main"
-    - fit_powerlaw = "ziran.fit_powerlaw:main"
-    - freq_pipeline = "ziran.freq_pipeline:main"
-    - generate_synthetic = "ziran.generate_synthetic:main"
-    - kmerise_bio = "ziran.kmerise_bio:main"
-    - parse_sp_tokens = "ziran.parse_sp_tokens:main"
-    - summarise_metrics = "ziran.summarise_metrics:main"
-    - sweep = "ziran.sweep:main"
-    - tokenise_bio = "ziran.tokenise_bio:main"
-    - train = "ziran.train:main"
+    - create_dataset_bio = ziran.create_dataset_bio:main
+    - create_dataset_nlp = ziran.create_dataset_nlp:main
+    - create_embedding_bio_sp = ziran.create_embedding_bio_sp:main
+    - create_embedding_bio_kmers = ziran.create_embedding_bio_kmers:main
+    - cross_validate = ziran.cross_validate:main
+    - embedding_pipeline = ziran.embedding_pipeline:main
+    - fit_powerlaw = ziran.fit_powerlaw:main
+    - freq_pipeline = ziran.freq_pipeline:main
+    - generate_synthetic = ziran.generate_synthetic:main
+    - kmerise_bio = ziran.kmerise_bio:main
+    - parse_sp_tokens = ziran.parse_sp_tokens:main
+    - summarise_metrics = ziran.summarise_metrics:main
+    - sweep = ziran.sweep:main
+    - tokenise_bio = ziran.tokenise_bio:main
+    - train = ziran.train:main
 
 requirements:
   host:
