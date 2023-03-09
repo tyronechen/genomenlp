@@ -377,6 +377,7 @@ def main():
             ):
             # set sweep configuration
             config = wandb.config
+            api = wandb.Api(timeout=10000)
             sweep_dir = "/".join([args.output_dir, sweep_config["name"]])
             print("\nLOGGING OUTPUT TO:\n", sweep_dir, "\n")
             # set training arguments
