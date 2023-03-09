@@ -225,7 +225,12 @@ def main():
     # print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
     if model == "distilbert":
-        config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
+        config = DistilBertConfig(
+            vocab_size=vocab_size,
+            num_labels=2,
+            output_hidden_states=True,
+            output_attentions=True
+            )
         model = DistilBertForSequenceClassification(config)
         model.resize_token_embeddings(len(tokeniser))
         model = model.to(device)
@@ -235,7 +240,12 @@ def main():
             model = model.to(device)
             return model
     if model == "longformer":
-        config = LongformerConfig(vocab_size=vocab_size, num_labels=2)
+        config = LongformerConfig(
+            vocab_size=vocab_size,
+            num_labels=2,
+            output_hidden_states=True,
+            output_attentions=True
+            )
         model = LongformerForSequenceClassification(config)
         model.resize_token_embeddings(len(tokeniser))
         model = model.to(device)

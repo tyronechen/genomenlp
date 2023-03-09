@@ -208,12 +208,22 @@ def main():
         return metrics
 
     if model == "distilbert":
-        config = DistilBertConfig(vocab_size=vocab_size, num_labels=2)
+        config = DistilBertConfig(
+            vocab_size=vocab_size,
+            num_labels=2,
+            output_hidden_states=True,
+            output_attentions=True
+            )
         model = DistilBertForSequenceClassification(config).to(device)
         def _model_init():
             return DistilBertForSequenceClassification(config).to(device)
     if model == "longformer":
-        config = LongformerConfig(vocab_size=vocab_size, num_labels=2)
+        config = LongformerConfig(
+            vocab_size=vocab_size,
+            num_labels=2,
+            output_hidden_states=True,
+            output_attentions=True
+            )
         model = LongformerForSequenceClassification(config).to(device)
         def _model_init():
             return LongformerForSequenceClassification(config).to(device)
