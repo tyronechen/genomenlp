@@ -25,7 +25,11 @@ def main():
     parser.add_argument('-o', '--output_dir', type=str, default="./vis_out",
                         help='specify path for output (DEFAULT: ./vis_out)')
     parser.add_argument('-l', '--label_names', type=str, default=None, nargs="+",
-                        help='provide column with label names (DEFAULT: "").')
+                        help='provide label names (DEFAULT: "").')
+    parser.add_argument('-a', '--attribution', type=str, default=None,
+                        help='provide attribution matching label (DEFAULT: "").')
+    parser.add_argument('-t', '--true_class', type=str, default=None,
+                        help='provide label of the true class (DEFAULT: "").')
 
     args = parser.parse_args()
     seqs_file = args.seqs_file
@@ -33,6 +37,8 @@ def main():
     tokeniser_path = args.tokeniser_path
     output_dir = args.output_dir
     label_names = args.label_names
+    attribution = args.attribution
+    true_class = args.true_class
 
     print("\n\nARGUMENTS:\n", args, "\n\n")
 
@@ -50,9 +56,11 @@ def main():
         )
 
     with screed.open(seqs_file) as infile:
-        for read in tqdm(infile):
-            explainer(read.sequence.upper())
-            explainer.visualize("".join([output_dir, "/", read.name, ".html"]))
+        for read in tqdm(infile, desc="Parsing seqs"):
+            explainer(read.sequence.upper(), class_name=attribution)
+            explainer.visualize(
+                "".join([output_dir, "/", read.name, ".html"]), true_class
+                )
 
 if __name__ == "__main__":
     main()
