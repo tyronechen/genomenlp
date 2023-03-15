@@ -86,7 +86,7 @@ def main():
     if os.path.exists(tmp_hf_out):
         os.remove(tmp_hf_out)
 
-    csv_to_hf(tmp_control, tmp_infile, tmp_hf_out)
+    csv_to_hf(tmp_infile, tmp_control, tmp_hf_out)
     os.remove(tmp_control)
     os.remove(tmp_infile)
 
