@@ -27,8 +27,8 @@ def main():
         to HuggingFace🤗 dataset object. Fasta files can be .gz. Sequences are \
         reverse complemented by default.'
     )
-    parser.add_argument('infile_path', type=str, help='path to fasta/gz file')
-    parser.add_argument('control_dist', type=str, help='supply control seqs')
+    parser.add_argument('infile_path_1', type=str, help='path to fasta/gz file')
+    parser.add_argument('infile_path_2', type=str, help='path to fasta/gz file')
     parser.add_argument('tokeniser_path', type=str, help='load tokeniser file')
     parser.add_argument('-o', '--outfile_dir', type=str, default="hf_out/",
                         help='write 🤗 dataset to directory as \
@@ -51,8 +51,8 @@ def main():
                         help='turn off shuffle for data split (DEFAULT: ON)')
 
     args = parser.parse_args()
-    infile_path = args.infile_path
-    control_dist = args.control_dist
+    infile_path_1 = args.infile_path_1
+    infile_path_2 = args.infile_path_2
     tokeniser_path = args.tokeniser_path
     outfile_dir = args.outfile_dir
     special_tokens = args.special_tokens
@@ -72,15 +72,15 @@ def main():
     # TODO: theres probably a better way to optimise this, all disk operations
     #   write seqs as sql db and read sequentially into pd df?
     #   but need to handle the conversion to huggingface dataset object also
-    tmp_control = "".join([outfile_dir, "/.null.tmp"])
-    if os.path.exists(tmp_control):
-        os.remove(tmp_control)
-    process_seqs(control_dist, tmp_control, rc=do_reverse_complement, chunk=chunk)
-
     tmp_infile = "".join([outfile_dir, "/.data.tmp"])
     if os.path.exists(tmp_infile):
         os.remove(tmp_infile)
-    process_seqs(infile_path, tmp_infile, rc=do_reverse_complement, chunk=chunk)
+    process_seqs(infile_path_1, tmp_infile, rc=do_reverse_complement, chunk=chunk)
+
+    tmp_control = "".join([outfile_dir, "/.null.tmp"])
+    if os.path.exists(tmp_control):
+        os.remove(tmp_control)
+    process_seqs(infile_path_2, tmp_control, rc=do_reverse_complement, chunk=chunk)
 
     tmp_hf_out = "".join([outfile_dir, "data.hf.csv"])
     if os.path.exists(tmp_hf_out):
