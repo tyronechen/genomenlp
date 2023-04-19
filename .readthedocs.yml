@@ -1,0 +1,10 @@
+version: 1.0.9
+
+sphinx:
+  builder: htmldir
+  configuration: docs/source/conf.py
+
+python:
+  version: 3.9
+  install:
+    - requirements: docs/requirements.txt
