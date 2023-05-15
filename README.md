@@ -31,7 +31,7 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 
 ## Cite us with:
 
-*To be written*
+*Will be provided on publication*
 
 ## Install
 
@@ -85,7 +85,7 @@ You should then be able to run the scripts manually from ``src/ziran``. As with 
 
 Please refer to the documentation for detailed usage information.
 
-*To be linked once documentation is online*
+[![](https://readthedocs.org/projects/ziran/badge/?version=latest&style=for-the-badge)](https://ziran.readthedocs.io/en/latest/)
 
 ## Acknowledgements
 

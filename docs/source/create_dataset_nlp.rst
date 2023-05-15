@@ -1,5 +1,5 @@
-Create a HuggingFace dataset object from sequences (NLP version)
-================================================================
+Create a dataset object from sequences (NLP version)
+====================================================
 
 This explains the use of ``create_dataset_nlp.py``. We generate a ``HuggingFace`` dataset object given a ``csv`` file containing sequences which can be of multiple categories, a pretrained ``tokeniser`` from ``tokeniser.py``, and column names corresponding to the ``title``, ``labels`` and ``sequence`` of each entry in the corpus.
 

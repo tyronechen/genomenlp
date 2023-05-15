@@ -1,5 +1,5 @@
-Create a HuggingFace dataset object from sequences
-==================================================
+Create a dataset object from sequences
+======================================
 
 This explains the use of ``create_dataset_bio.py``. We generate a ``HuggingFace`` dataset object given a ``fasta`` file containing sequences, a ``fasta`` file containing control sequences, and a pretrained ``tokeniser`` from ``tokeniser.py``.
 

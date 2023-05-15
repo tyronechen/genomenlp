@@ -142,7 +142,7 @@ Sweep parameters and search space should be passed in as a ``json`` file.
                           number of features in data to use (DEFAULT: ALL)
                           NOTE: this is separate from the vocab_size argument.
                           under normal circumstances (eg a tokeniser generated
-                          by SentencePiece), setting this is not necessary
+                          by tokenise_bio), setting this is not necessary
     -o OUTPUT_DIR, --output_dir OUTPUT_DIR
                           specify path for output (DEFAULT: ./sweep_out)
     -d DEVICE, --device DEVICE

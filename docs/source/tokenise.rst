@@ -1,7 +1,7 @@
-Create a SentencePiece token set from sequences
-===============================================
+Create a token set from sequences
+=================================
 
-This explains the use of ``kmerise_bio.py`` and ``tokenise_bio.py``. In ``tokenise_bio.py`` we run a variant of ``SentencePiece`` on biological sequence data.
+This explains the use of ``kmerise_bio.py`` and ``tokenise_bio.py``. In ``tokenise_bio.py`` we empirically derive tokens from biological sequence data which can be used in downstream applications.
 
 Requirements
 ------------
@@ -20,7 +20,7 @@ All available via ``pip install``::
 Source data
 -----------
 
-Any ``fasta`` file can be used.
+Any ``fasta`` file can be used (nucleic acid or protein).
 
 Results
 -------
@@ -53,11 +53,9 @@ For k-mers, ``HuggingFace``-like dataset files will be written to disk in the sa
 Notes
 -----
 
-The `original SentencePiece github repository is available here`_. Please note that we use the variant of SentencePiece in the ``tokenizers`` package specifically, `which is also available on github`_.
+Please refer to `HuggingFace tokenisers`_ for more detailed information:
 
-.. _original SentencePiece github repository is available here: https://github.com/google/sentencepiece
-
-.. _which is also available on github: https://github.com/huggingface/tokenizers
+.. _HuggingFace tokenisers: https://github.com/huggingface/tokenizers
 
 Usage
 -----
@@ -73,7 +71,7 @@ For empirical tokenisation, the next step is to run ``create_dataset_bio.py``.
   usage: tokenise.py [-h] [-i INFILE_PATHS [INFILE_PATHS ...]] [-t TOKENISER_PATH]
                      [-s SPECIAL_TOKENS [SPECIAL_TOKENS ...]] [-e EXAMPLE_SEQ]
 
-  Take gzip fasta file(s), run SentencePiece and export json.
+  Take gzip fasta file(s), run empirical tokenisation and export json.
 
   options:
     -h, --help            show this help message and exit
