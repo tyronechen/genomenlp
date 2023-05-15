@@ -143,11 +143,11 @@ dependencies = [ # Optional
 # maintainers, and where to support the project financially. The key is
 # what's used to render the link text on PyPI.
 [project.urls]  # Optional
-"Homepage" = "https://gitlab.com/tyagilab/ziran"
-"Bug Reports" = "https://gitlab.com/tyagilab/ziran/issues"
+"Homepage" = "https://github.com/tyronechen/ziran"
+"Bug Reports" = "https://github.com/tyronechen/ziran/issues"
 # "Funding" = "https://donate.pypi.org"
 # "Say Thanks!" = "http://saythanks.io/to/example"
-"Source" = "https://gitlab.com/tyagilab/ziran"
+"Source" = "https://github.com/tyronechen/ziran"
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
