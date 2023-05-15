@@ -1,5 +1,5 @@
-Welcome to ziran's documentation!
-=================================
+Welcome to ziran and genomicBERT's documentation!
+=================================================
 
 .. toctree::
   :maxdepth: 2
