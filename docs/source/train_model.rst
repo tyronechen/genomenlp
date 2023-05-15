@@ -1,5 +1,5 @@
-Train a deep learning classifier
-================================
+genomicBERT: Train a deep learning classifier
+=============================================
 
 This explains the use of ``train.py``. Use this if you already know what hyperparameters are needed. Otherwise use ``sweep.py``. For conventional machine learning, the sweep, train and cross validation steps are combined in one operation.
 

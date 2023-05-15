@@ -1,7 +1,7 @@
 Compare performance of different deep learning models
 =====================================================
 
-This explains the use of ``fit_powerlaw.py``. Only works on deep learning models. For more information on the method, including interpretation, please refer to the publication (`https://arxiv.org/pdf/2202.02842.pdf`_).
+This explains the use of ``fit_powerlaw.py``. Only works on deep learning models through the ``genomicBERT`` pipeline. For more information on the method, including interpretation, please refer to the publication (`https://arxiv.org/pdf/2202.02842.pdf`_).
 
 .. _https://arxiv.org/pdf/2202.02842.pdf: https://arxiv.org/pdf/2202.02842.pdf
 

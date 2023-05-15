@@ -8,7 +8,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/ziran/badges/platforms.svg)](https://anaconda.org/tyronechen/ziran)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/ziran/badges/downloads.svg)](https://anaconda.org/tyronechen/ziran)
 
-# Ziran: Genome recoding for Machine Learning Usage
+# Ziran: Genome recoding for Machine Learning Usage incorporating genomicBERT
 
 > **NOTE**: The [main repository is on gitlab](https://gitlab.com/tyagilab/ziran). Please submit any issues to the main gitlab repository only.
 
@@ -21,7 +21,7 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 ## Highlights
 
 - We provide a comprehensive classification of genomic data tokenisation and representation approaches for ML applications along with their pros and cons.
-- We infer k-mers directly from the data and handle out-of-vocabulary words. At the same time, we achieve a significantly reduced vocabulary size compared to the conventional k-mer approach reducing the computational complexity drastically.
+- Using our ``genomicBERT`` deep learning pipeline, we infer k-mers directly from the data and handle out-of-vocabulary words. At the same time, we achieve a significantly reduced vocabulary size compared to the conventional k-mer approach reducing the computational complexity drastically.
 - Our method is agnostic to species or biomolecule type as it is data-driven.
 - We enable comparison of trained model performance without requiring original input data, metadata or hyperparameter settings.
 - We present the first publicly available, high-level toolkit that infers the grammar of genomic data directly through artificial neural networks.
@@ -83,7 +83,7 @@ You should then be able to run the scripts manually from ``src/ziran``. As with 
 
 ## Usage
 
-Please refer to the documentation for detailed usage information.
+Please refer to the documentation for detailed usage information of the package and the ``genomicBERT`` pipeline.
 
 [![](https://readthedocs.org/projects/ziran/badge/?version=latest&style=for-the-badge)](https://ziran.readthedocs.io/en/latest/)
 
@@ -91,4 +91,4 @@ Please refer to the documentation for detailed usage information.
 
 TC was supported by an Australian Government Research Training Program (RTP) Scholarship and Monash Faculty of Science Dean’s Postgraduate Research Scholarship. ST acknowledges support from Early Mid-Career Fellowship by Australian Academy of Science and Australian Women Research Success Grant at Monash University. AP and ST acnowledge MRFF funding for the SuperbugAI flagship. [This work was supported by the [MASSIVE HPC facility](www.massive.org.au) and the authors thank the Monash Bioinformatics Platform as well as the HPC team at Monash eResearch Centre for their continuous personnel support. We thank Yashpal Ramakrishnaiah for helpful suggestions on package management, code architecture and documentation hosting. We thank Jane Hawkey for advice on recovering deprecated bacterial protein identifier mappings in NCBI. We thank Andrew Perry and Richard Lupat for helping resolve an issue with the python package building process. Biorender was used to create many figures in this publication. [We acknowledge and pay respects to the Elders and Traditional Owners of the land on which our 4 Australian campuses stand](https://www.monash.edu/indigenous-australians/about-us/recognising-traditional-owners).
 
-> **NOTE**: References are listed in the introduction section.
+<!-- > **NOTE**: References are listed in the introduction section. -->

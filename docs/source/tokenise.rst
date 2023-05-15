@@ -1,7 +1,7 @@
 Create a token set from sequences
 =================================
 
-This explains the use of ``kmerise_bio.py`` and ``tokenise_bio.py``. In ``tokenise_bio.py`` we empirically derive tokens from biological sequence data which can be used in downstream applications.
+This explains the use of ``kmerise_bio.py`` and ``tokenise_bio.py``. In ``tokenise_bio.py`` we empirically derive tokens from biological sequence data which can be used in downstream applications such as ``genomicBERT``.
 
 Requirements
 ------------

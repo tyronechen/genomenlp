@@ -1,7 +1,7 @@
 Perform cross-validation
 ========================
 
-This explains the use of ``cross_validate.py`` for deep learning. For conventional machine learning, the sweep, train and cross validation steps are combined in one operation.
+This explains the use of ``cross_validate.py`` for deep learning through the ``genomicBERT`` pipeline. For conventional machine learning, the sweep, train and cross validation steps are combined in one operation.
 
 Requirements
 ------------

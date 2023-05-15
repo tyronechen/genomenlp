@@ -1,7 +1,7 @@
 Perform a hyperparameter sweep
 ==============================
 
-This explains the use of ``sweep.py`` for deep learning. If you already know what hyperparameters are needed, you can use ``train_model.py``. For conventional machine learning, the sweep, train and cross validation steps are combined in one operation.
+This explains the use of ``sweep.py`` for machine and deep learning through ``genomicBERT``. If you already know what hyperparameters are needed, you can use ``train_model.py``. For conventional machine learning, the sweep, train and cross validation steps are combined in one operation.
 
 Requirements
 ------------
@@ -64,8 +64,8 @@ The `original documentation to specify training arguments is available here`_.
 Usage
 -----
 
-Deep learning
-+++++++++++++
+genomicBERT: Deep learning
+++++++++++++++++++++++++++
 
 Sweep parameters and search space should be passed in as a ``json`` file.
 

@@ -1,7 +1,7 @@
 Create embeddings from a tokenised dataset
 ==========================================
 
-This explains the use of ``create_embedding_bio_sp.py`` and ``create_embedding_bio_kmers.py``. Only use this if you plan to use embeddings.
+This explains the use of ``create_embedding_bio_sp.py`` and ``create_embedding_bio_kmers.py``. Only use this if you plan to use embeddings directly.
 
 Requirements
 ------------

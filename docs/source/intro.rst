@@ -1,5 +1,5 @@
-Ziran: Genome recoding for Machine Learning Usage
-=================================================
+Ziran: Genome recoding for Machine Learning Usage incorporating genomicBERT
+===========================================================================
 
 .. raw:: html
 
@@ -28,7 +28,7 @@ Highlights
 ----------
 
 - We provide a comprehensive classification of genomic data tokenisation and representation approaches for ML applications along with their pros and cons.
-- We infer k-mers directly from the data and handle out-of-vocabulary words. At the same time, we achieve a significantly reduced vocabulary size compared to the conventional k-mer approach reducing the computational complexity drastically.
+- Using our ``genomicBERT`` deep learning pipeline, we infer k-mers directly from the data and handle out-of-vocabulary words. At the same time, we achieve a significantly reduced vocabulary size compared to the conventional k-mer approach reducing the computational complexity drastically.
 - Our method is agnostic to species or biomolecule type as it is data-driven.
 - We enable comparison of trained model performance without requiring original input data, metadata or hyperparameter settings.
 - We present the first publicly available, high-level toolkit that infers the grammar of genomic data directly through artificial neural networks.
@@ -40,7 +40,7 @@ Highlights
 Cite us with:
 -------------
 
-*To be written*
+*Will be provided on publication*
 
 
 Install
@@ -122,7 +122,7 @@ If installed correctly using the manual ``conda`` method, each of the above comm
 1. Preprocessing
 ++++++++++++++++
 
-Tokenise the biological sequence data into segments using either empirical tokenisation or conventional k-mers. Provide input data as gzipped fasta files. Empirical tokenisation is a two-step process, while in k-merisation the tokenisation and dataset creation is performed in the same operation.
+Tokenise the biological sequence data into segments using either empirical tokenisation or conventional k-mers. Provide input data as gzipped fasta files. Empirical tokenisation is a two-step process, while in k-merisation the tokenisation and dataset creation is performed in the same operation. Both methods generate data compatible with the ``genomicBERT`` pipeline.
 
 Empirical tokenisation pathway::
 
@@ -153,7 +153,7 @@ Embedding pathway (input files here are ``csv`` created from previous step)::
 
 Feed the data preprocessed in the previous step into the classification pipeline. Set ``freq_method`` and ``model`` combination as needed. Hyperparameter sweeping is performed by default. For non-deep learning methods, cross-validation is performed in the same operation.
 
-Deep learning requires a ``wandb`` account set up and configured to visualise interactive plots in real time. `Please follow the instructions on wandb to configure your own account.`_
+Deep learning with the ``genomicBERT`` pipeline requires a ``wandb`` account set up and configured to visualise interactive plots in real time. `Please follow the instructions on wandb to configure your own account.`_
 
 .. _Please follow the instructions on wandb to configure your own account.: https://wandb.ai/home
 
@@ -169,7 +169,7 @@ Embedding::
 
   ``--model_features`` can be set to reduce the number of features used. Number of threads can be set with ``--njobs``. ``--sweep_method`` can be set to change search method between ``[ grid | random ]``.
 
-Deep learning::
+``genomicBERT`` deep learning pipeline::
 
   sweep <TRAIN_DATA> <FORMAT> <TOKENISER_PATH> --test TEST_DATA --valid VALIDATION_DATA --hyperparameter_sweep PARAMS.JSON --entity_name WANDB_ENTITY_NAME --project_name WANDB_PROJECT_NAME --group_name WANDB_GROUP_NAME --sweep_count N --metric_opt [ eval/accuracy | eval/validation | eval/loss | eval/precision | eval/recall ] --output_dir OUTPUT_DIR
 
@@ -224,10 +224,10 @@ Deep learning::
 
    </details>
 
-3. Comparing deep learning models
-+++++++++++++++++++++++++++++++++
+3. Comparing deep learning models trained by genomicBERT
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-The included method only works on deep learning models. For more information on the method, including interpretation, please refer to the publication (`https://arxiv.org/pdf/2202.02842.pdf`_).
+The included method only works on deep learning models, including those trained through the ``genomicBERT`` pipeline. For more information on the method, including interpretation, please refer to the publication (`https://arxiv.org/pdf/2202.02842.pdf`_).
 
 .. _https://arxiv.org/pdf/2202.02842.pdf: https://arxiv.org/pdf/2202.02842.pdf
 
