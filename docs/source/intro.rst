@@ -19,9 +19,9 @@ Code in this repository is provided under a `MIT license`_. This documentation i
 
 .. NOTE::
 
-  `The main repository is on gitlab.`_ Please submit any issues to the main gitlab repository only.
+  `The main repository is on github`_ but also mirrored on gitlab. Please submit any issues to the main github repository only.
 
-.. _The main repository is on gitlab.: https://gitlab.com/tyagilab/ziran
+.. _The main repository is on github: https://github.com/tyronechen/ziran
 
 
 Highlights
