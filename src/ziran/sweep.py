@@ -210,7 +210,8 @@ def main():
             dataset[i] = dataset[i].remove_columns("token_type_ids")
         if "input_str" in dataset[i].features:
             dataset[i] = dataset[i].remove_columns("input_str")
-    dataset = dataset.class_encode_column(args.label_names[0])
+        if type(dataset[i].features[args.label_names[0]]) != ClassLabel:
+            dataset[i] = dataset[i].class_encode_column(args.label_names[0])
     # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
     dataset = dataset.map(
