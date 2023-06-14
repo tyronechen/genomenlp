@@ -206,12 +206,18 @@ def main():
                                                 padding="longest")
 
     for i in dataset:
+        if "input_ids" in dataset[i].features:
+            dataset[i].features["input_ids"] = Value('int32')
+        if "attention_mask" in dataset[i].features:
+            dataset[i].features["attention_mask"] = Value('int8')
         if "token_type_ids" in dataset[i].features:
             dataset[i] = dataset[i].remove_columns("token_type_ids")
         if "input_str" in dataset[i].features:
             dataset[i] = dataset[i].remove_columns("input_str")
+        # by default this will be "labels"
         if type(dataset[i].features[args.label_names[0]]) != ClassLabel:
-            dataset[i] = dataset[i].class_encode_column(args.label_names[0])
+            dataset[i] = dataset[i].class_encode_column(args.label_names[0])    
+
     # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
     dataset = dataset.map(
