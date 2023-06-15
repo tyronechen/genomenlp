@@ -235,8 +235,8 @@ def main():
         config = DistilBertConfig(
             vocab_size=vocab_size,
             num_labels=2,
-            output_hidden_states=True,
-            output_attentions=True
+            # output_hidden_states=True,
+            # output_attentions=True
             )
         model = DistilBertForSequenceClassification(config)
         model.resize_token_embeddings(len(tokeniser))
@@ -250,8 +250,8 @@ def main():
         config = LongformerConfig(
             vocab_size=vocab_size,
             num_labels=2,
-            output_hidden_states=True,
-            output_attentions=True
+            # output_hidden_states=True,
+            # output_attentions=True
             )
         model = LongformerForSequenceClassification(config)
         model.resize_token_embeddings(len(tokeniser))
