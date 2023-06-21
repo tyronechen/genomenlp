@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'ziran genomicBERT'
+project = 'genomeNLP'
 copyright = '2022, Tyrone Chen'
 author = 'Tyrone Chen'
 
