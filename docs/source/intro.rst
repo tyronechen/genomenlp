@@ -1,4 +1,4 @@
-Ziran: Genome recoding for Machine Learning Usage incorporating genomicBERT
+genomeNLP: Genome recoding for Machine Learning Usage incorporating genomicBERT
 ===========================================================================
 
 .. raw:: html
@@ -21,7 +21,7 @@ Code in this repository is provided under a `MIT license`_. This documentation i
 
   `The main repository is on github`_ but also mirrored on gitlab. Please submit any issues to the main github repository only.
 
-.. _The main repository is on github: https://github.com/tyronechen/ziran
+.. _The main repository is on github: https://github.com/tyronechen/genomenlp
 
 
 Highlights
@@ -53,7 +53,7 @@ This is the recommended install method as it automatically handles dependencies.
 
 First try this::
 
-  conda install -c tyronechen ziran
+  conda install -c tyronechen genomenlp
 
 If there are any errors with the previous step (especially if you are on a cluster with GPU access), try this first and then repeat the previous step::
 
@@ -81,13 +81,13 @@ Then manually install the following dependencies with ``conda`` or ``pip``::
   sentencepiece==0.1.96
   tokenizers==0.12.1
   tqdm==4.64.0
-  transformers==4.23.1
+  transformers==4.30.0
   wandb==0.13.4
   weightwatcher==0.5.9
   xgboost==1.7.1
   yellowbrick==1.3.post1
 
-You should then be able to run the scripts manually from ``src/ziran``. As with the automated step, ``cudatoolkit`` may be required.
+You should then be able to run the scripts manually from ``src/genomenlp``. As with the automated step, ``cudatoolkit`` may be required.
 
 
 Usage
@@ -107,6 +107,7 @@ If installed correctly using the automated ``conda`` method, each of these comma
   fit_powerlaw
   freq_pipeline
   generate_synthetic
+  interpret
   kmerise_bio
   parse_sp_tokens
   summarise_metrics

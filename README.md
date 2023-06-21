@@ -1,17 +1,17 @@
 <!-- [![](https://flat.badgen.net/badge/DOI/10.5281%2Fzenodo.4562010/green?scale=1.5)](https://doi.org/10.5281/zenodo.4562010) -->
 <!-- [![](https://flat.badgen.net/docker/size/tyronechen/multiomics/1.0.0/amd64?scale=1.5&color=black)](https://hub.docker.com/repository/docker/tyronechen/multiomics) -->
-[![](https://readthedocs.org/projects/ziran/badge/?version=latest&style=for-the-badge)](https://ziran.readthedocs.io/en/latest/)
+[![](https://readthedocs.org/projects/genomenlp/badge/?version=latest&style=for-the-badge)](https://genomenlp.readthedocs.io/en/latest/)
 [![](https://flat.badgen.net/badge/license/MIT/cyan?scale=1.5)](https://opensource.org/licenses/MIT)
-[![](https://flat.badgen.net/badge/icon/gitlab?icon=gitlab&label&color=orange&scale=1.5)](https://gitlab.com/tyagilab/ziran)
-[![](https://flat.badgen.net/badge/icon/github?icon=github&label&color=black&scale=1.5)](https://github.com/tyronechen/ziran)
+[![](https://flat.badgen.net/badge/icon/gitlab?icon=gitlab&label&color=orange&scale=1.5)](https://gitlab.com/tyagilab/genomenlp)
+[![](https://flat.badgen.net/badge/icon/github?icon=github&label&color=black&scale=1.5)](https://github.com/tyronechen/genomenlp)
 [![](https://flat.badgen.net/badge/icon/@tyagilab?icon=twitter&label&scale=1.5)](https://twitter.com/tyagilab)
-[![Anaconda-Server Badge](https://anaconda.org/tyronechen/ziran/badges/version.svg)](https://anaconda.org/tyronechen/ziran)
-[![Anaconda-Server Badge](https://anaconda.org/tyronechen/ziran/badges/platforms.svg)](https://anaconda.org/tyronechen/ziran)
-[![Anaconda-Server Badge](https://anaconda.org/tyronechen/ziran/badges/downloads.svg)](https://anaconda.org/tyronechen/ziran)
+[![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/version.svg)](https://anaconda.org/tyronechen/genomenlp)
+[![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
+[![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/downloads.svg)](https://anaconda.org/tyronechen/genomenlp)
 
-# Ziran: Genome recoding for Machine Learning Usage incorporating genomicBERT
+# genomeNLP: Genome recoding for Machine Learning Usage incorporating genomicBERT
 
-> **NOTE**: The [main repository is on github](https://github.com/tyronechen/ziran) but is also mirrored on [gitlab](https://gitlab.com/tyagilab/ziran). Please submit any issues to the main github repository only.
+> **NOTE**: The [main repository is on github](https://github.com/tyronechen/genomenlp) but is also mirrored on [gitlab](https://gitlab.com/tyagilab/genomenlp). Please submit any issues to the main github repository only.
 
 Copyright (c) 2022 <a href="https://orcid.org/0000-0002-9207-0385">Tyrone Chen <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, <a href="https://orcid.org/0000-0002-8797-3168">Navya Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, Sarthak Chauhan, <a href="https://orcid.org/0000-0002-2296-2126">Anton Y. Peleg <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, and <a href="https://orcid.org/0000-0003-0181-6258">Sonika Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>.
 
@@ -43,7 +43,7 @@ This is the recommended install method as it automatically handles dependencies.
 First try this:
 
 ```
-conda install -c tyronechen ziran
+conda install -c tyronechen genomenlp
 ```
 
 If there are any errors with the previous step (especially if you are on a cluster with GPU access), try this first and then repeat the previous step:
@@ -73,20 +73,20 @@ seaborn==0.11.2
 sentencepiece==0.1.96
 tokenizers==0.12.1
 tqdm==4.64.0
-transformers==4.23.1
+transformers==4.30.0
 wandb==0.13.4
 weightwatcher==0.5.9
 xgboost==1.7.1
 yellowbrick==1.3.post1
 ```
 
-You should then be able to run the scripts manually from ``src/ziran``. As with the automated step, ``cudatoolkit`` may be required.
+You should then be able to run the scripts manually from ``src/genomenlp``. As with the automated step, ``cudatoolkit`` may be required.
 
 ## Usage
 
 Please refer to the documentation for detailed usage information of the package and the ``genomicBERT`` pipeline.
 
-[![](https://readthedocs.org/projects/ziran/badge/?version=latest&style=for-the-badge)](https://ziran.readthedocs.io/en/latest/)
+[![](https://readthedocs.org/projects/genomenlp/badge/?version=latest&style=for-the-badge)](https://genomenlp.readthedocs.io/en/latest/)
 
 ## Acknowledgements
 

@@ -3,21 +3,21 @@
 # package, this name will be registered for you. It will determine how
 # users can install this project, e.g.:
 #
-# $ pip install ziran
+# $ pip install genomenlp
 #
 # And where it will live on PyPI: https://pypi.org/project/sampleproject/
 #
 # There are some restrictions on what makes a valid project name
 # specification here:
 # https://packaging.python.org/specifications/core-metadata/#name
-name = "ziran"  # Required
+name = "genomenlp"  # Required
 
 # Versions should comply with PEP 440:
 # https://www.python.org/dev/peps/pep-0440/
 #
 # For a discussion on single-sourcing the version, see
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "1.0.13"  # Required
+version = "2.0.0"  # Required
 
 # This is a one-line description or tagline of what your project does. This
 # corresponds to the "Summary" metadata field:
@@ -112,7 +112,7 @@ dependencies = [ # Optional
   "tabulate==0.9.0",
   "tokenizers==0.12.1",
   "tqdm==4.64.0",
-  "transformers==4.23.1",
+  "transformers>=4.3.0",
   "transformers-interpret==0.8.1",
   "wandb==0.13.4",
   "weightwatcher==0.5.9",
@@ -143,31 +143,31 @@ dependencies = [ # Optional
 # maintainers, and where to support the project financially. The key is
 # what's used to render the link text on PyPI.
 [project.urls]  # Optional
-"Homepage" = "https://github.com/tyronechen/ziran"
-"Bug Reports" = "https://github.com/tyronechen/ziran/issues"
+"Homepage" = "https://github.com/tyronechen/genomenlp"
+"Bug Reports" = "https://github.com/tyronechen/genomenlp/issues"
 # "Funding" = "https://donate.pypi.org"
 # "Say Thanks!" = "http://saythanks.io/to/example"
-"Source" = "https://github.com/tyronechen/ziran"
+"Source" = "https://github.com/tyronechen/genomenlp"
 
 # The following would provide a command line executable called `sample`
 # which executes the function `main` from this package when invoked.
 [project.scripts]  # Optional
-create_dataset_bio = "ziran.create_dataset_bio:main"
-create_dataset_nlp = "ziran.create_dataset_nlp:main"
-create_embedding_bio_sp = "ziran.create_embedding_bio_sp:main"
-create_embedding_bio_kmers = "ziran.create_embedding_bio_kmers:main"
-cross_validate = "ziran.cross_validate:main"
-embedding_pipeline = "ziran.embedding_pipeline:main"
-fit_powerlaw = "ziran.fit_powerlaw:main"
-freq_pipeline = "ziran.freq_pipeline:main"
-generate_synthetic = "ziran.generate_synthetic:main"
-interpret_transformers = "ziran.interpret_transformers:main"
-kmerise_bio = "ziran.kmerise_bio:main"
-parse_sp_tokens = "ziran.parse_sp_tokens:main"
-summarise_metrics = "ziran.summarise_metrics:main"
-sweep = "ziran.sweep:main"
-tokenise_bio = "ziran.tokenise_bio:main"
-train = "ziran.train:main"
+create_dataset_bio = "genomenlp.create_dataset_bio:main"
+create_dataset_nlp = "genomenlp.create_dataset_nlp:main"
+create_embedding_bio_sp = "genomenlp.create_embedding_bio_sp:main"
+create_embedding_bio_kmers = "genomenlp.create_embedding_bio_kmers:main"
+cross_validate = "genomenlp.cross_validate:main"
+embedding_pipeline = "genomenlp.embedding_pipeline:main"
+fit_powerlaw = "genomenlp.fit_powerlaw:main"
+freq_pipeline = "genomenlp.freq_pipeline:main"
+generate_synthetic = "genomenlp.generate_synthetic:main"
+interpret = "genomenlp.interpret:main"
+kmerise_bio = "genomenlp.kmerise_bio:main"
+parse_sp_tokens = "genomenlp.parse_sp_tokens:main"
+summarise_metrics = "genomenlp.summarise_metrics:main"
+sweep = "genomenlp.sweep:main"
+tokenise_bio = "genomenlp.tokenise_bio:main"
+train = "genomenlp.train:main"
 
 # This is configuration specific to the `setuptools` build backend.
 # If you are using a different build backend, you will need to change this.
@@ -175,13 +175,13 @@ train = "ziran.train:main"
 # If there are data files included in your packages that need to be
 # installed, specify them here.
 # package-data = {"sample" = ["*.dat"]}
-# packages = ["ziran"]
+# packages = ["genomenlp"]
 # package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 # All the following settings are optional:
 where = ["src"]  # ["."] by default
-include = ["ziran"]  # ["*"] by default
+include = ["genomenlp"]  # ["*"] by default
 
 [build-system]
 # These are the assumed default build requirements from pip:

@@ -1,5 +1,5 @@
-Welcome to ziran and genomicBERT's documentation!
-=================================================
+Welcome to genomeNLP's documentation!
+=====================================
 
 .. toctree::
   :maxdepth: 2
@@ -14,6 +14,7 @@ Welcome to ziran and genomicBERT's documentation!
   cross_validate
   fit_powerlaw
   generate_synthetic
+  interpret
 
 
 Indices and tables
