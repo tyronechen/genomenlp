@@ -903,24 +903,27 @@ def csv_to_hf(infile_neg: str, infile_pos: str, outfile_path: str):
             tmp_out.write(i.to_csv(index=False, header=False, sep=","))
 
 def reverse_complement(dna: str):
-    """Take a dna string as input and return reverse complement.
+    """Take a nucleic acid string as input and return reverse complement.
 
     Args:
-        dna (str): A string of dna sequence data.
+        dna (str): A string of nucleic acid sequence data.
 
     Returns:
         str:
 
-        Reverse complemented DNA string.
+        Reverse complemented DNA/RNA string.
 
         Input: ``ACGT``
 
         Output: ``TGCA``
 
         Note that no sequence cleaning is performed, 'N' gets mapped to itself.
-        Uppercase is assumed. Does not work on RNA!
+        Uppercase is assumed. If U is detected, automatically assume RNA!
     """
-    complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
+    if "U" in dna:
+        complement = {'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', 'N': 'N'}
+    else:
+        complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
     return "".join([complement[base] for base in dna[::-1]])
 
 def get_tokens_from_sp(tokeniser_path: str,
