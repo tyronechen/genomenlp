@@ -38,12 +38,12 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 
 ### Conda (automated)
 
-This is the recommended install method as it automatically handles dependencies. Note that this has only been tested on a linux operating system.
+This is the recommended install method as it automatically handles dependencies. Note that this has only been tested on a linux operating system. Remember to include the conda-forge channel during install or in your anaconda configuration.
 
 First try this:
 
 ```
-conda install -c tyronechen genomenlp
+conda install -c tyronechen -c conda-forge genomenlp
 ```
 
 If there are any errors with the previous step (especially if you are on a cluster with GPU access), try this first and then repeat the previous step:

@@ -1,9 +1,9 @@
 package:
   name: "genomenlp"
-  version: "2.0.2"
+  version: "2.0.3"
 
 source:
-  git_rev: v2.0.2
+  git_rev: v2.0.3
   git_url: https://github.com/tyronechen/genomenlp.git
   # url: https://github.com/tyronechen/genomenlp/releases/download/{{ version }}/genomenlp-{{ version }}.tar.gz
   git_depth: 0
@@ -36,6 +36,7 @@ requirements:
   build:
     - python
   run:
+    - datasets==2.10.1
     - gensim==4.2.0
     - hyperopt==0.2.7
     - matplotlib==3.5.2
@@ -43,13 +44,14 @@ requirements:
     - pytorch==1.10.0
     - ray-default==1.13.0
     - scikit-learn==1.1.1
+    - scipy==1.10.1
     - screed==1.0.5
     - seaborn==0.11.2
     - sentencepiece==0.1.96
     - tabulate==0.9.0
     - tokenizers==0.12.1
     - tqdm==4.64.0
-    - transformers>=4.23.0
+    - transformers==4.23.0
     - transformers-interpret==0.8.1
     - wandb==0.13.4
     - weightwatcher==0.6.4
@@ -61,7 +63,10 @@ about:
   license: MIT
   license_familY: MIT
   license_file: LICENSE
-  summary: "Empirical genomic data tokenisation and data-free deep-learning model evaluation."
+  summary: Empirical genomic data tokenisation and data-free deep-learning model evaluation.
+  description: Remember to add the conda-forge channel during install
+  dev_url: https://github.com/tyronechen/genomenlp
+  doc_url: https://genomenlp.readthedocs.io/en/latest/
 
 extra:
   recipe-maintainers:
