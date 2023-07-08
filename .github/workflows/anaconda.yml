@@ -1,0 +1,63 @@
+name: build_publish_anaconda
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'    
+  workflow_dispatch: # allows you to trigger manually
+    
+jobs:
+  build-and-publish:
+    name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        os: [ ubuntu-latest , macos-latest , windows-latest]
+        python-minor-version: [7, 8, 9, 10, 11]
+        isMaster:
+          - ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
+        exclude:
+          - isMaster: false
+            python-minor-version: 7
+          - isMaster: false
+            python-minor-version: 8
+          - isMaster: false
+            python-minor-version: 9
+          - isMaster: false
+            python-minor-version: 11
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 10
+          - isMaster: false
+            os: windows-latest
+            python-minor-version: 10
+        
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Determine publish
+      uses: haya14busa/action-cond@v1
+      id: publish
+      with:
+        cond: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        if_true: 'true'
+        if_false: 'false'
+    - name: Build and Publish
+      uses: openalea/action-build-publish-anaconda@v0.1.4
+      with:
+        conda: src/genomenlp
+        mamba: true
+        python: ${{ matrix.python-minor-version }}
+        numpy: '22'
+        channels: openalea3, conda-forge, tyronechen
+        token: ${{ secrets.ANACONDA_TOKEN }}
+        publish: ${{ steps.publish.outputs.value }}
+        label: main
