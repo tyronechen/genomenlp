@@ -32,7 +32,20 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 
 ## Cite us with:
 
-*Will be provided on publication*
+*Will be provided on publication (currently in review)*
+
+[A preprint is available, which will be replaced by the publication once online.](https://doi.org/10.1101/2023.05.31.542682)
+
+```
+@article{chen2023genomicbert,
+  title={genomicBERT and data-free deep-learning model evaluation},
+  author={Chen, Tyrone and Tyagi, Navya and Chauhan, Sarthak and Peleg, Anton Y and Tyagi, Sonika},
+  journal={bioRxiv},
+  pages={2023--05},
+  year={2023},
+  publisher={Cold Spring Harbor Laboratory}
+}
+```
 
 ## Install
 
@@ -58,24 +71,28 @@ If neither works, please submit an issue with the full stack trace and any suppo
 
 Clone the git repository. This will also allow you to manually run the python scripts.
 
-Then manually install the following dependencies with ``conda`` or ``pip``:
+Then manually install the following dependencies with ``conda`` (recommended) or ``pip``:
 
 ```
+datasets==2.10.1
 gensim==4.2.0
 hyperopt==0.2.7
 matplotlib==3.5.2
 pandas==1.4.2
 pytorch==1.10.0
-ray==1.13.0
+ray-default==1.13.0
 scikit-learn==1.1.1
+scipy==1.10.1
 screed==1.0.5
 seaborn==0.11.2
 sentencepiece==0.1.96
+tabulate==0.9.0
 tokenizers==0.12.1
 tqdm==4.64.0
-transformers==4.30.0
+transformers==4.23.0
+transformers-interpret==0.8.1
 wandb==0.13.4
-weightwatcher==0.5.9
+weightwatcher==0.6.4
 xgboost==1.7.1
 yellowbrick==1.3.post1
 ```
