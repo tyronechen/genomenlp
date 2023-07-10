@@ -53,7 +53,7 @@ This is the recommended install method as it automatically handles dependencies.
 
 First try this::
 
-  conda install -c tyronechen genomenlp
+  conda install -c conda-forge -c tyronechen genomenlp
 
 If there are any errors with the previous step (especially if you are on a cluster with GPU access), try this first and then repeat the previous step::
 
