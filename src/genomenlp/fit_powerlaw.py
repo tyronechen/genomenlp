@@ -14,7 +14,7 @@ from warnings import warn
 import matplotlib.pyplot as plt
 from transformers import \
     AutoModel, BertModel, DistilBertModel, RobertaModel, XLNetModel
-from utils import plot_hist, plot_scatter
+from utils import plot_hist, plot_scatter, _cite_me
 import weightwatcher as ww
 
 def main():
@@ -89,4 +89,5 @@ def main():
     plot_scatter(model_path, alpha_plot)
 
 if __name__ == "__main__":
+    _cite_me()
     main()

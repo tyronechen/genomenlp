@@ -15,7 +15,7 @@ from datasets import load_dataset
 import pandas as pd
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
-from utils import remove_stopwords
+from utils import remove_stopwords, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -107,4 +107,5 @@ def main():
             print("Token::k-mer map:", i, "\t::", tokeniser.decode(i))
 
 if __name__ == "__main__":
+    _cite_me()
     main()

@@ -11,7 +11,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from transformers import PreTrainedTokenizerFast
-from utils import plot_token_dist
+from utils import plot_token_dist, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -35,4 +35,5 @@ def main():
     plot_token_dist(tokeniser_path, args.special_tokens, args.outfile_dir)
 
 if __name__ == "__main__":
+    _cite_me()
     main()

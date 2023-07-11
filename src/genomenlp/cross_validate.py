@@ -31,7 +31,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import load_args_json, load_args_cmd, get_run_metrics
+from utils import load_args_json, load_args_cmd, get_run_metrics, _cite_me
 # import nevergrad as ng
 import ray
 from ray import tune
@@ -359,4 +359,5 @@ def main():
     print("\nCROSS VALIDATION END")
 
 if __name__ == "__main__":
+    _cite_me()
     main()

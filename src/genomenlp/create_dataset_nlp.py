@@ -15,7 +15,7 @@ import torch
 from datasets import load_dataset
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
-from utils import chunk_text, split_datasets
+from utils import chunk_text, split_datasets, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -137,4 +137,5 @@ def main():
     # print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
 if __name__ == "__main__":
+    _cite_me()
     main()

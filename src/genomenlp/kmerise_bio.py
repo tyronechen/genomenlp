@@ -18,7 +18,7 @@ import screed
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from utils import build_kmers, _init_sp_tokeniser, reverse_complement
+from utils import build_kmers, _init_sp_tokeniser, reverse_complement, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -211,4 +211,5 @@ def main():
         data.to_csv(outfile_path, header=False, mode="a+")
 
 if __name__ == "__main__":
+    _cite_me()
     main()

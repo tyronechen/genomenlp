@@ -8,6 +8,7 @@ from warnings import warn
 import screed
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
+from utils import _cite_me
 
 def _gzip_iterator(infile_paths):
     for path in infile_paths:
@@ -87,4 +88,5 @@ def main():
             print("Token::k-mer map:", i, "\t::", tokeniser.decode(i))
 
 if __name__ == "__main__":
+    _cite_me()
     main()

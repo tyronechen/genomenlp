@@ -155,6 +155,42 @@ def _compute_metrics(eval_preds):
 def _cite_me():
     """Print the citation for this paper before and after each run"""
     # to be added once the manuscript is published
+    manuscript = """
+    Cite our manuscript here:
+
+        @article{chen2023genomicbert,
+            title={genomicBERT and data-free deep-learning model evaluation},
+            author={Chen, Tyrone and Tyagi, Navya and Chauhan, Sarthak and Peleg, Anton Y and Tyagi, Sonika},
+            journal={bioRxiv},
+            month={jun},
+            pages={2023--05},
+            year={2023},
+            publisher={Cold Spring Harbor Laboratory},
+            doi={10.1101/2023.05.31.542682},
+            url={https://doi.org/10.1101/2023.05.31.542682}
+        }
+    """
+    zenodo = """
+    Cite our software here:
+
+        @software{tyrone_chen_2023_8135591,
+            author       = {Tyrone Chen and
+                            Navya Tyagi and
+                            Sarthak Chauhan and
+                            Anton Y. Peleg and
+                            Sonika Tyagi},
+            title        = {{genomicBERT and data-free deep-learning model 
+                            evaluation}},
+            month        = jul,
+            year         = 2023,
+            publisher    = {Zenodo},
+            version      = {v2.1.0},
+            doi          = {10.5281/zenodo.8135591},
+            url          = {https://doi.org/10.5281/zenodo.8135591}
+        }
+    """
+    print(manuscript)
+    print(zenodo)
     pass
 
 def get_feature_importance_mdi(clf, features, model_type, show_features: int=50,

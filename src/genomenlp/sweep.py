@@ -27,7 +27,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import load_args_json, load_args_cmd, get_run_metrics
+from utils import load_args_json, load_args_cmd, get_run_metrics, _cite_me
 import ray
 from ray import tune
 from ray.tune import CLIReporter
@@ -473,4 +473,5 @@ def main():
     print("\nHYPERPARAMETER SWEEP END")
 
 if __name__ == "__main__":
+    _cite_me()
     main()

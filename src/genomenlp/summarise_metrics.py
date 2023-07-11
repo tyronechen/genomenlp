@@ -15,7 +15,7 @@ import pandas as pd
 import seaborn as sns
 import wandb
 from tqdm import tqdm
-from utils import calculate_auc, get_run_metrics
+from utils import calculate_auc, get_run_metrics, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -189,4 +189,5 @@ def main():
         plt.clf()
 
 if __name__ == "__main__":
+    _cite_me()
     main()

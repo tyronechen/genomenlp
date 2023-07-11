@@ -19,7 +19,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 from sklearn.model_selection import train_test_split, ParameterGrid, ParameterSampler, cross_val_score, StratifiedKFold, cross_validate
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast, AutoModel
-from utils import parse_sp_tokenised, get_feature_importance_mdi, get_feature_importance_per
+from utils import parse_sp_tokenised, get_feature_importance_mdi, get_feature_importance_per, _cite_me
 from xgboost import XGBClassifier
 from yellowbrick.text import FreqDistVisualizer
 
@@ -358,4 +358,5 @@ def main():
     cval_scores.to_csv("".join([output_dir, "/cval_auc.tsv",]), index=False)
 
 if __name__ == "__main__":
+    _cite_me()
     main()

@@ -14,7 +14,7 @@ from warnings import warn
 import pandas as pd
 import screed
 from tqdm import tqdm
-from utils import bootstrap_seq, generate_from_freq, reverse_complement
+from utils import bootstrap_seq, generate_from_freq, reverse_complement, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -87,4 +87,5 @@ def main():
                         null_seq_rc = generate_from_freq(rc_seq, block_size)
 
 if __name__ == "__main__":
+    _cite_me()
     main()

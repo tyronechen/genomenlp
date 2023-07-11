@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from utils import _cite_me
 
 def _plot_bar(data, outfile_path):
     fig, ax = plt.subplots(figsize=(8, 8))
@@ -86,4 +87,5 @@ def main():
     _plot_bar(data_2_tag, outfile_path)
 
 if __name__ == "__main__":
+    _cite_me()
     main()

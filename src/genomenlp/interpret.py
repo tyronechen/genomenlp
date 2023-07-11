@@ -16,7 +16,7 @@ import wandb
 from tqdm import tqdm
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers_interpret import SequenceClassificationExplainer
-from utils import html_to_pdf
+from utils import html_to_pdf, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -102,4 +102,5 @@ def main():
                 html_to_pdf(outfile_path, options=pdf_options)
 
 if __name__ == "__main__":
+    _cite_me()
     main()

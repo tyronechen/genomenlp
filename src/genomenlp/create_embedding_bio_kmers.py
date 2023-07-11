@@ -23,7 +23,7 @@ from gensim.models import Word2Vec
 from tokenizers import SentencePieceUnigramTokenizer
 from tqdm import tqdm
 from transformers import PreTrainedTokenizerFast
-from utils import build_kmers, embed_seqs_kmers, embed_seqs_sp, parse_sp_tokenised, reverse_complement, split_datasets
+from utils import build_kmers, embed_seqs_kmers, embed_seqs_sp, parse_sp_tokenised, reverse_complement, split_datasets, _cite_me
 
 def parse_kmers(infile_path, ksize, slide, colname="feature"):
     """Generator to parse kmers from a SP-like tokenised data file"""
@@ -187,4 +187,5 @@ def main():
                     # data.to_csv(projected_path, mode="a+", header=False, index=False)
 
 if __name__ == "__main__":
+    _cite_me()
     main()

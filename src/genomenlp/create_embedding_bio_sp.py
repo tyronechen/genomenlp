@@ -21,7 +21,7 @@ from datasets import load_dataset
 from gensim.models import Word2Vec
 from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
-from utils import embed_seqs_kmers, embed_seqs_sp, parse_sp_tokenised, reverse_complement, split_datasets
+from utils import embed_seqs_kmers, embed_seqs_sp, parse_sp_tokenised, reverse_complement, split_datasets, _cite_me
 
 def main():
     parser = argparse.ArgumentParser(
@@ -168,4 +168,5 @@ def main():
         # data.to_csv(projected_path, mode="a+", header=False, index=False)
 
 if __name__ == "__main__":
+    _cite_me()
     main()
