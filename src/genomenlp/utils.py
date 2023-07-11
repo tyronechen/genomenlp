@@ -1356,3 +1356,48 @@ def plot_scatter(compare: list, outfile_path: str=None):
     plt.legend()
     plt.savefig(outfile_path, dpi=300)
     plt.close()
+
+def html_to_pdf(infile_path: str, outfile_path: str=None, options: dict=None):
+    """Convert the output of transformers interpret to pdf and write to disk.
+
+    Args:
+        infile_path (str): path to transformers-interpret html output
+        outfile_path (str): path to transformers-interpret pdf output
+        options (dict): html to pdf conversion options
+
+    Returns:
+        None:
+
+        Both pdfkit and wkhtmltopdf are required. Mainly used with `interpret`.
+        Please refer to https://github.com/JazzCore/python-pdfkit::
+
+            import pdfkit
+            pdfkit.from_file("input.html", "output.pdf", options={...})
+    """
+    warning_message = "".join([
+        "Both pdfkit and wkhtmltopdf are required. ", 
+        "Please refer to https://github.com/JazzCore/python-pdfkit ",
+        "for install instructions. No pdf output will be generated!"
+    ])
+    try:
+        import pdfkit
+    except FileNotFoundError:
+        warn(warning_message)
+        return        
+    except ImportError:
+        warn(warning_message)
+        return
+    except ModuleNotFoundError:
+        warn(warning_message)
+        return
+
+    if options is None:
+        options = {'dpi': 300, 'page-size': 'A6', 'orientation': 'landscape'}
+    if outfile_path is None:
+        outfile_path = ".".join([infile_path.replace(".html", ""), "pdf"])
+
+    pdfkit.from_file(
+        infile_path, 
+        outfile_path, 
+        options
+        )

@@ -16,6 +16,7 @@ import wandb
 from tqdm import tqdm
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers_interpret import SequenceClassificationExplainer
+from utils import html_to_pdf
 
 def main():
     parser = argparse.ArgumentParser(
@@ -31,6 +32,9 @@ def main():
                         help='specify path for output (DEFAULT: ./interpret_out)')
     parser.add_argument('-l', '--label_names', type=str, default=None, nargs="+",
                         help='provide label names matching order (DEFAULT: None).')
+    parser.add_argument('-p', '--pdf_options', type=str, default=None,
+                        help='load json of pdf conversion options (DEFAULT: \
+                        {dpi: 300, page-size: A6, orientation: landscape})')
 
     args = parser.parse_args()
     model_path = args.model_path
@@ -38,6 +42,9 @@ def main():
     tokeniser_path = args.tokeniser_path
     label_names = args.label_names
     output_dir = args.output_dir
+    pdf_options = args.pdf_options
+    if pdf_options is None:
+        pdf_options = {'dpi': 300, 'page-size': 'A6', 'orientation': 'landscape'}
 
     print("\n\nARGUMENTS:\n", args, "\n\n")
 
@@ -74,17 +81,25 @@ def main():
             with screed.open(i) as infile:
                 for j in infile:
                     cls_explainer(j.sequence.upper())
-                    with contextlib.redirect_stdout(None):            
-                        cls_explainer.visualize(
-                            "".join([output_dir, "/", j.name, ".html"])
-                            )
+                    with contextlib.redirect_stdout(None): 
+                        outfile_path = "".join([output_dir, "/", j.name, ".html"])
+                        cls_explainer.visualize(outfile_path)
+                        with open(outfile_path, 'r') as tmp:
+                            data = tmp.read()    
+                        with open(outfile_path, 'w') as tmp:
+                            tmp.write(data.replace('▁', ''))                        
+                        html_to_pdf(outfile_path, options=pdf_options)
         else:
             cls_explainer(i)
             unique = md5(str(time()).encode("utf-8")).hexdigest()[:16]
             with contextlib.redirect_stdout(None):
-                cls_explainer.visualize(
-                    "".join([output_dir, "/", i[:16], "_", unique, ".html"])
-                    )
+                outfile_path = "".join([output_dir, "/", i[:16], "_", unique, ".html"])
+                cls_explainer.visualize(outfile_path)
+                with open(outfile_path, 'r') as tmp:
+                    data = tmp.read()    
+                with open(outfile_path, 'w') as tmp:
+                    tmp.write(data.replace('▁', '')) 
+                html_to_pdf(outfile_path, options=pdf_options)
 
 if __name__ == "__main__":
     main()
