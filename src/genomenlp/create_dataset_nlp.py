@@ -137,5 +137,5 @@ def main():
     # print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

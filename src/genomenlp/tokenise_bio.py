@@ -88,5 +88,5 @@ def main():
             print("Token::k-mer map:", i, "\t::", tokeniser.decode(i))
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

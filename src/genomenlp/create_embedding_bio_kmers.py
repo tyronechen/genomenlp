@@ -187,5 +187,5 @@ def main():
                     # data.to_csv(projected_path, mode="a+", header=False, index=False)
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

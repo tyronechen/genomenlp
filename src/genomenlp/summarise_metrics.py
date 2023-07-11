@@ -189,5 +189,5 @@ def main():
         plt.clf()
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

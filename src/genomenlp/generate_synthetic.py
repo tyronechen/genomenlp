@@ -87,5 +87,5 @@ def main():
                         null_seq_rc = generate_from_freq(rc_seq, block_size)
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

@@ -89,5 +89,5 @@ def main():
     plot_scatter(model_path, alpha_plot)
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

@@ -358,5 +358,5 @@ def main():
     cval_scores.to_csv("".join([output_dir, "/cval_auc.tsv",]), index=False)
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

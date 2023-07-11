@@ -35,5 +35,5 @@ def main():
     plot_token_dist(tokeniser_path, args.special_tokens, args.outfile_dir)
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

@@ -5,6 +5,7 @@
 [![](https://flat.badgen.net/badge/icon/gitlab?icon=gitlab&label&color=orange&scale=1.5)](https://gitlab.com/tyagilab/genomenlp)
 [![](https://flat.badgen.net/badge/icon/github?icon=github&label&color=black&scale=1.5)](https://github.com/tyronechen/genomenlp)
 [![](https://flat.badgen.net/badge/icon/@tyagilab?icon=twitter&label&scale=1.5)](https://twitter.com/tyagilab)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8135591.svg)](https://doi.org/10.5281/zenodo.8135591)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/version.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/downloads.svg)](https://anaconda.org/tyronechen/genomenlp)
@@ -36,14 +37,39 @@ Code in this repository is provided under a [MIT license](https://opensource.org
 
 [A preprint is available, which will be replaced by the publication once online.](https://doi.org/10.1101/2023.05.31.542682)
 
+Cite our manuscript here:
+
 ```
 @article{chen2023genomicbert,
-  title={genomicBERT and data-free deep-learning model evaluation},
-  author={Chen, Tyrone and Tyagi, Navya and Chauhan, Sarthak and Peleg, Anton Y and Tyagi, Sonika},
-  journal={bioRxiv},
-  pages={2023--05},
-  year={2023},
-  publisher={Cold Spring Harbor Laboratory}
+    title={genomicBERT and data-free deep-learning model evaluation},
+    author={Chen, Tyrone and Tyagi, Navya and Chauhan, Sarthak and Peleg, Anton Y and Tyagi, Sonika},
+    journal={bioRxiv},
+    month={jun},
+    pages={2023--05},
+    year={2023},
+    publisher={Cold Spring Harbor Laboratory},
+    doi={10.1101/2023.05.31.542682},
+    url={https://doi.org/10.1101/2023.05.31.542682}
+}
+```
+
+Cite our software here:
+
+```
+@software{tyrone_chen_2023_8135591,
+    author       = {Tyrone Chen and
+                    Navya Tyagi and
+                    Sarthak Chauhan and
+                    Anton Y. Peleg and
+                    Sonika Tyagi},
+    title        = {{genomicBERT and data-free deep-learning model 
+                    evaluation}},
+    month        = jul,
+    year         = 2023,
+    publisher    = {Zenodo},
+    version      = {v2.1.0},
+    doi          = {10.5281/zenodo.8135591},
+    url          = {https://doi.org/10.5281/zenodo.8135591}
 }
 ```
 

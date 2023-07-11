@@ -211,5 +211,5 @@ def main():
         data.to_csv(outfile_path, header=False, mode="a+")
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

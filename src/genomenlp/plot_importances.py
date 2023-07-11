@@ -87,5 +87,5 @@ def main():
     _plot_bar(data_2_tag, outfile_path)
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()

@@ -319,5 +319,5 @@ def main():
     print("\nTRAIN SWEEP END")
 
 if __name__ == "__main__":
-    _cite_me()
     main()
+    _cite_me()
