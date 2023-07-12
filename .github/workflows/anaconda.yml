@@ -48,42 +48,58 @@ jobs:
 #             mamba activate build
 #             mamba list
 
-      - name: install mamba
+      - name: all in one pipeline
         shell: bash -l {0}
         run: | 
           wget "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
           yes yes | bash Mambaforge-$(uname)-$(uname -m).sh 
-          . ~/.bash_profile
-          . ~/.bashrc
-          which mamba
-
-      - name: create boa build env
-        shell: bash -l {0}
-        run: | 
           which mamba
           mamba env create -f etc/build.yml -n build
           mamba activate build
-          mamba list           
-
-      - name: build genomenlp for linux (main)
-        shell: bash -l {0}
-        run: |
-          mamba activate build
+          mamba list
           mkdir build
           conda mambabuild -c conda-forge -c tyronechen --output-folder build src/genomenlp/
-
-      - name: generate builds for other operating systems and push
-        shell: bash -l {0}
-        run: |
-          mamba activate build
           USER=tyronechen
           builds=$(find build -name "genomenlp*tar.bz2")
           conda-convert ${builds} -p all -o build
           builds=$(find build -name "genomenlp*tar.bz2")
           for i in ${builds}; do anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u ${USER} ${i} --force; done
-          
-      - name: check if package install OK
-        shell: bash -l {0}
-        run: |
-          mamba activate build
           sweep -h
+
+#       - name: install mamba
+#         shell: bash -l {0}
+#         run: | 
+#           wget "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
+#           yes yes | bash Mambaforge-$(uname)-$(uname -m).sh 
+#           which mamba
+
+#       - name: create boa build env
+#         shell: bash -l {0}
+#         run: | 
+#           which mamba
+#           mamba env create -f etc/build.yml -n build
+#           mamba activate build
+#           mamba list           
+
+#       - name: build genomenlp for linux (main)
+#         shell: bash -l {0}
+#         run: |
+#           mamba activate build
+#           mkdir build
+#           conda mambabuild -c conda-forge -c tyronechen --output-folder build src/genomenlp/
+
+#       - name: generate builds for other operating systems and push
+#         shell: bash -l {0}
+#         run: |
+#           mamba activate build
+#           USER=tyronechen
+#           builds=$(find build -name "genomenlp*tar.bz2")
+#           conda-convert ${builds} -p all -o build
+#           builds=$(find build -name "genomenlp*tar.bz2")
+#           for i in ${builds}; do anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u ${USER} ${i} --force; done
+          
+#       - name: check if package install OK
+#         shell: bash -l {0}
+#         run: |
+#           mamba activate build
+#           sweep -h
