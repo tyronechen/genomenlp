@@ -38,7 +38,7 @@ jobs:
           channel-priority: true
           auto-activate-base: false
           activate-environment: boa
-          environment-file: etc/build.yaml
+          environment-file: etc/build.yml
       
       - name: build genomenlp for linux (main)
         shell: bash -l {0}
