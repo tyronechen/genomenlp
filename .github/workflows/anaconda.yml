@@ -58,7 +58,10 @@ jobs:
           which mamba
           mamba env create -f etc/build.yml -n build
           mamba activate build
+          mamba init
           mamba list
+          conda activate build
+          conda list
           mkdir build
           conda mambabuild -c conda-forge -c tyronechen --output-folder build src/genomenlp/
           USER=tyronechen
