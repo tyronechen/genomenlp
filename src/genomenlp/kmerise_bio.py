@@ -59,6 +59,8 @@ def main():
 
     if infile_path == None:
         raise OSError("Provide either input fasta file or existing tokeniser!")
+    if label is None:
+        label = infile_path
     if len(infile_path) != len(label):
         raise OSError("infile_path:label combinations must match")
     infile_label = list(zip(infile_path, label))
