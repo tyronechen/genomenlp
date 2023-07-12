@@ -42,11 +42,11 @@ jobs:
           environment-file: etc/build.yml
           shell: bash -l {0}
           run: |
-            mamba env create -f etc/build.yml -n build -y
-            # conda install -n base --override-channels -c conda-forge mamba -y
-            # mamba env create -f etc/build.yml -n build
-            # mamba activate build
-            # mamba list
+            # mamba env create -f etc/build.yml -n build -y
+            conda install -n base --override-channels -c conda-forge mamba -y
+            mamba env create -f etc/build.yml -n build
+            mamba activate build
+            mamba list
       
       - name: build genomenlp for linux (main)
         shell: bash -l {0}
