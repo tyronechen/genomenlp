@@ -5,6 +5,7 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - anaconda
   - boa
   - python==3.9
 
