@@ -1,4 +1,4 @@
-name: build_publish_anaconda
+name: Build
 
 on:
   push:
@@ -10,43 +10,55 @@ on:
     branches:
       - '**'    
   workflow_dispatch: # allows you to trigger manually
-    
+
 jobs:
-  build-and-publish:
-    name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
+  create-env:
+    name: ${{ matrix.os }} 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+        
     strategy:
       fail-fast: false
-      max-parallel: 2
       matrix:
-        os: [ ubuntu-latest ]
-        python-minor-version: [8, 9]
-        isMaster:
-          - ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
-        exclude:
-          - isMaster: false
-            python-minor-version: 8
-          - isMaster: false
-            python-minor-version: 9
-
+        os: [ubuntu-latest]
+        
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Determine publish
-      uses: haya14busa/action-cond@v1
-      id: publish
-      with:
-        cond: ${{ startsWith(github.ref, 'refs/tags/v') }}
-        if_true: 'true'
-        if_false: 'false'
-    - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1.4
-      with:
-        conda: src/genomenlp
-        mamba: true
-        python: ${{ matrix.python-minor-version }}
-        numpy: '22'
-        channels: openalea3, conda-forge, tyronechen
-        token: ${{ secrets.ANACONDA_TOKEN }}
-        publish: ${{ steps.publish.outputs.value }}
-        label: main
+      - name: checkout repository
+        uses: actions/checkout@v2
+        
+      - name: create boa build env
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.9
+          mamba-version: "*"
+          use-mamba: true
+          channels: conda-forge,bioconda,tyronechen,defaults
+          channel-priority: true
+          auto-activate-base: false
+          activate-environment: boa
+          environment-file: etc/build.yaml
+      
+      - name: build genomenlp for linux (main)
+        shell: bash -l {0}
+        run: |
+          mamba activate build
+          mkdir build
+          conda mambabuild -c conda-forge -c tyronechen --output-folder build src/genomenlp/
+
+      - name: generate builds for other operating systems and push
+        shell: bash -l {0}
+        run: |
+          mamba activate build
+          USER=tyronechen
+          builds=$(find build -name "genomenlp*tar.bz2")
+          conda-convert ${builds} -p all -o build
+          builds=$(find build -name "genomenlp*tar.bz2")
+          for i in ${builds}; do anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u ${USER} ${i} --force; done
+          
+      - name: check if package install OK
+        shell: bash -l {0}
+        run: |
+          mamba activate build
+          sweep -h
