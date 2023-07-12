@@ -54,7 +54,7 @@ jobs:
           wget "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
           yes yes | bash Mambaforge-$(uname)-$(uname -m).sh 
           source /home/runner/work/genomenlp/genomenlp/yes/etc/profile.d/conda.sh
-          init mamba
+          mamba init
           which mamba
           mamba env create -f etc/build.yml -n build
           mamba activate build
