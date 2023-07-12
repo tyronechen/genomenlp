@@ -69,6 +69,7 @@ jobs:
           conda-convert ${builds} -p all -o build
           builds=$(find build -name "genomenlp*tar.bz2")
           for i in ${builds}; do anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u ${USER} ${i} --force; done
+          mamba install -c tyronechen -c conda-forge genomenlp -y
           sweep -h
 
 #       - name: install mamba
