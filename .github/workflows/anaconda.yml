@@ -33,13 +33,13 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.9
-          mamba-version: "*"
-          use-mamba: true
+          # mamba-version: "*"
+          # use-mamba: true
           channels: conda-forge,bioconda,tyronechen,defaults
           channel-priority: true
           auto-activate-base: true
           activate-environment: base
-          environment-file: etc/build.yml
+          # environment-file: etc/build.yml
           shell: bash -l {0}
           run: |
             # mamba env create -f etc/build.yml -n build -y
