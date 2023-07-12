@@ -31,14 +31,21 @@ jobs:
       - name: create boa build env
         uses: conda-incubator/setup-miniconda@v2
         with:
+          auto-update-conda: true
           python-version: 3.9
-          mamba-version: "*"
-          use-mamba: true
+          # mamba-version: "*"
+          # use-mamba: true
           channels: conda-forge,bioconda,tyronechen,defaults
           channel-priority: true
-          auto-activate-base: false
-          activate-environment: boa
-          environment-file: etc/build.yml
+          auto-activate-base: true
+          activate-environment: ""
+          # environment-file: etc/build.yml
+          shell: bash -l {0}
+          run: |
+            conda install -n base --override-channels -c conda-forge mamba -y
+            mamba env create -f etc/build.yml -n build
+            mamba activate build
+            mamba list
       
       - name: build genomenlp for linux (main)
         shell: bash -l {0}
