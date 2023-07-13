@@ -5,7 +5,7 @@
 [![](https://flat.badgen.net/badge/icon/gitlab?icon=gitlab&label&color=orange&scale=1.5)](https://gitlab.com/tyagilab/genomenlp)
 [![](https://flat.badgen.net/badge/icon/github?icon=github&label&color=black&scale=1.5)](https://github.com/tyronechen/genomenlp)
 [![](https://flat.badgen.net/badge/icon/@tyagilab?icon=twitter&label&scale=1.5)](https://twitter.com/tyagilab)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8135591.svg)](https://doi.org/10.5281/zenodo.8135591)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8135590.svg)](https://doi.org/10.5281/zenodo.8135590)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/version.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/downloads.svg)](https://anaconda.org/tyronechen/genomenlp)
