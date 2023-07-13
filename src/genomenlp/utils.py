@@ -184,9 +184,9 @@ def _cite_me():
             month        = jul,
             year         = 2023,
             publisher    = {Zenodo},
-            version      = {v2.1.0},
-            doi          = {10.5281/zenodo.8135591},
-            url          = {https://doi.org/10.5281/zenodo.8135591}
+            version      = {latest},
+            doi          = {10.5281/zenodo.8135590},
+            url          = {https://doi.org/10.5281/zenodo.8135590}
         }
     """
     print(manuscript)
