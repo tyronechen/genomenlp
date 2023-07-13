@@ -41,15 +41,18 @@ from ray.tune.examples.pbt_transformers.utils import download_data, \
 import wandb
 
 def main():
-    parser = HfArgumentParser(
-        [TrainingArguments], description='Take HuggingFace dataset and train. \
-         Arguments match that of TrainingArguments, with the addition of \
-         [ train, test, valid, tokeniser_path, vocab_size, hyperparameter_file,\
-          model, device, kfolds, entity_name, group_name, project_name, \
-         config_from_run, metric_opt, override_output_dir, no_shuffle, \
-         wandb_off ]. See: \
-         https://huggingface.co/docs/transformers/v4.19.4/en/main_classes/trainer#transformers.TrainingArguments'
-        )
+    # parser = HfArgumentParser(
+    #     [TrainingArguments], description='Take HuggingFace dataset and train. \
+    #      Arguments match that of TrainingArguments, with the addition of \
+    #      [ train, test, valid, tokeniser_path, vocab_size, hyperparameter_file,\
+    #       model, device, kfolds, entity_name, group_name, project_name, \
+    #      config_from_run, metric_opt, override_output_dir, no_shuffle, \
+    #      wandb_off ]. See: \
+    #      https://huggingface.co/docs/transformers/v4.19.4/en/main_classes/trainer#transformers.TrainingArguments'
+    #     )
+    parser = argparse.ArgumentParser(
+        description='Take HuggingFace dataset and perform cross validation.'
+    )
     parser.add_argument('train', type=str,
                         help='path to [ csv | csv.gz | json | parquet ] file')
     parser.add_argument('format', type=str,
@@ -72,6 +75,8 @@ def main():
                         help='provide torch.bin or json file of hyperparameters. \
                         NOTE: if given, this overrides all HfTrainingArguments! \
                         This is overridden by --config_from_run!')
+    parser.add_argument('-l', '--label_names', type=str, default="", nargs="+",
+                        help='provide column with label names (DEFAULT: "").')    
     parser.add_argument('-k', '--kfolds', type=int, default=8,
                         help='run n number of kfolds (DEFAULT: 8)')
     parser.add_argument('-e', '--entity_name', type=str, default="",
@@ -188,10 +193,20 @@ def main():
     if valid != None:
         infile_paths["valid"] = valid
     dataset = load_dataset(format, data_files=infile_paths)
+
     for i in dataset:
+        if "input_ids" in dataset[i].features:
+            dataset[i].features["input_ids"] = Value('int32')
+        if "attention_mask" in dataset[i].features:
+            dataset[i].features["attention_mask"] = Value('int8')
         if "token_type_ids" in dataset[i].features:
             dataset[i] = dataset[i].remove_columns("token_type_ids")
-    dataset = dataset.class_encode_column(args.label_names[0])
+        if "input_str" in dataset[i].features:
+            dataset[i] = dataset[i].remove_columns("input_str")
+        # by default this will be "labels"
+        if type(dataset[i].features[args.label_names[0]]) != ClassLabel:
+            dataset[i] = dataset[i].class_encode_column(args.label_names[0])  
+
     # dataset["train"].features[args.label_names].names = ["NEG", "POS"]
     print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
     dataset = dataset.map(

@@ -7,8 +7,8 @@
 [![](https://flat.badgen.net/badge/icon/@tyagilab?icon=twitter&label&scale=1.5)](https://twitter.com/tyagilab)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8135590.svg)](https://doi.org/10.5281/zenodo.8135590)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/version.svg)](https://anaconda.org/tyronechen/genomenlp)
-[![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/downloads.svg)](https://anaconda.org/tyronechen/genomenlp)
+[![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
 
 # genomeNLP: Genome recoding for Machine Learning Usage incorporating genomicBERT
 
