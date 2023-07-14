@@ -67,6 +67,8 @@ def main():
                         help='path to pretrained model dir. this should contain\
                          files such as [ pytorch_model.bin, config.yaml, \
                          tokeniser.json, etc ]')
+    parser.add_argument('-o', '--output_dir', type=str, default="./cval_out",
+                        help='specify path for output (DEFAULT: ./cval_out)')    
     parser.add_argument('-d', '--device', type=str, default=None,
                         help='choose device [ cpu | cuda:0 ] (DEFAULT: detect)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
@@ -120,6 +122,7 @@ def main():
     main_output_dir = args.output_dir
     override_output_dir = args.override_output_dir
     config_from_run = args.config_from_run
+    output_dir = args.output_dir
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
@@ -246,8 +249,8 @@ def main():
     else:
         args_train = load_args_cmd(args)
     if override_output_dir == True:
-        warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", main_output_dir, "\n"]))
-        args_train.output_dir = main_output_dir
+        warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", output_dir, "\n"]))
+        args_train.output_dir = output_dir
     else:
         warn(" ".join(["\nOUTPUT DIR NOT OVERRIDEN:", args_train.output_dir, "\n"]))
     assert type(args_train) == transformers.training_args.TrainingArguments, \
