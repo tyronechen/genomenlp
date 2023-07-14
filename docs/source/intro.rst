@@ -72,8 +72,8 @@ Cite us with:
   note         = {If you use this software, please cite it as below.},
   publisher    = {Zenodo},
   version      = {latest},
-  doi          = {10.5281/zenodo.8143218},
-  url          = {https://doi.org/10.5281/zenodo.8143218}
+  doi          = {10.5281/zenodo.8135590},
+  url          = {https://doi.org/10.5281/zenodo.8135590}
 }
 
 Install
