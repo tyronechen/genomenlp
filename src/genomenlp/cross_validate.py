@@ -67,8 +67,8 @@ def main():
                         help='path to pretrained model dir. this should contain\
                          files such as [ pytorch_model.bin, config.yaml, \
                          tokeniser.json, etc ]')
-    parser.add_argument('-o', '--output_dir', type=str, default="./sweep_out",
-                        help='specify path for output (DEFAULT: ./sweep_out)')    
+    parser.add_argument('-o', '--output_dir', type=str, default="./cval_out",
+                        help='specify path for output (DEFAULT: ./cval_out)')    
     parser.add_argument('-d', '--device', type=str, default=None,
                         help='choose device [ cpu | cuda:0 ] (DEFAULT: detect)')
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
