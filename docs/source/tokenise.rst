@@ -3,20 +3,6 @@ Create a token set from sequences
 
 This explains the use of ``kmerise_bio.py`` and ``tokenise_bio.py``. In ``tokenise_bio.py`` we empirically derive tokens from biological sequence data which can be used in downstream applications such as ``genomicBERT``.
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  python==3.10.4
-  scikit-learn==1.1.1
-  tqdm==4.64.0
-  transformers==4.18.0
-  tokenizers==0.11.6
-  xgboost==1.7.1
-  yellowbrick==1.3.post1
-
-
 Source data
 -----------
 

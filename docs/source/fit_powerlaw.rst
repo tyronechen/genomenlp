@@ -5,17 +5,6 @@ This explains the use of ``fit_powerlaw.py``. Only works on deep learning models
 
 .. _https://arxiv.org/pdf/2202.02842.pdf: https://arxiv.org/pdf/2202.02842.pdf
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  matplotlib==3.5.2
-  python==3.10.4
-  transformers==4.18.0
-  weightwatcher==0.5.9
-
-
 Source data
 -----------
 

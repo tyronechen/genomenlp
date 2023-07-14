@@ -90,7 +90,7 @@ def main():
     parser.add_argument('-c', '--config_from_run', type=str, default=None,
                         help='load arguments from existing wandb run. \
                         NOTE: if given, this overrides --hyperparameter_file!')
-    parser.add_argument('-o', '--metric_opt', type=str, default="eval/f1",
+    parser.add_argument('--metric_opt', type=str, default="eval/f1",
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')

@@ -3,18 +3,6 @@ Create embeddings from a tokenised dataset
 
 This explains the use of ``create_embedding_bio_sp.py`` and ``create_embedding_bio_kmers.py``. Only use this if you plan to use embeddings directly.
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  datasets=2.2.1
-  pandas=1.4.2
-  screed=1.0.5
-  tokenizers=0.11.6
-  torch=1.11.0
-  transformers=4.18.0
-
 Source data
 -----------
 

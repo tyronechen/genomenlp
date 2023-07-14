@@ -3,16 +3,6 @@ Generate synthetic sequences for use in classification
 
 This explains the use of ``generate_synthetic.py``. Generates synthetic sequences given a ``fasta`` file.
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  python==3.10.4
-  pandas==1.4.2
-  screed==1.0.5
-  tqdm==4.64.0
-
 Source data
 -----------
 

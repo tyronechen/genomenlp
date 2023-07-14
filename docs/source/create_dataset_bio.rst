@@ -3,18 +3,6 @@ Create a dataset object from sequences
 
 This explains the use of ``create_dataset_bio.py``. We generate a ``HuggingFace`` dataset object given a ``fasta`` file containing sequences, a ``fasta`` file containing control sequences, and a pretrained ``tokeniser`` from ``tokeniser.py``. The dataset can then enter the ``genomicBERT`` pipeline.
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  datasets=2.2.1
-  pandas=1.4.2
-  screed=1.0.5
-  tokenizers=0.11.6
-  torch=1.11.0
-  transformers=4.18.0
-
 Source data
 -----------
 

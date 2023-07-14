@@ -3,19 +3,6 @@ Get class attribution for deep learning models
 
 This explains the use of ``interpret.py`` for deep learning through ``genomicBERT``.
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  python==3.9.15
-  screed==1.0.5
-  tokenizers==0.11.6
-  tqdm==4.64.0
-  transformers==4.18.0
-  transformers-interpret==0.8.1
-  wandb==0.13.4
-
 Source data
 -----------
 

@@ -3,21 +3,6 @@ Perform a hyperparameter sweep
 
 This explains the use of ``sweep.py`` for machine and deep learning through ``genomicBERT``. If you already know what hyperparameters are needed, you can use ``train_model.py``. For conventional machine learning, the sweep, train and cross validation steps are combined in one operation.
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  python==3.10.4
-  ray==1.13.0
-  scikit-learn==1.1.1
-  tokenizers==0.11.6
-  tqdm==4.64.0
-  transformers==4.18.0
-  wandb==0.13.4
-  xgboost==1.7.1
-  yellowbrick==1.3.post1
-
 Source data
 -----------
 
@@ -161,7 +146,7 @@ Sweep parameters and search space should be passed in as a ``json`` file.
                           provide wandb project name (if available).
     -g GROUP_NAME, --group_name GROUP_NAME
                           provide wandb group name (if desired).
-    -c METRIC_OPT, --metric_opt METRIC_OPT
+    METRIC_OPT, --metric_opt METRIC_OPT
                           score to maximise [ eval/accuracy | eval/validation |
                           eval/loss | eval/precision | eval/recall ] (DEFAULT:
                           eval/f1)

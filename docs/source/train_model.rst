@@ -3,18 +3,6 @@ genomicBERT: Train a deep learning classifier
 
 This explains the use of ``train.py``. Use this if you already know what hyperparameters are needed. Otherwise use ``sweep.py``. For conventional machine learning, the sweep, train and cross validation steps are combined in one operation.
 
-Requirements
-------------
-
-All available via ``pip install``::
-
-  python==3.10.4
-  ray==1.13.0
-  tokenizers==0.11.6
-  tqdm==4.64.0
-  transformers==4.18.0
-  wandb==0.13.4
-
 Source data
 -----------
 
@@ -104,7 +92,7 @@ The full list of arguments is truncated, and only arguments added by this packag
                           load arguments from existing wandb run. NOTE: if
                           given, this overrides --hyperparameter_file!
                           (default: None)
-    -o METRIC_OPT, --metric_opt METRIC_OPT
+    METRIC_OPT, --metric_opt METRIC_OPT
                           score to maximise [ eval/accuracy | eval/validation |
                           eval/loss | eval/precision | eval/recall ] (DEFAULT:
                           eval/f1) (default: eval/f1)

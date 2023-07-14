@@ -1,6 +1,18 @@
 genomeNLP: Genome recoding for Machine Learning Usage incorporating genomicBERT
 ===========================================================================
 
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.8135590.svg
+  :target: https://doi.org/10.5281/zenodo.8135590
+
+.. image:: https://anaconda.org/tyronechen/genomenlp/badges/license.svg   
+  :target: https://anaconda.org/tyronechen/genomenlp
+
+.. image:: https://anaconda.org/tyronechen/genomenlp/badges/version.svg   
+  :target: https://anaconda.org/tyronechen/genomenlp
+
+.. image:: https://anaconda.org/tyronechen/genomenlp/badges/downloads.svg   
+  :target: https://anaconda.org/tyronechen/genomenlp  
+
 .. raw:: html
 
   Copyright (c) 2022 <a href="https://orcid.org/0000-0002-9207-0385">Tyrone Chen <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, <a href="https://orcid.org/0000-0002-8797-3168">Navya Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, Sarthak Chauhan, <a href="https://orcid.org/0000-0002-2296-2126">Anton Y. Peleg <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>, and <a href="https://orcid.org/0000-0003-0181-6258">Sonika Tyagi <img alt="ORCID logo" src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" width="16" height="16" /></a>.
@@ -40,8 +52,27 @@ Highlights
 Cite us with:
 -------------
 
-*Will be provided on publication*
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.8135590.svg
+   :target: https://doi.org/10.5281/zenodo.8135590
 
+::
+
+  @software{chen_tyrone_2023_8143218,
+  author       = {Chen, Tyrone and
+                  Tyagi, Navya and
+                  Chauhan, Sarthak and
+                  Peleg, Anton Y. and
+                  Tyagi, Sonika},
+  title        = {{genomicBERT and data-free deep-learning model 
+                   evaluation}},
+  month        = jul,
+  year         = 2023,
+  note         = {If you use this software, please cite it as below.},
+  publisher    = {Zenodo},
+  version      = {latest},
+  doi          = {10.5281/zenodo.8143218},
+  url          = {https://doi.org/10.5281/zenodo.8143218}
+}
 
 Install
 -------

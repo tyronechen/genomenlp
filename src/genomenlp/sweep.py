@@ -77,7 +77,7 @@ def main():
                         help='provide wandb project name (if available).')
     parser.add_argument('-g', '--group_name', type=str, default="sweep",
                         help='provide wandb group name (if desired).')
-    parser.add_argument('-c', '--metric_opt', type=str, default="eval/f1",
+    parser.add_argument('--metric_opt', type=str, default="eval/f1",
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')
