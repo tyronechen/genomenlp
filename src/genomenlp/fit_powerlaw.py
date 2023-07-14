@@ -25,7 +25,7 @@ def main():
         )
     parser.add_argument('-m', '--model_path', type=str, nargs="+", default=None,
                         help='path to trained model directory')
-    parser.add_argument('-o', '--output_dir', type=str, default=None,
+    parser.add_argument('-o', '--output_dir', type=str, default="./powerlaw_out",
                         help='path to output metrics directory \
                         (DEFAULT: same as model_path)')
     parser.add_argument('-a', '--alpha_max', type=int, default=8,
@@ -40,9 +40,6 @@ def main():
 
     if model_path == None:
         raise OSError("Must provide valid paths to model file(s)!")
-    if output_dir == None:
-        output_dir = "/".join([model_path, "fit_powerlaw"])
-        print("No output_dir provided, default to:", output_dir)
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     else:
