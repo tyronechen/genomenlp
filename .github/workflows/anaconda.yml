@@ -4,11 +4,11 @@ on:
   push:
     tags:
       - 'v*'
-    branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'    
+  #   branches:
+  #     - '**'
+  # pull_request:
+  #   branches:
+  #     - '**'    
   workflow_dispatch: # allows you to trigger manually
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
         os: [ubuntu-latest]
         
     steps:
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v2
         
 #       - name: create boa build env
@@ -48,7 +48,7 @@ jobs:
 #             mamba activate build
 #             mamba list
 
-      - name: all in one pipeline
+      - name: Setup conda, mamba, boa, then build for multiple OS and test package
         shell: bash -l {0}
         run: | 
           wget "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
