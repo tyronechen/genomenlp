@@ -1,9 +1,9 @@
 package:
   name: "genomenlp"
-  version: "2.3.0"
+  version: "2.3.1"
 
 source:
-  git_rev: v2.3.0
+  git_rev: v2.3.1
   git_url: https://github.com/tyronechen/genomenlp.git
   # url: https://github.com/tyronechen/genomenlp/releases/download/{{ version }}/genomenlp-{{ version }}.tar.gz
   git_depth: 0
