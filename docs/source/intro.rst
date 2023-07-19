@@ -1,5 +1,5 @@
 genomeNLP: Genome recoding for Machine Learning Usage incorporating genomicBERT
-===========================================================================
+===============================================================================
 
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.8135590.svg
   :target: https://doi.org/10.5281/zenodo.8135590
@@ -74,7 +74,7 @@ Cite us with:
   version      = {latest},
   doi          = {10.5281/zenodo.8135590},
   url          = {https://doi.org/10.5281/zenodo.8135590}
-}
+  }
 
 Install
 -------
@@ -268,6 +268,11 @@ The included method only works on deep learning models, including those trained 
 ::
 
   fit_powerlaw -i [ INFILE_PATH ... ] -t OUTPUT_DIR -a N
+
+4. Case study
++++++++++++++
+
+A detailed case study is available for reference.
 
 
 Background

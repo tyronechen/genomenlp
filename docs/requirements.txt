@@ -1,2 +1,3 @@
 sphinx
 furo
+datasets==2.10.1
