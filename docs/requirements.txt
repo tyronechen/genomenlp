@@ -6,7 +6,7 @@ hyperopt==0.2.7
 matplotlib==3.5.2
 pandas==1.4.2
 pytorch
-ray-default==1.13.0
+ray-default
 scikit-learn==1.1.1
 scipy==1.10.1
 screed==1.0.5
