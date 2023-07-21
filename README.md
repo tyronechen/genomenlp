@@ -75,29 +75,31 @@ Cite our software here:
 
 ## Install
 
-### Conda (automated)
+### Mamba (automated)
 
-This is the recommended install method as it automatically handles dependencies. Note that this has only been tested on a linux operating system. Remember to include the conda-forge channel during install or in your anaconda configuration.
+This is the recommended install method as it automatically handles dependencies. Note that this has only been tested on a linux operating system. Remember to include the `conda-forge` channel during install or in your anaconda configuration.
+
+> **NOTE**: Installing with `mamba` is highly recommended. Installing with `pip` will not work. Installing with `conda` will be slow. [You can find instructions for setting up mamba here](https://mamba.readthedocs.io/en/latest/installation.html).
 
 First try this:
 
 ```
-conda install -c tyronechen -c conda-forge genomenlp
+mamba install -c tyronechen -c conda-forge genomenlp
 ```
 
 If there are any errors with the previous step (especially if you are on a cluster with GPU access), try this first and then repeat the previous step:
 
 ```
-conda install -c anaconda cudatoolkit
+mamba install -c anaconda cudatoolkit
 ```
 
 If neither works, please submit an issue with the full stack trace and any supporting information.
 
-### Conda (manual)
+### Mamba (manual)
 
 Clone the git repository. This will also allow you to manually run the python scripts.
 
-Then manually install the following dependencies with ``conda`` (recommended) or ``pip``:
+Then manually install the following dependencies with ``mamba``. Installing with `pip` will not work as some distributions are not available on `pip`.:
 
 ```
 datasets==2.10.1

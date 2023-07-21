@@ -79,28 +79,35 @@ Cite us with:
 Install
 -------
 
-Conda (automated)
+Mamba (automated)
 +++++++++++++++++
 
 This is the recommended install method as it automatically handles dependencies. Note that this has only been tested on a linux operating system.
 
+.. NOTE::
+
+  Installing with ``mamba`` is highly recommended. Installing with ``pip`` will not work. Installing with ``conda`` will be slow. `You can find instructions for setting up mamba here`_ but also mirrored on gitlab. Please submit any issues to the main github repository only.
+
+.. _You can find instructions for setting up mamba here: https://mamba.readthedocs.io/en/latest/installation.html
+
+
 First try this::
 
-  conda install -c conda-forge -c tyronechen genomenlp
+  mamba install -c conda-forge -c tyronechen genomenlp
 
 If there are any errors with the previous step (especially if you are on a cluster with GPU access), try this first and then repeat the previous step::
 
-  conda install -c anaconda cudatoolkit
+  mamba install -c anaconda cudatoolkit
 
 If neither works, please submit an issue with the full stack trace and any supporting information.
 
 
-Conda (manual)
+Mamba (manual)
 ++++++++++++++
 
 Clone the git repository. This will also allow you to manually run the python scripts.
 
-Then manually install the following dependencies with ``conda`` or ``pip``::
+Then manually install the following dependencies with ``mamba``. Installing with ``pip`` will not work as some distributions are not available on ``pip``.::
 
   gensim==4.2.0
   hyperopt==0.2.7
@@ -129,7 +136,7 @@ Usage
 0. Available commands
 +++++++++++++++++++++
 
-If installed correctly using the automated ``conda`` method, each of these commands will be available directly on the command line::
+If installed correctly using the automated ``mamba`` method, each of these commands will be available directly on the command line::
 
   create_dataset_bio
   create_dataset_nlp
@@ -148,7 +155,7 @@ If installed correctly using the automated ``conda`` method, each of these comma
   tokenise_bio
   train
 
-If installed correctly using the manual ``conda`` method, each of the above commands can be called from their corresponding python script, for example::
+If installed correctly using the manual ``mamba`` method, each of the above commands can be called from their corresponding python script, for example::
 
   python create_dataset_bio.py
 
