@@ -118,7 +118,8 @@ def main():
             tokeniser_path=tokeniser_path,
             special_tokens=special_tokens,
             columns=column_names,
-            column=column_name
+            column=column_name,
+            labels=labels,
             ) for i in infile_path]
         all_kmers = itertools.chain()
         for i in kmers:
