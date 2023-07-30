@@ -955,11 +955,20 @@ def reverse_complement(dna: str):
 
         Note that no sequence cleaning is performed, 'N' gets mapped to itself.
         Uppercase is assumed. If U is detected, automatically assume RNA!
+        Supports letters YRKMSW. BDHV get converted to N!.
     """
+    for i in ["B", "D", "H", "V"]:
+        if i in dna:
+            warn("B, D, H, V nucleotides detected! These are reverse complemented to N! Also check if your sequences are protein, and if so disable reverse complement.")
+
     if "U" in dna:
-        complement = {'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', 'N': 'N'}
+        complement = {'A': 'U', 'C': 'G', 'G': 'C', 'U': 'A', 'N': 'N', 
+                      'Y': 'R', 'R': 'Y', 'K': 'M', 'M': 'K', 'S': 'W', 'W': 'S',
+                      'B': 'N', 'D': 'N', 'H': 'N', 'V': 'N'}
     else:
-        complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N'}
+        complement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N', 
+                      'Y': 'R', 'R': 'Y', 'K': 'M', 'M': 'K', 'S': 'W', 'W': 'S',
+                      'B': 'N', 'D': 'N', 'H': 'N', 'V': 'N'}
     return "".join([complement[base] for base in dna[::-1]])
 
 def get_tokens_from_sp(tokeniser_path: str,

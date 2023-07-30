@@ -42,6 +42,7 @@ Code in this repository is provided under a `MIT license`_. This documentation i
   :caption: Contents:
 
   intro
+  case_study
   tokenise
   create_dataset_bio
   create_embedding

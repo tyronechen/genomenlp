@@ -46,7 +46,7 @@ def main():
     infile_path = args.infile_path
     outfile_path = args.outfile_path
     tempfile_path = "".join([
-        os.path.dirname(outfile_path), "/.",
+        os.path.dirname(outfile_path), "./.",
         os.path.basename(outfile_path), ".tmp"
         ])
     kmer_size = args.kmer_size
@@ -69,8 +69,14 @@ def main():
     print("COMMAND LINE ARGUMENTS FOR REPRODUCIBILITY:\n\n\t", i, "\n")
 
     os.makedirs(os.path.dirname(tempfile_path), exist_ok=True)
-    os.makedirs(os.path.dirname(tokeniser_path), exist_ok=True)
-    os.makedirs(os.path.dirname(mappings), exist_ok=True)
+    if os.path.dirname(tokeniser_path) == "":
+        os.makedirs("./tokeniser_out", exist_ok=True)
+    else:
+        os.makedirs(os.path.dirname(tokeniser_path), exist_ok=True)
+    if os.path.dirname(mappings) == "":
+        os.makedirs("./mappings_out", exist_ok=True)
+    else:
+        os.makedirs(os.path.dirname(mappings), exist_ok=True)
 
     if os.path.exists(outfile_path):
         warn("Overwriting existing output file in --outfile_path!")

@@ -49,7 +49,7 @@ Usage
 Empirical tokenisation
 ++++++++++++++++++++++
 
-For empirical tokenisation, the next step is to run ``create_dataset_bio.py``.
+For empirical tokenisation, the next step is to run ``create_dataset_bio.py``. Reverse complementing ``Y/R`` is supported.
 
 ::
 
@@ -73,7 +73,9 @@ For empirical tokenisation, the next step is to run ``create_dataset_bio.py``.
 Conventional k-mers
 +++++++++++++++++++
 
-Note that this step also generates a dataset object in the same operation.
+Note that this step also generates a dataset object in the same operation. Reverse complementing ``Y/R`` is supported.
+
+Here we take a list of infile paths, and a list of matching labels. Eg ``--infile_path file1.fasta file2.fasta``, then ``--label 0 1``.
 
 ::
 
