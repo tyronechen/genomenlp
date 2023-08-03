@@ -8,3 +8,6 @@ genomeNLP: Case study
 
 Code in this repository is provided under a `MIT license`_. Documentation for this specific case study only is provided with © all rights reserved (temporary until publication). All other documentation is provided under a `CC-BY-3.0 AU license`_.
 
+.. _MIT license: https://opensource.org/licenses/MIT
+
+.. _CC-BY-3.0 AU license: https://creativecommons.org/licenses/by/3.0/au/
