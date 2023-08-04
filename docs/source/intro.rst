@@ -100,7 +100,7 @@ This is the recommended install method as it automatically handles dependencies.
 
 .. NOTE::
 
-  Installing with ``mamba`` is highly recommended. Installing with ``pip`` will not work. Installing with ``conda`` will be slow. `You can find instructions for setting up mamba here`_ but also mirrored on gitlab. Please submit any issues to the main github repository only.
+  Installing with ``mamba`` is highly recommended. Installing with ``pip`` will not work. Installing with ``conda`` will be slow. `You can find instructions for setting up mamba here`_. Please submit any issues to the main github repository only.
 
 .. _You can find instructions for setting up mamba here: https://mamba.readthedocs.io/en/latest/installation.html
 
