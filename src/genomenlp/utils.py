@@ -24,6 +24,9 @@ import transformers
 from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
 # import weightwatcher as ww
 
+# resolves issue of truncated csv
+np.set_printoptions(threshold=np.inf)
+
 def _init_sp_tokeniser(vocab=None):
     """Helper function to generate SP-like formatted tokeniser from k-mers"""
     tokeniser = dict()
@@ -1058,7 +1061,7 @@ def parse_sp_tokenised(infile_path: str, outfile_path: str,
     if os.path.exists(outfile_path):
         os.remove(outfile_path)
     with open(outfile_path, mode="a+") as outfile:
-        outfile.write("," + ",".join(columns) + "\n")
+        outfile.write(",".join(columns) + "\n")
 
     # input_str = pd.Series(np.array(
     #     data["input_str"].iloc[0][1:-1].replace("\'", "").split()
