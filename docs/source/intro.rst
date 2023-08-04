@@ -57,7 +57,21 @@ Cite us with:
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.8135590.svg
    :target: https://doi.org/10.5281/zenodo.8135590
 
-::
+Manuscript::
+
+  @article{chen2023genomicbert,
+    title={genomicBERT and data-free deep-learning model evaluation},
+    author={Chen, Tyrone and Tyagi, Navya and Chauhan, Sarthak and Peleg, Anton Y and Tyagi, Sonika},
+    journal={bioRxiv},
+    month={jun},
+    pages={2023--05},
+    year={2023},
+    publisher={Cold Spring Harbor Laboratory},
+    doi={10.1101/2023.05.31.542682},
+    url={https://doi.org/10.1101/2023.05.31.542682}
+}
+
+Software::
 
   @software{chen_tyrone_2023_8143218,
   author       = {Chen, Tyrone and
