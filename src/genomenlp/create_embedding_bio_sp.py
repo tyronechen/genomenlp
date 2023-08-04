@@ -36,7 +36,9 @@ def main():
                         "feature", "labels", "input_ids", "token_type_ids",
                         "attention_mask", "input_str"],
                         help='column name for sp tokenised data \
-                        (DEFAULT: input_str)')
+                        (DEFAULT: ["idx", "feature", "labels", \
+                        "input_ids", "token_type_ids", \
+                        "attention_mask", "input_str"])')
     parser.add_argument('-l', '--labels', type=str, default="labels",
                         help='column name for data labels (DEFAULT: labels)')
     parser.add_argument('-x', '--column_name', type=str, default="input_str",
@@ -121,9 +123,12 @@ def main():
             column=column_name,
             labels=labels,
             ) for i in infile_path]
-        all_kmers = itertools.chain()
+        tmp_kmers = itertools.chain()
         for i in kmers:
-            all_kmers = itertools.chain(all_kmers, i)
+            tmp_kmers = itertools.chain(tmp_kmers, i)        
+        all_kmers = itertools.chain()
+        for i, j in tmp_kmers:
+            all_kmers = itertools.chain(all_kmers, [i])
         model = Word2Vec(
             sentences=all_kmers,
             vector_size=w2v_vector_size,
