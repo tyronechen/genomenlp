@@ -11,3 +11,9 @@ Code in this repository is provided under a `MIT license`_. Documentation for th
 .. _MIT license: https://opensource.org/licenses/MIT
 
 .. _CC-BY-3.0 AU license: https://creativecommons.org/licenses/by/3.0/au/
+
+This tutorial was presented as part of `K-CAP (The Twelfth International Conference on Knowledge Capture)`_, 5-7/12/2023, Pensacola, Florida, USA.
+
+.. _K-CAP (The Twelfth International Conference on Knowledge Capture): https://www.k-cap.org/2023/index.html
+
+*To be added closer to the date*
