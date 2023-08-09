@@ -26,7 +26,7 @@ from transformers import AutoModelForSequenceClassification, \
     LongformerConfig, LongformerForSequenceClassification, \
     PreTrainedTokenizerFast, Trainer, TrainingArguments, set_seed
 from transformers.training_args import ParallelMode
-from utils import load_args_json, load_args_cmd, _cite_me
+from utils import get_run_metrics, load_args_json, load_args_cmd, _cite_me
 import wandb
 
 def main():
@@ -145,18 +145,31 @@ def main():
     if valid != None:
         infile_paths["valid"] = valid
     dataset = load_dataset(format, data_files=infile_paths)
+
     for i in dataset:
+        if "input_ids" in dataset[i].features:
+            dataset[i].features["input_ids"] = Value('int32')
+        if "attention_mask" in dataset[i].features:
+            dataset[i].features["attention_mask"] = Value('int8')
         if "token_type_ids" in dataset[i].features:
             dataset[i] = dataset[i].remove_columns("token_type_ids")
-    dataset = dataset.class_encode_column(args.label_names[0])
-    print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
+        if "input_str" in dataset[i].features:
+            dataset[i] = dataset[i].remove_columns("input_str")
+        # by default this will be "labels"
+        if type(dataset[i].features[args.label_names[0]]) != ClassLabel:
+            dataset[i] = dataset[i].class_encode_column(args.label_names[0])    
 
+    print("\nSAMPLE DATASET ENTRY:\n", dataset["train"][0], "\n")
+    dataset = dataset.map(
+        lambda data: tokeniser(data['feature'], padding=True), batched=True
+        )
+    
     col_torch = ['input_ids', 'attention_mask', args.label_names[0]]
     # col_torch = ['input_ids', 'token_type_ids', 'attention_mask', 'labels']
     print(dataset)
     dataset.set_format(type='torch', columns=col_torch)
-    dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
-    print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
+    # dataloader = torch.utils.data.DataLoader(dataset["train"], batch_size=1)
+    # print("\nSAMPLE PYTORCH FORMATTED ENTRY:\n", next(iter(dataloader)))
 
     def _compute_metrics(eval_preds):
         """Compute metrics during the training run using transformers and wandb API.
@@ -211,22 +224,32 @@ def main():
         config = DistilBertConfig(
             vocab_size=vocab_size,
             num_labels=2,
-            output_hidden_states=True,
-            output_attentions=True
+            # output_hidden_states=True,
+            # output_attentions=True
             )
-        model = DistilBertForSequenceClassification(config).to(device)
+        model = DistilBertForSequenceClassification(config)
+        model.resize_token_embeddings(len(tokeniser))
+        model = model.to(device)
         def _model_init():
-            return DistilBertForSequenceClassification(config).to(device)
+            model = DistilBertForSequenceClassification(config)
+            model.resize_token_embeddings(len(tokeniser))
+            model = model.to(device)
+            return model
     if model == "longformer":
         config = LongformerConfig(
             vocab_size=vocab_size,
             num_labels=2,
-            output_hidden_states=True,
-            output_attentions=True
+            # output_hidden_states=True,
+            # output_attentions=True
             )
-        model = LongformerForSequenceClassification(config).to(device)
+        model = LongformerForSequenceClassification(config)
+        model.resize_token_embeddings(len(tokeniser))
+        model = model.to(device)
         def _model_init():
-            return LongformerForSequenceClassification(config).to(device)
+            model = LongformerForSequenceClassification(config)
+            model.resize_token_embeddings(len(tokeniser))
+            model = model.to(device)
+            return model
 
     model_size = sum(t.numel() for t in model.parameters())
     print(f"\nDistilBert size: {model_size/1000**2:.1f}M parameters")
@@ -261,6 +284,8 @@ def main():
         warn(" ".join(["\nOUTPUT DIR NOT OVERRIDEN:", args_train.output_dir, "\n"]))
     assert type(args_train) == transformers.training_args.TrainingArguments, \
         "Must be instance of transformers.training_args.TrainingArguments"
+
+    print("\n\n", args_train, "\n\n")
 
     wandb.init(
         group=group_name,
@@ -307,7 +332,7 @@ def main():
         runs = api.runs(path="/".join([entity_name, project_name]),
                         filters={"group": group_name})
 
-    export_run_metrics(runs, args.output_dir)
+    get_run_metrics(runs, args.output_dir)
 
     print("\nModel file:", runs[0], "\n")
     score = runs[0].summary.get(metric_opt, 0)
