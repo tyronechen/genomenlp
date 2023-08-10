@@ -553,21 +553,15 @@ pipeline.
 
 .. image:: fig/sweep_conf_mat.png
 
-
 .. image:: fig/sweep_pr.png
-
 
 .. image:: fig/sweep_roc.png
 
-
 .. image:: fig/sweep_f1.png
-
 
 .. image:: fig/sweep_loss.png
 
-
 .. image:: fig/sweep_lr.png
-
 
 
 `Here is an example of a full wandb generated report:
@@ -668,21 +662,15 @@ of our pipeline.
 
 .. image:: fig/train_conf_mat.png
 
-
 .. image:: fig/train_pr.png
-
 
 .. image:: fig/train_roc.png
 
-
 .. image:: fig/train_f1.png
-
 
 .. image:: fig/train_loss.png
 
-
-.. image:: fig/train_lr.png
-
+.. image:: fig/train_lr.pn
 
 
 `Here is an example of a full wandb generated report:
@@ -739,21 +727,15 @@ by ``sweep`` or ``train``.
 
 .. image:: fig/cval_conf_mat.png
 
-
 .. image:: fig/cval_pr.png
-
 
 .. image:: fig/cval_roc.png
 
-
 .. image:: fig/cval_f1.png
-
 
 .. image:: fig/cval_loss.png
 
-
 .. image:: fig/cval_lr.png
-
 
 
 `Here is an example of a full wandb generated report:
@@ -800,7 +782,6 @@ please refer to the original publication. <https://arxiv.org/pdf/2202.02842.pdf>
 
 .. image:: fig/alpha_hist.png
 
-
 .. image:: fig/alpha_plot.png
   
 
@@ -844,7 +825,6 @@ to a deeper understanding of the underlying biological system.
     ECK120010498 YADVP2 REVERSE 156224  SIGMA38.html
 
 .. image:: fig/ECK120009966.png
-
 
 .. image:: fig/ECK120016719.png
 
