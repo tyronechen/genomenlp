@@ -549,7 +549,8 @@ saved model, including some ``wandb`` specific output.
 
 The sweeps gets synced to the ``wandb`` dashboard along with various
 interactive custom charts and tables which we provide as part of our
-pipeline.
+pipeline. A small subset of plots are provided for reference. 
+Interactive versions of these and more plots are available on wandb.
 
 .. image:: fig/sweep_conf_mat.png
 
@@ -658,7 +659,8 @@ saved model, including some ``wandb`` specific output.
 
 The trained model gets synced to the ``wandb`` dashboard along with 
 various interactive custom charts and tables which we provide as part 
-of our pipeline.
+of our pipeline. A small subset of plots are provided for reference. 
+Interactive versions of these and more plots are available on wandb.
 
 .. image:: fig/train_conf_mat.png
 
@@ -670,7 +672,7 @@ of our pipeline.
 
 .. image:: fig/train_loss.png
 
-.. image:: fig/train_lr.pn
+.. image:: fig/train_lr.png
 
 
 `Here is an example of a full wandb generated report:
@@ -723,7 +725,8 @@ the model is trained and tested on these individual subsets.
 The cross-validation runs are uploaded to the ``wandb`` dashboard along 
 with various interactive custom charts and tables which we provide as 
 part of our pipeline. These are conceptually identical to those generated 
-by ``sweep`` or ``train``.
+by ``sweep`` or ``train``. A small subset of plots are provided for reference. 
+Interactive versions of these and more plots are available on wandb.
 
 .. image:: fig/cval_conf_mat.png
 
