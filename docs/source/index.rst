@@ -38,7 +38,7 @@ Code in this repository is provided under a `MIT license`_. This documentation i
 .. _The main repository is on github: https://github.com/tyronechen/genomenlp
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 3
   :caption: Contents:
 
   intro
