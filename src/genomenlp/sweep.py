@@ -77,6 +77,13 @@ def main():
                         help='provide wandb project name (if available).')
     parser.add_argument('-g', '--group_name', type=str, default="sweep",
                         help='provide wandb group name (if desired).')
+    parser.add_argument('--partition_percent', type=int, default=100,
+                        help='only sweep on a percentage of data (int!). \
+                        the percentage will be rounded off depending on \
+                        the closest split. for example, 30% will be \
+                        rounded to a split of int(100/30)=3, so the \
+                        percentage will be ~33%. defaults to sweeping \
+                        on the full dataset (DEFAULT: 100).')   
     parser.add_argument('--metric_opt', type=str, default="eval/f1",
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
@@ -109,6 +116,7 @@ def main():
     output_dir = args.output_dir
     fp16 = args.fp16_off
     resume_sweep = args.resume_sweep
+    partition_percent = int(args.partition_percent)
     if wandb_state is True:
         wandb.login()
         args.report_to = "wandb"
@@ -405,15 +413,26 @@ def main():
                 bf16=False,
             )
             # define training loop
-            trainer = Trainer(
-                model_init=_model_init,
-                args=training_args,
-                tokenizer=tokeniser,
-                train_dataset=dataset['train'],
-                eval_dataset=dataset['valid'],#.shard(index=1, num_shards=10),
-                compute_metrics=_compute_metrics,
-                data_collator=data_collator,
-            )
+            if partition_percent == 100:
+                trainer = Trainer(
+                    model_init=_model_init,
+                    args=training_args,
+                    tokenizer=tokeniser,
+                    train_dataset=dataset['train'],
+                    eval_dataset=dataset['valid'],
+                    compute_metrics=_compute_metrics,
+                    data_collator=data_collator,
+                )                
+            else:
+                trainer = Trainer(
+                    model_init=_model_init,
+                    args=training_args,
+                    tokenizer=tokeniser,
+                    train_dataset=dataset['train'].shard(index=0, num_shards=int(100/partition)),
+                    eval_dataset=dataset['valid'].shard(index=0, num_shards=int(100/partition)),
+                    compute_metrics=_compute_metrics,
+                    data_collator=data_collator,
+                )
             # start training loop
             trainer.train()
             print("Saving model to:", wandb.run.dir)
