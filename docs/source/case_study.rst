@@ -18,9 +18,6 @@ All other documentation not on this page is provided under a `CC-BY-3.0 AU licen
 Outline
 =======
 
-.. contents::
-
-
 The primary focus of this tutorial is application of NLP in a genomic
 context by introducing our package ``genomenlp``. 
 In this tutorial, we cover a wide range of topics from introduction
@@ -555,11 +552,17 @@ interactive custom charts and tables which we provide as part of our
 pipeline.
 
 .. image:: fig/sweep_conf_mat.png
+
 .. image:: fig/sweep_pr.png
+
 .. image:: fig/sweep_roc.png
+
 .. image:: fig/sweep_f1.png
+
 .. image:: fig/sweep_loss.png
+
 .. image:: fig/sweep_lr.png
+
 
 `Here is an example of a full wandb generated report:
 <https://api.wandb.ai/links/tyagilab/a56uxmff>`__
@@ -658,11 +661,17 @@ various interactive custom charts and tables which we provide as part
 of our pipeline.
 
 .. image:: fig/train_conf_mat.png
+
 .. image:: fig/train_pr.png
+
 .. image:: fig/train_roc.png
+
 .. image:: fig/train_f1.png
+
 .. image:: fig/train_loss.png
+
 .. image:: fig/train_lr.png
+
 
 `Here is an example of a full wandb generated report:
 <https://wandb.ai/tyagilab/sweep/reports/Best-run-revived-sweep-6--Vmlldzo0OTExOTc1>`__
@@ -717,11 +726,17 @@ part of our pipeline. These are conceptually identical to those generated
 by ``sweep`` or ``train``.
 
 .. image:: fig/cval_conf_mat.png
+
 .. image:: fig/cval_pr.png
+
 .. image:: fig/cval_roc.png
+
 .. image:: fig/cval_f1.png
+
 .. image:: fig/cval_loss.png
+
 .. image:: fig/cval_lr.png
+
 
 `Here is an example of a full wandb generated report:
 <https://api.wandb.ai/links/tyagilab/8vony79x>`__
@@ -766,7 +781,9 @@ depending on context! `For a detailed explanation of these plots,
 please refer to the original publication. <https://arxiv.org/pdf/2202.02842.pdf>`__
 
 .. image:: fig/alpha_hist.png
+
 .. image:: fig/alpha_plot.png
+  
 
 11. Obtain model interpretability scores
 ====================================
@@ -808,6 +825,7 @@ to a deeper understanding of the underlying biological system.
     ECK120010498 YADVP2 REVERSE 156224  SIGMA38.html
 
 .. image:: fig/ECK120009966.png
+
 .. image:: fig/ECK120016719.png
 
 
