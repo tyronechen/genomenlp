@@ -428,8 +428,8 @@ def main():
                     model_init=_model_init,
                     args=training_args,
                     tokenizer=tokeniser,
-                    train_dataset=dataset['train'].shard(index=0, num_shards=int(100/partition)),
-                    eval_dataset=dataset['valid'].shard(index=0, num_shards=int(100/partition)),
+                    train_dataset=dataset['train'].shard(index=0, num_shards=int(100/partition_percent)),
+                    eval_dataset=dataset['valid'].shard(index=0, num_shards=int(100/partition_percent)),
                     compute_metrics=_compute_metrics,
                     data_collator=data_collator,
                 )
