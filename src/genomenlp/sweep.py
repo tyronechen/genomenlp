@@ -80,9 +80,9 @@ def main():
     parser.add_argument('--partition_percent', type=int, default=100,
                         help='only sweep on a percentage of data (int!). \
                         the percentage will be rounded off depending on \
-                        the closest split. for example, 30% will be \
+                        the closest split. for example, 30 will be \
                         rounded to a split of int(100/30)=3, so the \
-                        percentage will be ~33%. defaults to sweeping \
+                        percentage will be ~33. defaults to sweeping \
                         on the full dataset (DEFAULT: 100).')   
     parser.add_argument('--metric_opt', type=str, default="eval/f1",
                         help='score to maximise [ eval/accuracy | \
