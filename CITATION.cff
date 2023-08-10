@@ -17,7 +17,7 @@ authors:
   orcid: "https://orcid.org/0000-0003-0181-6258"
 
 title: "genomicBERT and data-free deep-learning model evaluation"
-version: 2.1.0
+version: latest
 doi: 10.5281/zenodo.8135590
 date-released: 2023-04-30
 url: "https://doi.org/10.5281/zenodo.8135590"
