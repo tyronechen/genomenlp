@@ -26,31 +26,26 @@ def _gzip_iterator(infile_paths, break_size: int=None, case: str=None):
                 else:
                     for read in infile:
                         for i in range(0, len(read), break_size):
-                            print(read[i:i+break_size].sequence)
                             yield read[i:i+break_size].sequence
             if case == "upper":
                 if break_size == None:
                     for read in infile:
                         read = read.sequence.upper()
-                        print(read)
                         yield read
                 else:
                     for read in infile:
                         read = read.sequence.upper()
                         for i in range(0, len(read), break_size):
-                            print(read[i:i+break_size].sequence)
                             yield read[i:i+break_size].sequence
             if case == "lower":
                 if break_size == None:
                     for read in infile:
                         read = read.sequence.lower()
-                        print(read)
                         yield read
                 else:
                     for read in infile:
                         read = read.sequence.lower()
                         for i in range(0, len(read), break_size):
-                            print(read[i:i+break_size].sequence)
                             yield read[i:i+break_size].sequence
 
 def main():
