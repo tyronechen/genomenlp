@@ -16,11 +16,42 @@ from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
 from utils import _cite_me
 
-def _gzip_iterator(infile_paths):
+def _gzip_iterator(infile_paths, break_size: int=None, case: str=None):
     for path in infile_paths:
         with screed.open(path) as infile:
-            for read in infile:
-                yield read.sequence
+            if case == None:
+                if break_size == None:
+                    for read in infile:
+                        yield read.sequence
+                else:
+                    for read in infile:
+                        for i in range(0, len(read), break_size):
+                            print(read[i:i+break_size].sequence)
+                            yield read[i:i+break_size].sequence
+            if case == "upper":
+                if break_size == None:
+                    for read in infile:
+                        read = read.sequence.upper()
+                        print(read)
+                        yield read
+                else:
+                    for read in infile:
+                        read = read.sequence.upper()
+                        for i in range(0, len(read), break_size):
+                            print(read[i:i+break_size].sequence)
+                            yield read[i:i+break_size].sequence
+            if case == "lower":
+                if break_size == None:
+                    for read in infile:
+                        read = read.sequence.lower()
+                        print(read)
+                        yield read
+                else:
+                    for read in infile:
+                        read = read.sequence.lower()
+                        for i in range(0, len(read), break_size):
+                            print(read[i:i+break_size].sequence)
+                            yield read[i:i+break_size].sequence
 
 def main():
     parser = argparse.ArgumentParser(
@@ -32,6 +63,10 @@ def main():
                         help='path to tokeniser.json file to save or load data')
     parser.add_argument('-v', '--vocab_size', type=int, default=32000,
                         help='select vocabulary size (DEFAULT: 32000)')
+    parser.add_argument('-b', '--break_size', type=int, default=None,
+                        help='split long reads, keep all by default (DEFAULT: None)')
+    parser.add_argument('-c', '--case', type=str, default=None,
+                        help='change case, retain original by default (DEFAULT: None)') 
     parser.add_argument('-s', '--special_tokens', type=str, nargs="+",
                         default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
                         help='assign special tokens, eg space and pad tokens \
@@ -43,6 +78,8 @@ def main():
     infile_paths = args.infile_paths
     tokeniser_path = args.tokeniser_path
     vocab_size = args.vocab_size
+    break_size = args.break_size
+    case = args.case
     special_tokens = args.special_tokens
     example_seq = args.example_seq
 
@@ -66,7 +103,7 @@ def main():
     if infile_paths:
         tokeniser = SentencePieceUnigramTokenizer()
         tokeniser.train_from_iterator(
-            _gzip_iterator(infile_paths),
+            _gzip_iterator(infile_paths, break_size, case),
             unk_token="<unk>",
             vocab_size=vocab_size,
             show_progress=True,
