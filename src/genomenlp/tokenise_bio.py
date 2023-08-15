@@ -19,34 +19,18 @@ from utils import _cite_me
 def _gzip_iterator(infile_paths, break_size: int=None, case: str=None):
     for path in infile_paths:
         with screed.open(path) as infile:
-            if case == None:
-                if break_size == None:
-                    for read in infile:
-                        yield read.sequence
+            for read in infile:
+                sequence = read.sequence
+                if case == "upper":
+                    sequence = sequence.upper()
+                elif case == "lower":
+                    sequence = sequence.lower() # test 
+
+                if break_size is None:
+                    yield sequence
                 else:
-                    for read in infile:
-                        for i in range(0, len(read), break_size):
-                            yield read[i:i+break_size].sequence
-            if case == "upper":
-                if break_size == None:
-                    for read in infile:
-                        read = read.sequence.upper()
-                        yield read
-                else:
-                    for read in infile:
-                        read = read.sequence.upper()
-                        for i in range(0, len(read), break_size):
-                            yield read[i:i+break_size].sequence
-            if case == "lower":
-                if break_size == None:
-                    for read in infile:
-                        read = read.sequence.lower()
-                        yield read
-                else:
-                    for read in infile:
-                        read = read.sequence.lower()
-                        for i in range(0, len(read), break_size):
-                            yield read[i:i+break_size].sequence
+                    for i in range(0, len(sequence), break_size):
+                        yield sequence[i:i+break_size]
 
 def main():
     parser = argparse.ArgumentParser(
