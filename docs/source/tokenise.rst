@@ -65,10 +65,16 @@ For empirical tokenisation, the next step is to run ``create_dataset_bio.py``. R
                           path to files with biological seqs split by line
     -t TOKENISER_PATH, --tokeniser_path TOKENISER_PATH
                           path to tokeniser.json file to save or load data
+    -v VOCAB_SIZE, --vocab_size VOCAB_SIZE
+                          select vocabulary size (DEFAULT: 32000)
+    -b BREAK_SIZE, --break_size BREAK_SIZE
+                          split long reads, keep all by default (DEFAULT: None)
+    -c CASE, --case CASE  change case, retain original by default (DEFAULT: None)
     -s SPECIAL_TOKENS [SPECIAL_TOKENS ...], --special_tokens SPECIAL_TOKENS [SPECIAL_TOKENS ...]
-                          special tokens assigned
+                          assign special tokens, eg space and pad tokens 
+                          (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])
     -e EXAMPLE_SEQ, --example_seq EXAMPLE_SEQ
-                          show token to seq map for an example sequence
+                          show token to seq map for a sequence (DEFAULT: None)
 
 Conventional k-mers
 +++++++++++++++++++

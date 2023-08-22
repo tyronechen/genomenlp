@@ -50,9 +50,9 @@ def main():
                         default=["<s>", "</s>", "<unk>", "<pad>", "<mask>"],
                         help='assign special tokens, eg space and pad tokens \
                         (DEFAULT: ["<s>", "</s>", "<unk>", "<pad>", "<mask>"])')
-    parser.add_argument('-e', '--example_seq', type=str, default="AACCGGTT",
+    parser.add_argument('-e', '--example_seq', type=str, default=None,
                         help='show token to seq map for a sequence \
-                        (DEFAULT: AACCGGTT)')
+                        (DEFAULT: None)')
     args = parser.parse_args()
     infile_paths = args.infile_paths
     tokeniser_path = args.tokeniser_path
