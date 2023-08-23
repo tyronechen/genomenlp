@@ -495,16 +495,16 @@ strategy, parameters and search space are passed in as a ``json`` file.
 
     # sweep parameters
     {
-      'method': 'random',
-      'name': 'sweep',
-      'metric': {
-      'goal': 'maximize',
-      'name': 'eval/f1'
-    },
-    'parameters': {
-      'batch_size': {'values': [5, 10, 15]},
-      'epochs': {'values': [1, 2, 3, 4, 5]},
-      'lr': {'max': 0.1, 'min': 0.0001}
+      "method": "random",
+      "name": "sweep",
+      "metric": {
+        "goal": "maximize",
+        "name": "eval/f1"
+      },
+      "parameters": {
+        "batch_size": {"values": [5, 10, 15]},
+        "epochs": {"values": [1, 2, 3, 4, 5]},
+        "lr": {"max": 0.1, "min": 0.0001}
       }
     }
 
@@ -653,7 +653,7 @@ specific case study. Note that the input is almost identical to
 
 .. code-block:: json
 
-  '{
+  {
     "output_dir": "./sweep_out/random",
     "overwrite_output_dir": false,
     "do_train": false,
@@ -757,7 +757,7 @@ specific case study. Note that the input is almost identical to
     "torchdynamo": null,
     "ray_scope": "last",
     "ddp_timeout": 1800
-  }'
+  }
 
 .. raw:: html
 
