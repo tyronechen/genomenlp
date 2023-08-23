@@ -504,7 +504,7 @@ strategy, parameters and search space are passed in as a ``json`` file.
       "parameters": {
         "batch_size": {"values": [5, 10, 15]},
         "epochs": {"values": [1, 2, 3, 4, 5]},
-        "lr": {"max": 0.1, "min": 0.0001}
+        "learning_rate": {"max": 0.1, "min": 0.0001}
       }
     }
 

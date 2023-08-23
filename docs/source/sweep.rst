@@ -59,7 +59,7 @@ Sweep parameters and search space should be passed in as a ``json`` file.
    <details>
    <summary><a>Example hyperparameter.json file</a></summary>
 
-.. code-block:: python
+.. code-block:: json
 
   {
     "name" : "random",

@@ -242,7 +242,7 @@ Embedding::
    <details>
    <summary><a>Example hyperparameter.json file</a></summary>
 
-.. code-block:: python
+.. code-block:: json
 
   {
     "name" : "random",
