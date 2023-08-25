@@ -35,6 +35,7 @@ Conventional k-mers
 
 For k-mers, ``HuggingFace``-like dataset files will be written to disk in the same operation. This can be loaded directly into a "conventional" deep learning pipeline.
 
+However, the file is not split into partitions. You can use it directly if you already have other partitions corresponding to training, testing and validation data. If not, you will need to create a dataset in the next stage, using the ``tokeniser.json`` file generated in this step. 
 
 Notes
 -----

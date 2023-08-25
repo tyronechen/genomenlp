@@ -188,6 +188,7 @@ Conventional k-mers pathway::
 
   # LABEL must match INFILE_PATH! assume that one fasta file has one seq class
   kmerise_bio -i [INFILE_PATH ... ] -t TOKENISER_PATH -k KMER_SIZE -l [LABEL ... ] -c CHUNK -o OUTFILE_DIR
+  create_dataset_bio <INFILE_SEQS_1> <INFILE_SEQS_2> <TOKENISER_PATH> -c CHUNK -o OUTFILE_DIR
 
 Embedding pathway (input files here are ``csv`` created from previous step)::
 
