@@ -16,7 +16,7 @@ from tokenizers import SentencePieceUnigramTokenizer
 from transformers import PreTrainedTokenizerFast
 from utils import _cite_me
 
-def _gzip_iterator(infile_paths, break_size: int=None, case: str=None):
+def _gzip_iterator(infile_paths, break_size: int=0, case: str=None):
     for path in infile_paths:
         with screed.open(path) as infile:
             for read in infile:
@@ -26,7 +26,7 @@ def _gzip_iterator(infile_paths, break_size: int=None, case: str=None):
                 elif case == "lower":
                     sequence = sequence.lower() # test 
 
-                if break_size is None:
+                if break_size == 0:
                     yield sequence
                 else:
                     for i in range(0, len(sequence), break_size):
@@ -42,8 +42,8 @@ def main():
                         help='path to tokeniser.json file to save or load data')
     parser.add_argument('-v', '--vocab_size', type=int, default=32000,
                         help='select vocabulary size (DEFAULT: 32000)')
-    parser.add_argument('-b', '--break_size', type=int, default=None,
-                        help='split long reads, keep all by default (DEFAULT: None)')
+    parser.add_argument('-b', '--break_size', type=int, default=0,
+                        help='split long reads, keep all by default (DEFAULT: 0)')
     parser.add_argument('-c', '--case', type=str, default=None,
                         help='change case, retain original by default (DEFAULT: None)') 
     parser.add_argument('-s', '--special_tokens', type=str, nargs="+",
