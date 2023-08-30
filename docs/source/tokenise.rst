@@ -77,6 +77,113 @@ For empirical tokenisation, the next step is to run ``create_dataset_bio.py``. R
     -e EXAMPLE_SEQ, --example_seq EXAMPLE_SEQ
                           show token to seq map for a sequence (DEFAULT: None)
 
+Handling long reads
+*******************
+
+The original word segmentation algorithm was designed for sentences in human language. In biology, a chromosome can be formulated as a single sentence. In such cases, empirical tokenisation breaks if a sequence length of greater than ~3-4 Mbp is provided.
+
+Since there is a limit to sequence length, here we explore the feasability of subsampling sequences as a workaround. We obtain a small genome which can be tokenised fully as a control, and split its genome into different contig lengths to get a collection of smaller sequences. We then compare the (a) empirical token weights and (b) token identity across different contig lengths.
+
+We choose the *Haemophilus influenzae* genome since it can be fully tokenised::
+
+  #!/bin/sh
+  # download Haemophilus influenzae genome
+  curl -OJX GET "https://api.ncbi.nlm.nih.gov/datasets/v2alpha/genome/accession/GCF_000931575.1/download?include_annotation_type=GENOME_FASTA,GENOME_GFF,RNA_FASTA,CDS_FASTA,PROT_FASTA,SEQUENCE_REPORT&filename=GCF_000931575.1.zip" -H "Accept: application/zip"
+  unzip GCF_000931575.1.zip
+  cp ncbi_dataset/data/GCF_000931575.1/GCF_000931575.1_ASM93157v1_genomic.fna ./
+  gzip GCF_000931575.1_ASM93157v1_genomic.fna
+
+
+We split the genome into different contig lengths spanning 2**9 to 2**20, and retain the full genome as a control::
+
+  # NOTE: this will take some time!
+  # 0 for ground truth
+  for len in 0 512 1024 2048 4096 8192 16384 32768 65536 131072 262144 524288 1048576; do
+    tokenise_bio \
+    -i GCF_000931575.1_ASM93157v1_genomic.fna.gz \
+    -v 10000 \
+    -t tokens_contigs.${len}.10000.json \
+    -c upper \
+    -b ${len}
+
+  # you will see the tokeniser files generated as a result
+  ls *10000.json
+
+
+Next, we examine the token weights for each contig length compared to the whole genome. Token weights and outliers are exported, along with a boxplot showing variance of the weight distribution::
+
+  # compare the ground truth tokens vs each contig length
+  for i in *json; do 
+    compare_empirical_tokens \
+      tokens_contigs.0.10000.json \
+      $i \
+      -t ${i}.tsv \
+      -o ${i}.pdf 
+  done
+
+  # compare all contig lengths together
+  compare_empirical_tokens *json -t all.tsv -o all.pdf
+
+
+.. NOTE::
+
+  You can use ``compare_empirical_tokens`` with any combination of ``json`` files as a quality control metric on your own data.
+
+
+We examine the results and observe two key patterns:
+- Token weight variance from ground truth decreases with longer contigs
+- Token identity overlap with ground truth increases with longer contigs
+
+However, the variance in weight and identity overlap is not extremely large, even with very short contigs. Across different contig lengths, lower weighted tokens tend to be more variable, while highly weighted tokens are more stable.
+
+Token set identity per contig length:
+
+=============  =================  ===================
+Contig length  Token overlap      Percentage identity
+=============  =================  ===================
+  0              10000 (control)    100.00
+  512            7570               75.70          
+  1024           8131               81.31
+  2048           8585               85.85
+  4096           8849               88.49
+  8192           9057               90.57
+  16384          9196               91.96
+  32768          9349               93.49
+  65536          9422               94.22
+  131072         9512               95.12
+  262144         9593               95.93
+  524288         9618               96.18
+  1048576        9674               96.74
+=============  =================  ===================
+
+
+Due to size, only a subset of plots are shown for reference. The full plots can be generated from the above code.
+
+Full genome length (highest weighted tokens):
+
+.. image: fig/contig_0_high.png
+
+Full genome length (lowest weighted tokens):
+
+.. image: fig/contig_0_low.png
+
+Long contigs 1048576 bp (highest weighted tokens):
+
+.. image: fig/contig_1048576_high.png
+
+Long contigs 1048576 bp (lowest weighted tokens):
+
+.. image: fig/contig_1048576_low.png
+
+Short contigs 512 bp (highest weighted tokens):
+
+.. image: fig/contig_512_high.png
+
+Short contigs 512 bp (lowest weighted tokens):
+
+.. image: fig/contig_512_low.png
+
+
 Conventional k-mers
 +++++++++++++++++++
 
