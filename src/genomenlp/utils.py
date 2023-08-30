@@ -27,7 +27,7 @@ from transformers import PreTrainedTokenizerFast, AutoModel, TrainingArguments
 # resolves issue of truncated csv
 np.set_printoptions(threshold=np.inf)
 
-def _init_sp_tokeniser(vocab=None):
+def _init_sp_tokeniser(vocab=None, weight=-1):
     """Helper function to generate SP-like formatted tokeniser from k-mers"""
     tokeniser = dict()
     tokeniser["version"] = "1.0"
@@ -102,7 +102,86 @@ def _init_sp_tokeniser(vocab=None):
         ['<unk>', 0.0],
         ['<pad>', 0.0],
         ['<mask>', 0.0]
-        ] + [[i, -1] for i in vocab]
+        ] + [[i, weight] for i in vocab]
+    tokeniser["model"] = model
+    return tokeniser
+
+def _init_sp_tokeniser_variable_weights(vocab_weight=None):
+    """Helper function to generate SP-like formatted tokeniser from k-mers with variable weights"""
+    tokeniser = dict()
+    tokeniser["version"] = "1.0"
+    tokeniser["truncation"] = None
+    tokeniser["padding"] = None
+    tokeniser["added_tokens"] = [
+        {
+            'id': 0,
+            'content': '<s>',
+            'single_word': False,
+            'lstrip': False,
+            'rstrip': False,
+            'normalized': False,
+            'special': True
+        },
+        {
+            'id': 1,
+            'content': '</s>',
+            'single_word': False,
+            'lstrip': False,
+            'rstrip': False,
+            'normalized': False,
+            'special': True
+        },
+        {
+            'id': 2,
+            'content': '<unk>',
+            'single_word': False,
+            'lstrip': False,
+            'rstrip': False,
+            'normalized': False,
+            'special': True
+        },
+        {
+            'id': 3,
+            'content': '<pad>',
+            'single_word': False,
+            'lstrip': False,
+            'rstrip': False,
+            'normalized': False,
+            'special': True
+        },
+        {
+            'id': 4,
+            'content': '<mask>',
+            'single_word': False,
+            'lstrip': False,
+            'rstrip': False,
+            'normalized': False,
+            'special': True
+        }
+    ]
+    tokeniser["normalizer"] = {
+        'type': 'Sequence',
+        'normalizers': [
+            {'type': 'Nmt'},
+            {'type': 'NFKC'},
+            {'type': 'Replace', 'pattern': {'Regex': ' {2,}'}, 'content': ' '}
+            ]
+        }
+    tokeniser["pre_tokenizer"] = {
+        'type': 'Metaspace', 'replacement': '▁', 'add_prefix_space': True
+        }
+    tokeniser["post_processor"] = None
+    tokeniser["decoder"] = tokeniser["pre_tokenizer"]
+    model = dict()
+    model["type"] = "Unigram"
+    model["unk_id"] = 2
+    model["vocab"] = [
+        ['<s>', 0.0],
+        ['</s>', 0.0],
+        ['<unk>', 0.0],
+        ['<pad>', 0.0],
+        ['<mask>', 0.0]
+        ] + [[k, v] for k, v in tqdm(vocab_weight.items(), desc="Generating tokens:")]
     tokeniser["model"] = model
     return tokeniser
 
