@@ -127,7 +127,7 @@ Next, we examine the token weights for each contig length compared to the whole 
 
 .. NOTE::
 
-  You can use ``compare_empirical_tokens`` with any combination of ``json`` files as a quality control metric on your own data.
+  You can use ``compare_empirical_tokens`` with any combination of ``json`` files as a quality control metric on your own data. We suggest a contig length of 1M as an upper limit.
 
 
 We examine the results and observe two key patterns:
@@ -161,27 +161,27 @@ Due to size, only a subset of plots are shown for reference. The full plots can 
 
 Full genome length (highest weighted tokens):
 
-.. image: fig/contig_0_high.png
+.. image:: fig/contig_0_high.png
 
 Full genome length (lowest weighted tokens):
 
-.. image: fig/contig_0_low.png
+.. image:: fig/contig_0_low.png
 
 Long contigs 1048576 bp (highest weighted tokens):
 
-.. image: fig/contig_1048576_high.png
+.. image:: fig/contig_1048576_high.png
 
 Long contigs 1048576 bp (lowest weighted tokens):
 
-.. image: fig/contig_1048576_low.png
+.. image:: fig/contig_1048576_low.png
 
 Short contigs 512 bp (highest weighted tokens):
 
-.. image: fig/contig_512_high.png
+.. image:: fig/contig_512_high.png
 
 Short contigs 512 bp (lowest weighted tokens):
 
-.. image: fig/contig_512_low.png
+.. image:: fig/contig_512_low.png
 
 
 Conventional k-mers
