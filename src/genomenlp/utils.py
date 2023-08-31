@@ -276,12 +276,12 @@ def _cite_me(is_tex: bool=False):
         manuscript = """
         Cite our manuscript here:
 
-            Chen, T., Tyagi, N., Chauhan, S., Peleg, A.Y. and Tyagi, S., 2023. genomicBERT and data-free deep-learning model evaluation. bioRxiv, pp.2023-05.
+            Chen, T., Tyagi, N., Chauhan, S., Peleg, A.Y. and Tyagi, S., 2023. genomicBERT and data-free deep-learning model evaluation. bioRxiv, pp.2023-05. https://doi.org/10.1101/2023.05.31.542682
         """
         zenodo = """
         Cite our software here:
 
-            Chen, Tyrone, Tyagi, Navya, Chauhan, Sarthak, Peleg, Anton Y., & Tyagi, Sonika. (2023). genomicBERT and data-free deep-learning model evaluation (latest). Zenodo. https://doi.org/10.5281/zenodo.8135590
+            Chen, T., Tyagi, N., Chauhan, S., Peleg, A.Y. and Tyagi, S., 2023. genomicBERT and data-free deep-learning model evaluation (latest). Zenodo. https://doi.org/10.5281/zenodo.8135590
         """
 
     print(manuscript)
