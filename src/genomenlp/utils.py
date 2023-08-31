@@ -234,43 +234,56 @@ def _compute_metrics(eval_preds):
     metrics.update(f1_metric.compute(predictions=preds, references=labels, average='weighted'))
     return metrics
 
-def _cite_me():
+def _cite_me(is_tex: bool=False):
     """Print the citation for this paper before and after each run"""
     # to be added once the manuscript is published
-    manuscript = """
-    Cite our manuscript here:
+    if is_tex:
+        manuscript = """
+        Cite our manuscript here:
 
-        @article{chen2023genomicbert,
-            title={genomicBERT and data-free deep-learning model evaluation},
-            author={Chen, Tyrone and Tyagi, Navya and Chauhan, Sarthak and Peleg, Anton Y and Tyagi, Sonika},
-            journal={bioRxiv},
-            month={jun},
-            pages={2023--05},
-            year={2023},
-            publisher={Cold Spring Harbor Laboratory},
-            doi={10.1101/2023.05.31.542682},
-            url={https://doi.org/10.1101/2023.05.31.542682}
-        }
-    """
-    zenodo = """
-    Cite our software here:
+            @article{chen2023genomicbert,
+                title={genomicBERT and data-free deep-learning model evaluation},
+                author={Chen, Tyrone and Tyagi, Navya and Chauhan, Sarthak and Peleg, Anton Y and Tyagi, Sonika},
+                journal={bioRxiv},
+                month={jun},
+                pages={2023--05},
+                year={2023},
+                publisher={Cold Spring Harbor Laboratory},
+                doi={10.1101/2023.05.31.542682},
+                url={https://doi.org/10.1101/2023.05.31.542682}
+            }
+        """
+        zenodo = """
+        Cite our software here:
 
-        @software{tyrone_chen_2023_8135591,
-            author       = {Tyrone Chen and
-                            Navya Tyagi and
-                            Sarthak Chauhan and
-                            Anton Y. Peleg and
-                            Sonika Tyagi},
-            title        = {{genomicBERT and data-free deep-learning model 
-                            evaluation}},
-            month        = jul,
-            year         = 2023,
-            publisher    = {Zenodo},
-            version      = {latest},
-            doi          = {10.5281/zenodo.8135590},
-            url          = {https://doi.org/10.5281/zenodo.8135590}
-        }
-    """
+            @software{tyrone_chen_2023_8135591,
+                author       = {Tyrone Chen and
+                                Navya Tyagi and
+                                Sarthak Chauhan and
+                                Anton Y. Peleg and
+                                Sonika Tyagi},
+                title        = {{genomicBERT and data-free deep-learning model 
+                                evaluation}},
+                month        = jul,
+                year         = 2023,
+                publisher    = {Zenodo},
+                version      = {latest},
+                doi          = {10.5281/zenodo.8135590},
+                url          = {https://doi.org/10.5281/zenodo.8135590}
+            }
+        """
+    else:
+        manuscript = """
+        Cite our manuscript here:
+
+            Chen, T., Tyagi, N., Chauhan, S., Peleg, A.Y. and Tyagi, S., 2023. genomicBERT and data-free deep-learning model evaluation. bioRxiv, pp.2023-05.
+        """
+        zenodo = """
+        Cite our software here:
+
+            Chen, Tyrone, Tyagi, Navya, Chauhan, Sarthak, Peleg, Anton Y., & Tyagi, Sonika. (2023). genomicBERT and data-free deep-learning model evaluation (latest). Zenodo. https://doi.org/10.5281/zenodo.8135590
+        """
+
     print(manuscript)
     print(zenodo)
     pass
