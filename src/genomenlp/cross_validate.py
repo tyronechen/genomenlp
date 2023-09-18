@@ -94,8 +94,8 @@ def main():
                         help='score to maximise [ eval/accuracy | \
                         eval/validation | eval/loss | eval/precision | \
                         eval/recall ] (DEFAULT: eval/f1)')
-    parser.add_argument('--override_output_dir', action="store_true",
-                        help='override output directory (DEFAULT: OFF)')
+    parser.add_argument('--overwrite_output_dir', action="store_true",
+                        help='overwrite output directory (DEFAULT: OFF)')
     parser.add_argument('--no_shuffle', action="store_false",
                         help='turn off random shuffling (DEFAULT: SHUFFLE)')
     parser.add_argument('--wandb_off', action="store_false",
@@ -120,7 +120,7 @@ def main():
     project_name = args.project_name
     metric_opt = args.metric_opt
     main_output_dir = args.output_dir
-    override_output_dir = args.override_output_dir
+    overwrite_output_dir = args.overwrite_output_dir
     config_from_run = args.config_from_run
     if wandb_state is True:
         wandb.login()
@@ -158,19 +158,19 @@ def main():
         tokeniser.pad_token = tokeniser.eos_token
 
     if config_from_run != None:
-        run_id = "/".join([entity_name, project_name, config_from_run])
-        api = wandb.Api()
+        run_id = config_from_run
+        api = wandb.Api(timeout=10000)
         run = api.run(run_id)
-        [i.download(root=config_from_run, replace=True) for i in run.files()]
-        hyperparameter_file = "/".join([config_from_run, "training_args.bin"])
+        [i.download(root=main_output_dir, replace=True) for i in run.files()]
+        hyperparameter_file = "/".join([main_output_dir, "training_args.bin"])
         warn("".join([
             "Loading existing hyperparameters from: ", run_id, "!",
             "This overrides all HfTrainingArguments, including",
             " --hyperparameter_file and --tokeniser_path!"
             ]))
-        model_path = config_from_run
+        model_path = main_output_dir
 
-        tokeniser_path = "/".join([config_from_run, "tokenizer.json"])
+        tokeniser_path = "/".join([main_output_dir, "tokenizer.json"])
         special_tokens = ["<s>", "</s>", "<unk>", "<pad>", "<mask>"]
         print("USING EXISTING TOKENISER:", tokeniser_path)
         tokeniser = PreTrainedTokenizerFast(
@@ -247,7 +247,7 @@ def main():
             args_train = torch.load(hyperparameter_file)
     else:
         args_train = load_args_cmd(args)
-    if override_output_dir == True:
+    if overwrite_output_dir == True:
         warn(" ".join(["\nOVERRIDE ARGS, OUTPUT TO:", main_output_dir, "\n"]))
         args_train.output_dir = main_output_dir
     else:
