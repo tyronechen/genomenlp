@@ -61,10 +61,10 @@ Sweep parameters and search space should be passed in as a ``json`` file.
 ::
 
   python ../src/cross_validate.py -h
-  usage: cross_validate.py [-h] [--tokeniser_path TOKENISER_PATH] [-t TEST] [-v VALID] [-m MODEL_PATH] [-d DEVICE]
-                          [-s VOCAB_SIZE] [-f HYPERPARAMETER_FILE] [-l LABEL_NAMES [LABEL_NAMES ...]] [-k KFOLDS]
-                          [-e ENTITY_NAME] [-g GROUP_NAME] [-p PROJECT_NAME] [-c CONFIG_FROM_RUN] [-o METRIC_OPT]
-                          [--override_output_dir] [--no_shuffle] [--wandb_off]
+  usage: cross_validate.py [-h] [--tokeniser_path TOKENISER_PATH] [-t TEST] [-v VALID] [-m MODEL_PATH] [-o OUTPUT_DIR]
+                          [-d DEVICE] [-s VOCAB_SIZE] [-f HYPERPARAMETER_FILE] [-l LABEL_NAMES [LABEL_NAMES ...]] 
+                          [-k KFOLDS] [-e ENTITY_NAME] [-g GROUP_NAME] [-p PROJECT_NAME] [-c CONFIG_FROM_RUN] 
+                          [-o METRIC_OPT] [--overwrite_output_dir] [--no_shuffle] [--wandb_off]
                           train format
 
   Take HuggingFace dataset and perform cross validation.
@@ -83,6 +83,8 @@ Sweep parameters and search space should be passed in as a ``json`` file.
     -m MODEL_PATH, --model_path MODEL_PATH
                           path to pretrained model dir. this should contain files such as [ pytorch_model.bin,
                           config.yaml, tokeniser.json, etc ]
+    -o OUTPUT_DIR, --output_dir OUTPUT_DIR
+                          specify path for output (DEFAULT: ./cval_out)                          
     -d DEVICE, --device DEVICE
                           choose device [ cpu | cuda:0 ] (DEFAULT: detect)
     -s VOCAB_SIZE, --vocab_size VOCAB_SIZE
@@ -105,8 +107,13 @@ Sweep parameters and search space should be passed in as a ``json`` file.
     METRIC_OPT, --metric_opt METRIC_OPT
                           score to maximise [ eval/accuracy | eval/validation | eval/loss | eval/precision |
                           eval/recall ] (DEFAULT: eval/f1)
-    --override_output_dir
+    --overwrite_output_dir
                           override output directory (DEFAULT: OFF)
     --no_shuffle          turn off random shuffling (DEFAULT: SHUFFLE)
     --wandb_off           run hyperparameter tuning using the wandb api and log training in real time online (DEFAULT:
                           ON)
+
+
+.. NOTE::
+
+  If using the ``--config_from_run`` option, note that this inherits the original output directory paths. Make sure you specify a new ``--output_dir`` and enable the ``--overwrite_output_dir`` flag. This also inherits the device specifications (gpu or cpu).
