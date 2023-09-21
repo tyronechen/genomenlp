@@ -50,3 +50,7 @@ Usage
                           model_path)
     -a ALPHA_MAX, --alpha_max ALPHA_MAX
                           max alpha value to plot (DEFAULT: 8)
+
+.. NOTE::
+
+  If you are intending to download a model and the directory path matches the one on your disk, you will need to rename or remove it since it will first use local files as a priority!

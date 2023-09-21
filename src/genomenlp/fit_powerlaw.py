@@ -24,8 +24,8 @@ def main():
         Acts as a performance metric which is independent of data. \
         For more information refer here: https://arxiv.org/pdf/2202.02842.pdf'
         )
-    parser.add_argument('-m', '--model_path', type=str, nargs="+", default=None,
-                        help='path to trained model directory')
+    parser.add_argument('model_path', type=str, nargs="+",
+                        help='path to trained model online configureation or local directory (local has priority!)')
     parser.add_argument('-o', '--output_dir', type=str, default="./powerlaw_out",
                         help='path to output metrics directory \
                         (DEFAULT: same as model_path)')
@@ -58,6 +58,7 @@ def main():
             if os.path.exists(i):
                 print("Use model files from:", i)
                 model_path_final.append(i)
+                warn("If you are intending to download a model and the directory path matches the one on your disk, you will need to rename or remove it since it will first use local files as a priority!")
             else:
                 print("Downloading model files from wandb:", i)
                 api = wandb.Api(timeout=10000)
