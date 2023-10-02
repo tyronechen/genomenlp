@@ -11,7 +11,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/downloads.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
 
-# genomeNLP: Genome recoding for Machine Learning Usage incorporating genomicBERT
+# genomeNLP: An end-to-end pipeline for applying modern Natural Language Processing and deep learning techniques to nucleic acid and protein sequence data.
 
 > **NOTE**: The [main repository is on github](https://github.com/tyronechen/genomenlp) but is also mirrored on [gitlab](https://gitlab.com/tyagilab/genomenlp). Please submit any issues to the main github repository only.
 
