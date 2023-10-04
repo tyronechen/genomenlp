@@ -256,7 +256,8 @@ def main():
     tokeniser.pad_token = tokeniser.eos_token
 
     if config_from_run != None:
-        run_id = "/".join([entity_name, project_name, config_from_run])
+        # run_id = "/".join([entity_name, project_name, config_from_run])
+        run_id = config_from_run
         api = wandb.Api()
         run = api.run(run_id)
         run.file("training_args.bin").download(root=config_from_run, replace=True)

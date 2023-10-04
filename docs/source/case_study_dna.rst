@@ -36,13 +36,23 @@ The files can be downloaded here for `non promoter sequences`_ and `promoter seq
 
 .. _promoter sequences: https://raw.githubusercontent.com/khanhlee/bert-promoter/main/data/promoter.fasta
 
+.. code-block:: bash
+
+      # create the directory structure
+      cd ~
+      mkdir -p data src results
+      cd data
+      curl -L -O "https://raw.githubusercontent.com/khanhlee/bert-promoter/main/data/non_promoter.fasta"
+      curl -L -O "https://raw.githubusercontent.com/khanhlee/bert-promoter/main/data/promoter.fasta"
+      gzip non_promoter.fasta
+      gzip promoter.fasta
+
 .. code-block:: text
 
       HEADER:   >PCK12019 FORWARD 639002 STRONG
       SEQUENCE: TAGATGTCCTTGATTAACACCAAAAT
       HEADER:   >ECK12066 REVERSE 3204175 STRONG
       SEQUENCE: AAAGAAAATAATTAATTTTACAGCTG
-
 
 .. NOTE::
 
@@ -77,7 +87,11 @@ deep learning pipeline.
 .. code-block:: bash
 
       # Empirical tokenisation pathway
-      $ tokenise_bio -i promoter.fasta.gz non_promoter.fasta.gz -t tokens.json
+      cd ~/src
+      tokenise_bio \
+        -i ../data/promoter.fasta.gz \
+           ../data/non_promoter.fasta.gz \
+        -t ../data/tokens.json
       # -i INFILE_PATHS path to files with biological seqs split by line
       # -t TOKENISER_PATH path to tokeniser.json file to save or load data
 
@@ -115,11 +129,11 @@ reformatted dataset with the desired structure.
 .. code-block:: bash
 
       # Empirical tokenisation pathway
-      $ create_dataset_bio \
-          promoter.fasta.gz \
-          non_promoter.fasta.gz \
-          tokens.json \
-          -o data.csv
+      create_dataset_bio \
+        ../data/promoter.fasta.gz \
+        ../data/non_promoter.fasta.gz \
+        ../data/tokens.json \
+        -o ../data/
       # -o OUTFILE_DIR write dataset to directory as 
       #   [ csv \| json \| parquet \| dir/ ] (DEFAULT:"hf_out/")
       # default datasets split: train 90%, test 5% and validation set 5%
@@ -174,8 +188,8 @@ These parameters heavily influence the learning process and subsequent
 performance of the model. 
 
 For this reason, hyperparameter sweeps are normally carried out to 
-systematically test combinations of hyperparameters, with the end goal of identifying the 
-configuration that produces the best model performance.
+systematically test combinations of hyperparameters, with the end goal of 
+identifying the configuration that produces the best model performance.
 Usually, sweeps are carried out on a small partition of the data only
 to maximise efficiency of compute resources, but it is not uncommon to
 perform sweeps on entire datasets. Various strategies, 
@@ -192,44 +206,79 @@ by pasting your API key.
 
 .. code-block:: bash
 
-    $ wandb login
-    $ wandb: Paste an API key from your profile, and hit enter and hit enter or press ctrl+c to quit :
+    wandb login
+    wandb: Paste an API key from your profile, and hit enter and hit enter or press ctrl+c to quit:
 
 
 Now, we use the ``sweep`` tool to perform hyperparameter sweep. Search
 strategy, parameters and search space are passed in as a ``json`` file.
+An example is below. If no sweep configuration is provided, default configuration will apply.
 
-.. code-block:: text
+.. raw:: html
 
-    # sweep parameters
-    {
+   <details>
+   <summary><a>Default hyperparameter sweep settings if none are provided. You can copy this file and edit it for your own use if needed.</a></summary>
+
+.. code-block:: json
+
+  {
+      "name": "random",
       "method": "random",
-      "name": "sweep",
       "metric": {
-        "goal": "maximize",
-        "name": "eval/f1"
-      },
+          "name": "eval/f1",
+          "goal": "maximize"
+          },
       "parameters": {
-        "batch_size": {"values": [5, 10, 15]},
-        "epochs": {"values": [1, 2, 3, 4, 5]},
-        "learning_rate": {"max": 0.1, "min": 0.0001}
+          "epochs": {
+              "values": [1, 2, 3, 4, 5]
+              },
+          "dropout": {
+            "values": [0.15, 0.2, 0.25, 0.3, 0.4]
+          },
+          "batch_size": {
+              "values": [8, 16, 32, 64]
+              },
+          "learning_rate": {
+              "distribution": "log_uniform_values",
+              "min": 1e-5,
+              "max": 1e-1
+          },
+          "weight_decay": {
+              "values": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+          },
+          "decay": {
+              "values": [1e-5, 1e-6, 1e-7]
+          },
+          "momentum": {
+              "values": [0.8, 0.9, 0.95]
+          }
+      },
+      "early_terminate": {
+          "type": "hyperband",
+          "s": 2,
+          "eta": 3,
+          "max_iter": 27
       }
-    }
+  }
 
+
+.. raw:: html
+
+   </details>
 
 .. code-block:: bash
 
-    $ sweep \
-        data.csv/train.parquet \
-        parquet \
-        tokens.json \
-        -t data.csv/test.parquet \
-        -v data.csv/valid.parquet \
-        -w hyperparams.json \
-        -e tyagilab \   # <- edit as needed
-        -p testm3 \     # <- edit as needed
-        -l labels \
-        -n 3
+    sweep \
+      ../data/train.parquet \
+      parquet \
+      ../data/tokens.json \
+      -t ../data/test.parquet \
+      -v ../data/valid.parquet \
+      -w ../data/hyperparams.json \   # optional
+      -e entity_name \       # <- edit as needed
+      -p project_name \      # <- edit as needed
+      -l labels \
+      -n 3
     # -t TEST, path to [ csv \| csv.gz \| json \| parquet ] file
     # -v VALID, path to [ csv \| csv.gz \| json \| parquet ] file
     # -w HYPERPARAMETER_SWEEP, run a hyperparameter sweep with config from file
@@ -335,24 +384,28 @@ specific case study. Note that the input is almost identical to
 
 .. code-block:: bash
 
-    $ train \
-        data.csv/train.parquet \
-        parquet \
-        tokens.json \
-        -t data.csv/test.parquet \
-        -v data.csv/valid.parquet \
-        -w hyperparams.json \
-        -e tyagilab \   # <- edit as needed
-        -p testm3 \     # <- edit as needed
-        -l labels \
-        -n 3
+    train \
+      ../data/train.parquet \
+      parquet \
+      ../data/tokens.json \
+      -t ../data/test.parquet \
+      -v ../data/valid.parquet \
+      --output_dir ../results/train_out \
+      -f ../data/hyperparams.json \  # <- you can pass in hyperparameters
+      -c entity_name/project_name/run_id \  # <- wandb overrides hyperparameters
+      -e entity_name \   # <- edit as needed
+      -p project_name    # <- edit as needed
     # -t TEST, path to [ csv \| csv.gz \| json \| parquet ] file
     # -v VALID, path to [ csv \| csv.gz \| json \| parquet ] file
     # -w HYPERPARAMETER_SWEEP, run a hyperparameter sweep with config from file
     # -e ENTITY_NAME, wandb team name (if available).
     # -p PROJECT_NAME, wandb project name (if available)
     # -l LABEL_NAMES, provide column with label names (DEFAULT: "").
-    # -n SWEEP_COUNT, run n hyperparameter sweeps
+
+.. NOTE::
+
+  *Remove the ``-e entity_name`` line if you do not have a group setup in wandb*
+
 
 .. raw:: html
 
@@ -511,22 +564,41 @@ the model is trained and tested on these individual subsets.
 
 .. code-block:: bash
 
-    $ cross_validate \
-        data.csv/train.parquet parquet \
-        -t data.csv/test.parquet \
-        -v data.csv/valid.parquet \
-        -e tyagilab \
-        -p testm3 \
-        --config_from_run p9do3gzl \  # id of best performing run
-        --output_dir cv \
-        -m sweep_out \
-        -l labels \
-        -k 3
+    cross_validate \
+      ../data/train.parquet parquet \
+      -t ../data/test.parquet \
+      -v ../data/valid.parquet \
+      -e entity_name \              # <- edit as needed
+      -p project_name \             # <- edit as needed
+      --config_from_run p9do3gzl \  # id OR directory of best performing run
+      --output_dir ../results/cv \
+      -m ../results/sweep_out \     # <- overridden by --config_from_run
+      -l labels \
+      -k 8
     # --config_from_run WANDB_RUN_ID, *best run id*
     # –-output_dir OUTPUT_DIR
     # -l label_names
     # -k KFOLDS, run n number of kfolds
 
+    cross_validate \
+      ../data/train.parquet parquet \
+      -t ../data/test.parquet \
+      -v ../data/valid.parquet \
+      -e tyagilab \              
+      -p foobar \                
+      -c tyagilab/foobar/kixu82co \  
+      -o ../results/cv \
+      -m ../results/sweep_out \
+      -l labels \
+      -k 8
+
+.. NOTE::
+
+  *If both ``model_path`` and ``config_from_run`` are specified, ``config_from_run`` overrides*
+
+.. NOTE::
+
+  *Remove the ``-e entity_name`` line if you do not have a group setup in wandb*
 
 .. code-block:: text
 
@@ -582,7 +654,9 @@ can be compared against the user-generated one.
 
 .. code-block:: bash
 
-    $ fit_powerlaw -m sweep_out/model_files -o fit
+    fit_powerlaw \
+      ../results/sweep_out/model_files \
+      -o ../results/fit
     # -m MODEL_PATH, path to trained model directory
     # -o OUTPUT_DIR, path to output metrics directory
 
@@ -591,8 +665,8 @@ This tool outputs a variety of plots in the specified directory.
 
 .. code-block:: bash
 
-    $ ls fit
-    > alpha_hist.pdf  alpha_plot.pdf  model_files/
+    ls ../results/fit
+    # alpha_hist.pdf  alpha_plot.pdf  model_files/
 
 Very broadly, the overlaid bar plots allow the user to compare the
 performance of different models on the same scale. A narrow band
@@ -626,14 +700,13 @@ to a deeper understanding of the underlying biological system.
 
 .. code-block:: bash
 
-    $ interpret \
-        sweep_out/model_files \
-        subset.fasta \
-        -l PROMOTER NON-PROMOTER \
-        -o model_interpret
-    # try this
-    $ gzip -cd promoter.fasta.gz | head -n10 > subset.fasta
-    $ interpret sweep_out/model_files subset.fasta -o model_interpret
+    gzip -cd ../data/promoter.fasta.gz | \
+      head -n10 > ../data/subset.fasta
+    interpret \
+      ../results/sweep_out/model_files \
+      ../data/subset.fasta \
+      -l PROMOTER NON-PROMOTER \
+      -o ../results/model_interpret
     # -t TOKENISER_PATH, path to tokeniser.json file to load data
     # -o OUTPUT_DIR, specify path for output
 
