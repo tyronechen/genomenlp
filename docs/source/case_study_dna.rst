@@ -1,6 +1,9 @@
 genomeNLP: Case study of DNA
 ++++++++++++++++++++++++++++
 
+.. image:: https://binderhub.rc.nectar.org.au/badge_logo.svg
+ :target: https://binderhub.rc.nectar.org.au/v2/gh/tyronechen/genomenlp.git/HEAD?labpath=src%2Fjupyter%2Fcase_study_dna.ipynb
+
 4. Setting up a biological dataset
 ==================================
 

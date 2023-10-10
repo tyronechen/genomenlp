@@ -10,6 +10,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/version.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/downloads.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
+[![Binder](https://binderhub.rc.nectar.org.au/badge_logo.svg)](https://binderhub.rc.nectar.org.au/v2/gh/tyronechen/genomenlp.git/HEAD?labpath=src%2Fjupyter%2Fcase_study_dna.ipynb)
 
 # genomeNLP: An end-to-end pipeline for applying modern Natural Language Processing and deep learning techniques to nucleic acid and protein sequence data.
 
