@@ -103,7 +103,7 @@ For empirical tokenisation, the next step is to run ``create_dataset_bio.py``. R
                           pool tokens using [ mean | median | max | min ] (DEFAULT: None)
     -o OUTFILE_PATH, --outfile_path OUTFILE_PATH
                           path to output boxplot showing token weights distribution
-                          
+
 
 Handling long reads
 *******************

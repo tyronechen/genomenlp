@@ -311,7 +311,7 @@ RNA case study
 Protein case study
 ------------------
 
-.. :doc:`case_study_protein`
+:doc:`case_study_protein`
 
 
 Citation
