@@ -16,12 +16,6 @@ various diseases, including cancer and neurodegenerative disorders. Identifying 
 these proteins helps in studying disease mechanisms and developing potential therapeutic strategies.
 **Therefore, our aim is to classify sequences into DNA binding protein and RNA binding protein categories.**
 
-.. NOTE::
-
-  `A more detailed description of the data is available here.
-  <https://github.com/khanhlee/bert-promoter>`__
-
-
 Our data is available in the form of ``fasta`` files. ``fasta`` files are a common 
 format for storing biological sequence data. They typically contain headers that 
 provide information about the sequence, followed by  the sequence itself. They can 
