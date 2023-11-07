@@ -12,7 +12,7 @@
 [![Anaconda-Server Badge](https://anaconda.org/tyronechen/genomenlp/badges/platforms.svg)](https://anaconda.org/tyronechen/genomenlp)
 [![Binder](https://binderhub.rc.nectar.org.au/badge_logo.svg)](https://binderhub.rc.nectar.org.au/v2/gh/tyronechen/genomenlp.git/HEAD?labpath=src%2Fjupyter%2Fcase_study_dna.ipynb)
 
-# genomeNLP: An end-to-end pipeline for applying modern Natural Language Processing and deep learning techniques to nucleic acid and protein sequence data.
+# genomeNLP - From sequences to words: a computational linguistics toolkit for genomic data.
 
 > **NOTE**: The [main repository is on github](https://github.com/tyronechen/genomenlp) but is also mirrored on [gitlab](https://gitlab.com/tyagilab/genomenlp). Please submit any issues to the main github repository only.
 
