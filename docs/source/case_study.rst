@@ -14,6 +14,17 @@ All other documentation not on this page is provided under a `CC-BY-3.0 AU licen
 
 .. _CC-BY-3.0 AU license: https://creativecommons.org/licenses/by/3.0/au/
 
+Workshops and tutorials landing page
+====================================
+
+- `INCOB 2023`_
+- AJCAI 2023 (coming soon)
+- K-CAP 2023 (coming soon)
+
+.. _INCOB 2023: https://genomenlp-tutorials.readthedocs.io/en/latest/incob_2023.html
+.. _AJCAI 2023
+.. _K-CAP 2023 
+
 Case studies per molecule type
 ==============================
 
