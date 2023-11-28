@@ -18,12 +18,12 @@ Workshops and tutorials landing page
 ====================================
 
 - `INCOB 2023`_
-- AJCAI 2023 (coming soon)
-- K-CAP 2023 (coming soon)
+- `K-CAP 2023`_
 
+.. - AJCAI 2023 (coming soon)
 .. _INCOB 2023: https://genomenlp-tutorials.readthedocs.io/en/latest/incob_2023.html
 .. _AJCAI 2023
-.. _K-CAP 2023 
+.. _K-CAP 2023: https://kcap-2023.readthedocs.io/en/latest/ 
 
 Case studies per molecule type
 ==============================
