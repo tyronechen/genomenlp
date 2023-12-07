@@ -41,15 +41,15 @@ def main():
         "NC_000023.11",
         "NC_000024.10",
     ]
-    seqs_len = 2**20
+    seqs_len = 2**9
     seqs_per_file = 2**16
 
-    for chr in tqdm(keep, desc="Segmenting chromosomes"):
+    for chr in keep:
         seq = db[chr]
-        print("Chr len:", len(seq))
+        print("Chr len:", seq.name, len(seq))
         count_entry = 0
         count_files = 1
-        for chunk in chunkstring(str(seq.sequence).upper(), seqs_len):
+        for chunk in tqdm(chunkstring(str(seq.sequence).upper(), seqs_len), desc="Segmenting chr"):
             count_entry += 1
             fname = "".join([outfile_dir, "/", seq.name, "_", str(count_files), ".fasta"])
             if count_entry == seqs_per_file:
