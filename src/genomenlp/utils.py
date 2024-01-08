@@ -1387,12 +1387,18 @@ def split_datasets(dataset: DatasetDict, outfile_dir: str, train: float,
     assert train + test + val == 1, "Proportions of datasets must sum to 1!"
     if train == 1 and test == 0 and val == 0:
         print("Output all data as one block only (no test/val splits)")
+        data = DatasetDict({
+            'train': dataset,
+            })
+        print("Writing training set to disk...")
+        dataset_to_disk(data["train"], outfile_dir, "train")
+        return data      
     else:
         train_split = 1 - train
         test_split = 1 - test / (test + val)
         # val_split = 1 - val / (test + val)
+        train = dataset.train_test_split(test_size=train_split, shuffle=shuffle)
 
-    train = dataset.train_test_split(test_size=train_split, shuffle=shuffle)
     if val > 0:
         test_valid = train['test'].train_test_split(test_size=test_split, shuffle=shuffle)
         data = DatasetDict({
@@ -1416,13 +1422,6 @@ def split_datasets(dataset: DatasetDict, outfile_dir: str, train: float,
         dataset_to_disk(data["train"], outfile_dir, "train")
         print("Writing testing set to disk...")
         dataset_to_disk(data["test"], outfile_dir, "test")        
-        return data
-    if train == 1 and test == 0 and val == 0:
-        data = DatasetDict({
-            'train': train['train'],
-            })
-        print("Writing training set to disk...")
-        dataset_to_disk(data["train"], outfile_dir, "train")
         return data
 
 def plot_hist(compare: list, outfile_path: str=None):

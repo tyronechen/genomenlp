@@ -17,7 +17,7 @@ name = "genomenlp"  # Required
 #
 # For a discussion on single-sourcing the version, see
 # https://packaging.python.org/guides/single-sourcing-package-version/
-version = "2.8.6"  # Required
+version = "2.8.7"  # Required
 
 # This is a one-line description or tagline of what your project does. This
 # corresponds to the "Summary" metadata field:
@@ -102,6 +102,7 @@ dependencies = [ # Optional
   "datasets==2.10.1",
   "gensim==4.2.0",
   "hyperopt==0.2.7",
+  "libarchive==3.6.2",
   "matplotlib==3.5.2",
   "pandas==1.4.2",
   "pytorch==1.10.0",
