@@ -74,7 +74,7 @@ def main():
     parser.add_argument('-s', '--vocab_size', type=int, default=32000,
                         help='vocabulary size for model configuration')
     parser.add_argument('-f', '--hyperparameter_file', type=str, default="",
-                        help='provide torch.bin or json file of hyperparameters. \
+                        help='provide training_args.bin or json file of hyperparameters. \
                         NOTE: if given, this overrides all HfTrainingArguments! \
                         This is overridden by --config_from_run!')
     parser.add_argument('-l', '--label_names', type=str, default="", nargs="+",

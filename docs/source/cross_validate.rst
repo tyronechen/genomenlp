@@ -90,7 +90,7 @@ Sweep parameters and search space should be passed in as a ``json`` file.
     -s VOCAB_SIZE, --vocab_size VOCAB_SIZE
                           vocabulary size for model configuration
     -f HYPERPARAMETER_FILE, --hyperparameter_file HYPERPARAMETER_FILE
-                          provide torch.bin or json file of hyperparameters. NOTE: if given, this overrides all
+                          provide training_args.bin or json file of hyperparameters. NOTE: if given, this overrides all
                           HfTrainingArguments! This is overridden by --config_from_run!
     -l LABEL_NAMES [LABEL_NAMES ...], --label_names LABEL_NAMES [LABEL_NAMES ...]
                           provide column with label names (DEFAULT: "").

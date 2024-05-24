@@ -80,7 +80,7 @@ The full list of arguments is truncated, and only arguments added by this packag
                           vocabulary size for model configuration (default:
                           32000)
     -f HYPERPARAMETER_FILE, --hyperparameter_file HYPERPARAMETER_FILE
-                          provide torch.bin or json file of hyperparameters.
+                          provide training_args.bin or json file of hyperparameters.
                           NOTE: if given, this overrides all
                           HfTrainingArguments! This is overridden by
                           --config_from_run! (default: )
