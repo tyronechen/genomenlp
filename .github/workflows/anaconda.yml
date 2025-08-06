@@ -51,8 +51,8 @@ jobs:
       - name: Setup conda, mamba, boa, then build for multiple OS and test package
         shell: bash -l {0}
         run: | 
-          wget "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
-          yes yes | bash Mambaforge-$(uname)-$(uname -m).sh 
+          wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+          yes yes | bash Miniforge3-$(uname)-$(uname -m).sh 
           source /home/runner/work/genomenlp/genomenlp/yes/etc/profile.d/conda.sh
           mamba init
           which mamba
@@ -75,8 +75,8 @@ jobs:
 #       - name: install mamba
 #         shell: bash -l {0}
 #         run: | 
-#           wget "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
-#           yes yes | bash Mambaforge-$(uname)-$(uname -m).sh 
+#           wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+#           yes yes | bash Miniforge3-$(uname)-$(uname -m).sh 
 #           which mamba
 
 #       - name: create boa build env
