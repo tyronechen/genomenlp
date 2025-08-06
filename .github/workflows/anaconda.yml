@@ -30,7 +30,7 @@ jobs:
           miniforge-version: latest
           activate-environment: build
           environment-file: etc/build.yml
-          python-version: 3.10  # Updated from 3.9 to avoid typing issues
+          python-version: "3.9"  # Updated from 3.9 to avoid typing issues
           use-mamba: true
 
       - name: Install conda-build
