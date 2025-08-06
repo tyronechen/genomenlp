@@ -3,12 +3,7 @@ name: Build
 on:
   push:
     tags:
-      - 'v*'
-  #   branches:
-  #     - '**'
-  # pull_request:
-  #   branches:
-  #     - '**'    
+      - 'v*'  
   workflow_dispatch: # allows you to trigger manually
 
 jobs:
@@ -26,86 +21,48 @@ jobs:
         
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-        
-#       - name: create boa build env
-#         uses: conda-incubator/setup-miniconda@v2
-#         with:
-#           auto-update-conda: true
-#           python-version: 3.9
-#           # mamba-version: "*"
-#           # use-mamba: true
-#           channels: conda-forge,bioconda,tyronechen,defaults
-#           channel-priority: true
-#           auto-activate-base: true
-#           activate-environment: base
-#           # environment-file: etc/build.yml
-#           shell: bash -l {0}
-#           run: |
-#             mamba env create -f etc/build.yml -n build -y
-#             conda install -n base --override-channels -c conda-forge mamba -y
-#             mamba env create -f etc/build.yml -n build
-#             mamba activate build
-#             mamba list
+        uses: actions/checkout@v4  # Updated to v4
 
-      - name: Setup conda, mamba, boa, then build for multiple OS and test package
-        shell: bash -l {0}
-        run: | 
-          wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-          yes yes | bash Miniforge3-$(uname)-$(uname -m).sh 
-          source /home/runner/work/genomenlp/genomenlp/yes/etc/profile.d/conda.sh
-          mamba init
-          which mamba
-          mamba env create -f etc/build.yml -n build
-          mamba activate build
-          mamba init
-          mamba list
-          conda activate build
-          conda list
-          mkdir build
-          conda mambabuild -c conda-forge -c tyronechen --output-folder build src/genomenlp/
+      - name: Setup Miniforge
+        uses: conda-incubator/setup-miniconda@v3  # Use the action instead
+        with:
+          miniforge-variant: Miniforge3
+          miniforge-version: latest
+          activate-environment: build
+          environment-file: etc/build.yml
+          python-version: 3.10  # Updated from 3.9 to avoid typing issues
+          use-mamba: true
+
+      - name: Install conda-build
+        run: |
+          mamba install conda-build anaconda-client conda-verify -y
+
+      - name: Build package
+        run: |
+          mkdir -p build
+          # Use conda build instead of conda mambabuild
+          conda build -c conda-forge -c tyronechen --output-folder build src/genomenlp/
+
+      - name: Convert and upload packages
+        run: |
           USER=tyronechen
           builds=$(find build -name "genomenlp*tar.bz2")
-          conda-convert ${builds} -p all -o build
+          
+          # Convert for multiple platforms
+          for build in ${builds}; do
+            conda convert ${build} -p all -o build
+          done
+          
+          # Upload all builds
           builds=$(find build -name "genomenlp*tar.bz2")
-          for i in ${builds}; do anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u ${USER} ${i} --force; done
+          for build in ${builds}; do
+            anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u ${USER} ${build} --force
+          done
+
+      - name: Test installation
+        run: |
+          # Create a fresh environment to test the package
+          mamba create -n test-env python=3.10 -y
+          mamba activate test-env
           mamba install -c tyronechen -c conda-forge genomenlp -y
           sweep -h
-
-#       - name: install mamba
-#         shell: bash -l {0}
-#         run: | 
-#           wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-#           yes yes | bash Miniforge3-$(uname)-$(uname -m).sh 
-#           which mamba
-
-#       - name: create boa build env
-#         shell: bash -l {0}
-#         run: | 
-#           which mamba
-#           mamba env create -f etc/build.yml -n build
-#           mamba activate build
-#           mamba list           
-
-#       - name: build genomenlp for linux (main)
-#         shell: bash -l {0}
-#         run: |
-#           mamba activate build
-#           mkdir build
-#           conda mambabuild -c conda-forge -c tyronechen --output-folder build src/genomenlp/
-
-#       - name: generate builds for other operating systems and push
-#         shell: bash -l {0}
-#         run: |
-#           mamba activate build
-#           USER=tyronechen
-#           builds=$(find build -name "genomenlp*tar.bz2")
-#           conda-convert ${builds} -p all -o build
-#           builds=$(find build -name "genomenlp*tar.bz2")
-#           for i in ${builds}; do anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u ${USER} ${i} --force; done
-          
-#       - name: check if package install OK
-#         shell: bash -l {0}
-#         run: |
-#           mamba activate build
-#           sweep -h
